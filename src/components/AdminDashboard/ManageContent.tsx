@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+// src/components/AdminDashboard/ManageContent.tsx
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { FlashEvent, Activity, Competition } from '../../types';
 import EventInfoManager from './EventInfoManager';
 import ActivitiesManager from './ActivitiesManager';
 import CompetitionsManager from './CompetitionsManager';
 import GalleryManager from './GalleryManager';
+import ConfirmUpdateModal from './ConfirmUpdateModal';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../services/firebase';
 import { Tab } from '@headlessui/react';
@@ -17,8 +20,10 @@ const ManageContent: React.FC = () => {
     aboutFlash: '',
     activities: [],
     competitions: [],
-    gallery: []
+    gallery: [],
+    eventDate: '' 
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (flashEvent) {
@@ -75,12 +80,15 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, activities: updatedActivities }));
   };
 
-  const handleAddActivity = () => {
+  const handleAddActivity = useCallback(() => {
     setFormData(prev => ({
       ...prev,
-      activities: [...prev.activities, { name: '', description: '', image: '' }]
+      activities: [
+        ...prev.activities,
+        { name: '', description: '', image: '' }
+      ]
     }));
-  };
+  }, []);
 
   const handleRemoveActivity = (index: number) => {
     const updatedActivities = formData.activities.filter((_, i) => i !== index);
@@ -93,12 +101,15 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
   };
 
-  const handleAddCompetition = () => {
+  const handleAddCompetition = useCallback(() => {
     setFormData(prev => ({
       ...prev,
-      competitions: [...prev.competitions, { name: '', description: '', rules: [], icon: '' }]
+      competitions: [
+        ...prev.competitions,
+        { name: '', description: '', rules: [], icon: '' }
+      ]
     }));
-  };
+  }, []);
 
   const handleRemoveCompetition = (index: number) => {
     const updatedCompetitions = formData.competitions.filter((_, i) => i !== index);
@@ -128,14 +139,22 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, gallery: updatedGallery }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleOpenModal = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleConfirmUpdate = async () => {
     try {
       await updateData(formData);
-      alert('Content updated successfully!');
+      // Tidak perlu alert di sini, karena pesan sukses akan ditampilkan di modal
     } catch (error) {
       console.error('Error updating content:', error);
-      alert('Failed to update content. Please try again.');
+      // Anda bisa menangani error di sini jika diperlukan
     }
   };
 
@@ -148,7 +167,7 @@ const ManageContent: React.FC = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Manage Content</h1>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleOpenModal} className="space-y-8">
         <Tab.Group>
           <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
             {['Event Info', 'Activities', 'Competitions', 'Gallery'].map((category) => (
@@ -215,6 +234,11 @@ const ManageContent: React.FC = () => {
           </button>
         </div>
       </form>
+      <ConfirmUpdateModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmUpdate}
+      />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import FlashActivities from '../components/FlashActivities';
 import CompetitionList from '../components/CompetitionList';
 import Registration from '../components/Registration';
 import Gallery from '../components/Gallery';
+import MapLocation from '../components/MapLocation';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -22,6 +23,7 @@ const Home: React.FC = () => {
         <Gallery />
         {/* <ContactForm /> */}
       </main>
+      <MapLocation />
       <Footer />
     </div>
   );

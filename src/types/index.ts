@@ -1,11 +1,12 @@
 export interface FlashEvent {
-    title: string;
-    heroImage: string;
-    aboutFlash: string;
-    activities: Activity[];
-    competitions: Competition[];
-    gallery: string[];
-  }
+  title: string;
+  heroImage: string;
+  aboutFlash: string;
+  eventDate: string; // Format: "YYYY-MM-DDTHH:mm"
+  activities: Activity[];
+  competitions: Competition[];
+  gallery: string[];
+}
   
   export interface Activity {
     name: string;
