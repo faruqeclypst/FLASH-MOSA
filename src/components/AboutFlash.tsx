@@ -1,3 +1,5 @@
+//src/components/AboutFlash.tsx
+
 import React from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';

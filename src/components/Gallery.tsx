@@ -35,7 +35,7 @@ const Gallery = () => {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-blue-100 to-purple-100">
+    <section id="gallery" className="py-16 bg-gradient-to-b from-blue-100 to-purple-100">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-extrabold mb-8 text-center text-blue-800">
           Competition Gallery

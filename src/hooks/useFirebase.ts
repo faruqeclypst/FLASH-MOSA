@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue, set, push } from 'firebase/database';
+import { ref, onValue, set, push, remove } from 'firebase/database';
 import { db } from '../services/firebase';
 
 export const useFirebase = <T>(path: string) => {
@@ -36,5 +36,13 @@ export const useFirebase = <T>(path: string) => {
     }
   };
 
-  return { data, loading, error, updateData, pushData };
+  const deleteData = async (id: string) => {
+    try {
+      await remove(ref(db, `${path}/${id}`));
+    } catch (error) {
+      setError(error as Error);
+    }
+  };
+
+  return { data, loading, error, updateData, pushData, deleteData };
 };

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,25 +17,40 @@ const Header: React.FC = () => {
         setIsScrolled(false);
       }
     };
-
     window.addEventListener('scroll', handleScroll);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    setIsOpen(false);
+    if (location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-blue-600' : 'bg-transparent'}`}>
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
         <div className="hidden md:flex space-x-4">
-          <Link to="/" className="text-white hover:text-blue-200">Home</Link>
-          <Link to="/about" className="text-white hover:text-blue-200">About</Link>
-          <Link to="/competitions" className="text-white hover:text-blue-200">Competitions</Link>
-          <Link to="/gallery" className="text-white hover:text-blue-200">Gallery</Link>
-          <Link to="/contact" className="text-white hover:text-blue-200">Contact</Link>
-          {user && <Link to="/admin" className="text-white hover:text-blue-200">Admin</Link>}
+          <button onClick={() => scrollToSection('home')} className="text-white hover:text-blue-200">Home</button>
+          <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>
+          <button onClick={() => scrollToSection('competitions')} className="text-white hover:text-blue-200">Competitions</button>
+          <button onClick={() => scrollToSection('gallery')} className="text-white hover:text-blue-200">Gallery</button>
+          <button onClick={() => scrollToSection('contact')} className="text-white hover:text-blue-200">Contact</button>
         </div>
         <div className="md:hidden">
           <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
@@ -49,12 +66,11 @@ const Header: React.FC = () => {
       </nav>
       {isOpen && (
         <div className="md:hidden bg-blue-600">
-          <Link to="/" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>Home</Link>
-          <Link to="/about" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>About</Link>
-          <Link to="/competitions" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>Competitions</Link>
-          <Link to="/gallery" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>Gallery</Link>
-          <Link to="/contact" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>Contact</Link>
-          {user && <Link to="/admin" className="block py-2 px-4 text-white hover:bg-blue-700" onClick={() => setIsOpen(false)}>Admin</Link>}
+          <button onClick={() => scrollToSection('home')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Home</button>
+          <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">About</button>
+          <button onClick={() => scrollToSection('competitions')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Competitions</button>
+          <button onClick={() => scrollToSection('gallery')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Gallery</button>
+          <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Contact</button>
         </div>
       )}
     </header>

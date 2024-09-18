@@ -1,20 +1,81 @@
-import React from 'react';
+// src/components/Dashboard.tsx
+
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getDatabase, ref, onValue } from 'firebase/database';
+import LogoutButton from './LogoutButton';
+import '../../styles/adminDashboard.css';
+import { DashboardStats, Registration } from '../../types';
 
 const Dashboard: React.FC = () => {
+  const [stats, setStats] = useState<DashboardStats>({
+    totalRegistrations: 0,
+    pendingRegistrations: 0,
+    approvedRegistrations: 0,
+    rejectedRegistrations: 0,
+  });
+
+  useEffect(() => {
+    const db = getDatabase();
+    const registrationsRef = ref(db, 'registrations');
+    
+    onValue(registrationsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const registrations = Object.values(data) as Registration[];
+        const totalRegistrations = registrations.length;
+        const pendingRegistrations = registrations.filter(r => r.status === 'pending').length;
+        const approvedRegistrations = registrations.filter(r => r.status === 'approved').length;
+        const rejectedRegistrations = registrations.filter(r => r.status === 'rejected').length;
+
+        setStats({
+          totalRegistrations,
+          pendingRegistrations,
+          approvedRegistrations,
+          rejectedRegistrations,
+        });
+      }
+    });
+  }, []);
+
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <Link to="/admin/manage-registrations" className="bg-blue-600 text-white p-6 rounded-lg text-center hover:bg-blue-700 transition duration-300">
-          <h2 className="text-2xl font-bold mb-2">Manage Registrations</h2>
-          <p>Review and approve competition registrations</p>
-        </Link>
-        <Link to="/admin/manage-content" className="bg-green-600 text-white p-6 rounded-lg text-center hover:bg-green-700 transition duration-300">
-          <h2 className="text-2xl font-bold mb-2">Manage Content</h2>
-          <p>Update website content and settings</p>
-        </Link>
-      </div>
+    <div className="admin-dashboard">
+      <header className="dashboard-header">
+        <h1>Admin Dashboard</h1>
+        <LogoutButton />
+      </header>
+      
+      <main className="dashboard-content">
+        <div className="dashboard-stats">
+          <div className="stat-card">
+            <h3>Total Registrations</h3>
+            <p>{stats.totalRegistrations}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Pending Registrations</h3>
+            <p>{stats.pendingRegistrations}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Approved Registrations</h3>
+            <p>{stats.approvedRegistrations}</p>
+          </div>
+          <div className="stat-card">
+            <h3>Rejected Registrations</h3>
+            <p>{stats.rejectedRegistrations}</p>
+          </div>
+        </div>
+
+        <div className="dashboard-actions">
+          <Link to="/admin/manage-registrations" className="action-card">
+            <h2>Manage Registrations</h2>
+            <p>View and manage user registrations</p>
+          </Link>
+          <Link to="/admin/manage-content" className="action-card">
+            <h2>Manage Content</h2>
+            <p>Edit, delete, or moderate posts</p>
+          </Link>
+        </div>
+      </main>
     </div>
   );
 };
