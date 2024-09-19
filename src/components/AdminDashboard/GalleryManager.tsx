@@ -1,3 +1,5 @@
+// File: GalleryManager.tsx
+
 import React from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 
@@ -37,8 +39,8 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {gallery.map((image, index) => (
-            <div key={index} className="relative group">
-              <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200">
+            <div key={index} className="relative group aspect-w-1 aspect-h-1">
+              <div className="w-full h-full overflow-hidden rounded-lg bg-gray-200">
                 <img 
                   src={image} 
                   alt={`Gallery ${index + 1}`} 

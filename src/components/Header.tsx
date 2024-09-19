@@ -42,7 +42,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-blue-600' : 'bg-transparent'}`}>
+    <header className={`fixed w-full font-bold z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900' : 'bg-transparent'}`}>
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
         <div className="hidden md:flex space-x-4">

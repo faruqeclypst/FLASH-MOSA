@@ -1,12 +1,29 @@
 // src/components/Countdown.tsx
 import React, { useState, useEffect } from 'react';
+import '../styles/countdown.css';
 
 interface CountdownProps {
   eventDate: string;
 }
 
+interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
+
+const CountdownUnit: React.FC<{ value: number; unit: string }> = ({ value, unit }) => {
+  return (
+    <div className="countdown-unit">
+      <div className="countdown-value">{value.toString().padStart(2, '0')}</div>
+      <div className="countdown-label font-bold">{unit}</div>
+    </div>
+  );
+};
+
 const Countdown: React.FC<CountdownProps> = ({ eventDate }) => {
-  const [timeLeft, setTimeLeft] = useState({
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,
     minutes: 0,
@@ -35,12 +52,9 @@ const Countdown: React.FC<CountdownProps> = ({ eventDate }) => {
   }, [eventDate]);
 
   return (
-    <div className="flex justify-center space-x-4 mb-6">
+    <div className="countdown-container">
       {Object.entries(timeLeft).map(([unit, value]) => (
-        <div key={unit} className="text-center">
-          <div className="text-5xl font-bold">{value}</div>
-          <div className="text-sm uppercase">{unit}</div>
-        </div>
+        <CountdownUnit key={unit} value={value} unit={unit} />
       ))}
     </div>
   );

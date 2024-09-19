@@ -64,13 +64,6 @@ const AboutFlash: React.FC = () => {
                   Unparalleled Performance
                 </li>
               </ul>
-              <motion.button
-                className="px-8 py-4 bg-blue-600 text-white rounded-full font-semibold text-xl hover:bg-blue-700 transition duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explore FLASH
-              </motion.button>
             </div>
           </motion.div>
           <motion.div 
@@ -83,7 +76,7 @@ const AboutFlash: React.FC = () => {
               <motion.img 
                 src={flashEvent.aboutImage || "/api/placeholder/600/400"}
                 alt="About FLASH" 
-                className="w-auto h-auto max-w-full max-h-[500px] object-contain filter drop-shadow-2xl"
+                className="w-auto h-auto max-w-full max-h-[1000px] object-contain filter drop-shadow-2xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1, delay: 0.5 }}

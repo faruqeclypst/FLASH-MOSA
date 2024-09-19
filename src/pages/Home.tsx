@@ -8,6 +8,7 @@ import CompetitionList from '../components/CompetitionList';
 import Registration from '../components/Registration';
 import Gallery from '../components/Gallery';
 import MapLocation from '../components/MapLocation';
+import CTASection from '../components/CTASection';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -19,10 +20,11 @@ const Home: React.FC = () => {
         <AboutFlash />
         <FlashActivities />
         <CompetitionList />
-        <Registration />
         <Gallery />
+        <CTASection /> 
         {/* <ContactForm /> */}
       </main>
+      <Registration />
       <MapLocation />
       <Footer />
     </div>

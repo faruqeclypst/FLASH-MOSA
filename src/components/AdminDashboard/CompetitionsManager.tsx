@@ -1,5 +1,3 @@
-// src/components/CompetitionsManager.tsx
-
 import React from 'react';
 import { Competition } from '../../types';
 import { PlusCircle, X, Upload, Plus, Trash2 } from 'lucide-react';
@@ -83,6 +81,22 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                     </label>
                   </div>
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor={`competition-type-${index}`} className="block text-sm font-medium text-gray-700">
+                  Competition Type
+                </label>
+                <select
+                  id={`competition-type-${index}`}
+                  value={competition.type}
+                  onChange={(e) => handleCompetitionChange(index, 'type', e.target.value as 'single' | 'team')}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  required
+                >
+                  <option value="single">Single</option>
+                  <option value="team">Team</option>
+                </select>
               </div>
               
               <textarea

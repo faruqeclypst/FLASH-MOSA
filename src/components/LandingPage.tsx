@@ -10,7 +10,7 @@ const LandingPage: React.FC = () => {
 
   useEffect(() => {
     if (!loading && !error) {
-      const timer = setTimeout(() => setIsLoaded(true), 100);
+      const timer = setTimeout(() => setIsLoaded(true), 500);
       return () => clearTimeout(timer);
     }
   }, [loading, error]);
@@ -22,9 +22,9 @@ const LandingPage: React.FC = () => {
          style={{backgroundImage: flashEvent ? `url(${flashEvent.heroImage})` : 'none'}}>
       <div className="absolute inset-0 bg-black opacity-50"></div>
       <div className={`z-10 text-center text-white transition-all duration-1000 ${isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-        <h1 className="text-4xl md:text-6xl font-bold mb-4">{flashEvent?.title || 'FLASH'} {new Date().getFullYear()}</h1>
+        <h1 className="text-4xl md:text-8xl font-bold mb-4">{flashEvent?.title || 'FLASH'} {new Date().getFullYear()}</h1>
         {flashEvent?.eventDate && <Countdown eventDate={flashEvent.eventDate} />}
-        <p className="text-xl md:text-2xl mb-8">
+        <p className="text-xl md:text-4xl mb-8">
           <TypeAnimation
             sequence={[
               'Future Language and Art for Smart Student of Highschool',
