@@ -7,6 +7,7 @@ import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
 import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 import { format } from 'date-fns'; 
+import emailjs from '@emailjs/browser';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -74,11 +75,39 @@ const ManageRegistrations: React.FC = () => {
   const paginatedRegistrations = filteredRegistrations.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
-    if (registrations && registrations[id].status !== newStatus) {
+    if (registrations && registrations[id] && registrations[id].status !== newStatus) {
       await updateData({ [id]: { ...registrations[id], status: newStatus } });
+  
+      if (newStatus === 'approved') {
+        const registration = registrations[id];
+        const templateParams = {
+          to_email: registration.email,
+          registration_code: registration.registrationCode,
+          is_team: !!registration.teamName,
+          team_name: registration.teamName || '',
+          full_name: registration.name || registration.registrantName || '',
+          competition: registration.competition
+        };
+  
+        console.log('Sending email with params:', templateParams);
+  
+        try {
+          const result = await emailjs.send(
+            'service_plhjddh', // Ganti dengan Service ID dari EmailJS
+            'template_ncnhccm', // Ganti dengan Template ID dari EmailJS
+            templateParams,
+            'OgGooQ4QjfUAOxa3_' // Ganti dengan Public Key dari EmailJS
+          );
+          console.log('Email sent successfully:', result.text);
+        } catch (error) {
+          console.error('Failed to send email:', error);
+        }
+      }
+    } else {
+      console.error('Invalid registration or status change:', { id, newStatus });
     }
   }, [registrations, updateData]);
-
+  
   const handleDelete = useCallback(async () => {
     if (registrationToDelete) {
       await deleteData(registrationToDelete);

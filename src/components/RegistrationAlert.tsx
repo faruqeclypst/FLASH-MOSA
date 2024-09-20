@@ -20,7 +20,7 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose }
       <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
         <h2 className="text-2xl font-bold mb-4 text-blue-600">Pendaftaran Berhasil!</h2>
         <p className="text-gray-700 mb-6">
-          Selamat! Anda sudah melakukan pendaftaran FLASH. Silahkan tunggu email dari panitia untuk info berikutnya!
+          Selamat! Anda sudah melakukan pendaftaran FLASH. Silahkan tunggu email atau WhatsAPP dari panitia Flash untuk info berikutnya!
         </p>
         <button
           onClick={onClose}
