@@ -32,6 +32,11 @@ const RegistrationForm: React.FC = () => {
     }
   }, [selectedCompetition]);
 
+  const generateRegistrationCode = () => {
+    const randomNumber = Math.floor(1000 + Math.random() * 9000);
+    return `FLASH#${randomNumber}`;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -74,25 +79,28 @@ const RegistrationForm: React.FC = () => {
     try {
       let ktsSuratAktifUrl = '';
       let buktiPembayaranUrl = '';
-
+  
       if (ktsSuratAktifFile) {
         ktsSuratAktifUrl = await uploadFile(ktsSuratAktifFile, `kts_surat_aktif/${Date.now()}_${ktsSuratAktifFile.name}`);
       }
-
+  
       if (buktiPembayaranFile) {
         buktiPembayaranUrl = await uploadFile(buktiPembayaranFile, `bukti_pembayaran/${Date.now()}_${buktiPembayaranFile.name}`);
       }
-
+  
+      const registrationCode = generateRegistrationCode();
+  
       const registrationData: Registration = {
         ...formData,
         competition: selectedCompetition?.name || '',
         status: 'pending',
         ktsSuratAktif: ktsSuratAktifUrl,
         buktiPembayaran: buktiPembayaranUrl,
+        registrationCode,
       } as Registration;
-
+  
       await pushData(registrationData);
-      alert('Registration submitted successfully!');
+      alert(`Registration submitted successfully! Your registration code is: ${registrationCode}`);
       setFormData({});
       setTeamMembers(['']);
       setSelectedCompetition(null);
@@ -131,7 +139,7 @@ const RegistrationForm: React.FC = () => {
   const isTeam = selectedCompetition?.type === 'team';
 
   return (
-    <section className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="registration" className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <motion.div
         className="container mx-auto px-4"
         variants={containerVariants}

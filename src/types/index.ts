@@ -27,6 +27,7 @@ export interface Competition {
 }
 export interface Registration {
   id?: string;
+  registrationCode: string;
   competition: string;
   status: 'pending' | 'approved' | 'rejected';
   whatsapp: string;

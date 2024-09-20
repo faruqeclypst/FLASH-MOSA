@@ -3,7 +3,7 @@ import { useFirebase } from '../../hooks/useFirebase';
 import { Registration, Competition } from '../../types';
 import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
-import { FiChevronDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown } from 'react-icons/fi';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -16,14 +16,39 @@ const ManageRegistrations: React.FC = () => {
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
 
   useEffect(() => {
     console.log('Competitions:', competitions); // For debugging
   }, [competitions]);
 
+  const sortRegistrations = useCallback((registrations: [string, Registration][]) => {
+    if (!sortField || sortDirection === null) return registrations;
+  
+    return [...registrations].sort((a, b) => {
+      let aValue = a[1][sortField as keyof Registration] || '';
+      let bValue = b[1][sortField as keyof Registration] || '';
+  
+      // Special handling for 'name' field
+      if (sortField === 'name') {
+        aValue = a[1].teamName || a[1].name || a[1].registrantName || '';
+        bValue = b[1].teamName || b[1].name || b[1].registrantName || '';
+      }
+  
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+  
+      return 0;
+    });
+  }, [sortField, sortDirection]);
+
   useEffect(() => {
     if (registrations) {
-      const filtered = Object.entries(registrations).filter(([_, registration]) => 
+      let filtered = Object.entries(registrations).filter(([_, registration]) => 
         (filterStatus === 'all' || registration.status === filterStatus) &&
         (registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.registrantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,15 +57,15 @@ const ManageRegistrations: React.FC = () => {
          registration.competition.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.city.toLowerCase().includes(searchTerm.toLowerCase()))
       );
+
+      filtered = sortRegistrations(filtered);
       setFilteredRegistrations(filtered);
       setCurrentPage(1);
     }
-  }, [registrations, filterStatus, searchTerm]);
+  }, [registrations, filterStatus, searchTerm, sortField, sortDirection, sortRegistrations]);
 
-  const pageCount = Math.ceil(filteredRegistrations.filter(([_, reg]) => filterStatus === 'all' || reg.status === filterStatus).length / ITEMS_PER_PAGE);
-  const paginatedRegistrations = filteredRegistrations
-    .filter(([_, reg]) => filterStatus === 'all' || reg.status === filterStatus)
-    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const pageCount = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
+  const paginatedRegistrations = filteredRegistrations.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
     if (registrations && registrations[id].status !== newStatus) {
@@ -64,11 +89,28 @@ const ManageRegistrations: React.FC = () => {
     setIsModalOpen(false);
   }, []);
 
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => {
+        if (prev === 'asc') return 'desc';
+        if (prev === 'desc') return null;
+        return 'asc';
+      });
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const renderSortIcon = (field: string) => {
+    if (sortField !== field) return null;
+    if (sortDirection === 'asc') return <FiArrowUp className="inline ml-1" />;
+    if (sortDirection === 'desc') return <FiArrowDown className="inline ml-1" />;
+    return null;
+  };
+
   const renderRegistrationDetails = (registration: Registration) => {
     const isTeam = !!registration.teamName || (registration.teamMembers && registration.teamMembers.length > 0);
-  
-    console.log('Registration:', registration); // For debugging
-    console.log('Is Team:', isTeam); // For debugging
   
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
@@ -78,6 +120,7 @@ const ManageRegistrations: React.FC = () => {
               {isTeam ? 'Informasi Tim' : 'Informasi Peserta'}
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <p><span className="font-medium">Kode Pendaftaran:</span> {registration.registrationCode}</p>
               {isTeam ? (
                 <>
                   <p><span className="font-medium">Nama Pendaftar:</span> {registration.registrantName}</p>
@@ -228,27 +271,39 @@ const ManageRegistrations: React.FC = () => {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="p-3 text-left">No</th>
-                    <th className="p-3 text-left">Nama Lengkap</th>
-                    <th className="p-3 text-left">Kategori</th>
-                    <th className="p-3 text-left">Sekolah</th>
-                    <th className="p-3 text-left">Kompetisi</th>
+                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('registrationCode')}>
+      Kode Pendaftaran {renderSortIcon('registrationCode')}
+    </th>
+                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('name')}>
+                      Nama / Tim {renderSortIcon('name')}
+                    </th>
+                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('schoolCategory')}>
+                      Kategori {renderSortIcon('schoolCategory')}
+                    </th>
+                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('school')}>
+                      Sekolah {renderSortIcon('school')}
+                    </th>
+                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('competition')}>
+                      Kompetisi {renderSortIcon('competition')}
+                    </th>
                     <th className="p-3 text-left">Status</th>
                     <th className="p-3 text-left">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-  {paginatedRegistrations
+                {paginatedRegistrations
     .filter(([_, reg]) => status === 'all' || reg.status === status)
     .map(([id, registration], index) => {
       const isTeam = !!registration.teamName || (registration.teamMembers && registration.teamMembers.length > 0);
       return (
-        <tr key={id} className="border-b hover:bg-gray-50">
-          <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-          <td className="p-3">
-            {isTeam 
-              ? registration.teamName
-              : (registration.name || registration.registrantName || 'N/A')}
-          </td>
+<tr key={id} className="border-b hover:bg-gray-50">
+  <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+  <td className="p-3">{registration.registrationCode}</td>
+  <td className="p-3">
+    {isTeam 
+      ? registration.teamName
+      : (registration.name || registration.registrantName || 'N/A')}
+  </td>
           <td className="p-3">{registration.schoolCategory || 'N/A'}</td>
           <td className="p-3">{registration.school || 'N/A'}</td>
           <td className="p-3">{registration.competition}</td>
@@ -270,47 +325,47 @@ const ManageRegistrations: React.FC = () => {
                 Detail
               </button>
               <Menu as="div" className="relative inline-block text-left">
-                            {({ open }) => (
-                              <>
-                                <Menu.Button className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
-                                  style={{
-                                    backgroundColor: 
-                                      registration.status === 'approved' ? '#34D399' :
-                                      registration.status === 'rejected' ? '#EF4444' : '#FBBF24'
-                                  }}
+                {({ open }) => (
+                  <>
+                    <Menu.Button className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+                      style={{
+                        backgroundColor: 
+                          registration.status === 'approved' ? '#34D399' :
+                          registration.status === 'rejected' ? '#EF4444' : '#FBBF24'
+                      }}
+                    >
+                      {registration.status === 'approved' ? 'Disetujui' : 
+                       registration.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+                      <FiChevronDown
+                        className="w-5 h-5 ml-2 -mr-1 text-white"
+                        aria-hidden="true"
+                      />
+                    </Menu.Button>
+                    {open && (
+                      <Menu.Items static className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                        <div className="px-1 py-1">
+                          {['approved', 'rejected', 'pending'].map((status) => (
+                            <Menu.Item key={status}>
+                              {({ active }) => (
+                                <button
+                                  className={`${
+                                    active ? 'bg-violet-500 text-white' : 'text-gray-900'
+                                  } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                  onClick={() => handleStatusChange(id, status as any)}
                                 >
-                                  {registration.status === 'approved' ? 'Disetujui' : 
-                                   registration.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
-                                  <FiChevronDown
-                                    className="w-5 h-5 ml-2 -mr-1 text-white"
-                                    aria-hidden="true"
-                                  />
-                                </Menu.Button>
-                                {open && (
-                                  <Menu.Items static className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
-                                    <div className="px-1 py-1">
-                                      {['approved', 'rejected', 'pending'].map((status) => (
-                                        <Menu.Item key={status}>
-                                          {({ active }) => (
-                                            <button
-                                              className={`${
-                                                active ? 'bg-violet-500 text-white' : 'text-gray-900'
-                                              } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
-                                              onClick={() => handleStatusChange(id, status as any)}
-                                            >
-                                              {status === 'approved' ? 'Disetujui' : 
-                                               status === 'rejected' ? 'Ditolak' : 'Menunggu'}
-                                            </button>
-                                          )}
-                                        </Menu.Item>
-                                      ))}
-                                    </div>
-                                  </Menu.Items>
-                                )}
-                              </>
-                            )}
-                          </Menu>
-                          <button
+                                  {status === 'approved' ? 'Disetujui' : 
+                                   status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+                                </button>
+                              )}
+                            </Menu.Item>
+                          ))}
+                        </div>
+                      </Menu.Items>
+                    )}
+                  </>
+                )}
+              </Menu>
+              <button
                 onClick={() => handleDelete(id)}
                 className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
               >

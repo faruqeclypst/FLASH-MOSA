@@ -110,7 +110,7 @@ const MapLocation: React.FC = () => {
             <motion.div className="mt-6 md:mt-8" variants={itemVariants}>
               <h4 className="text-lg md:text-xl font-semibold mb-2">Address</h4>
               <p className="text-sm md:text-base text-gray-600">
-                Jl. Medan Merdeka Barat No.12, Gambir, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10110
+              Jl. Bandara Sultan Iskandar Muda No.Km. 12.5, Cot Geundreut, Kec. Blang Bintang, Kabupaten Aceh Besar, Aceh 23360
               </p>
             </motion.div>
           </motion.div>

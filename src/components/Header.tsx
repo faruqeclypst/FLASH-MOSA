@@ -46,11 +46,11 @@ const Header: React.FC = () => {
       <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
         <div className="hidden md:flex space-x-4">
-          <button onClick={() => scrollToSection('home')} className="text-white hover:text-blue-200">Home</button>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white hover:text-blue-200">Home</button>
           <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>
           <button onClick={() => scrollToSection('competitions')} className="text-white hover:text-blue-200">Competitions</button>
           <button onClick={() => scrollToSection('gallery')} className="text-white hover:text-blue-200">Gallery</button>
-          <button onClick={() => scrollToSection('contact')} className="text-white hover:text-blue-200">Contact</button>
+          <button onClick={() => scrollToSection('registration')} className="text-white hover:text-blue-200">Daftar</button>
         </div>
         <div className="md:hidden">
           <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
@@ -70,7 +70,7 @@ const Header: React.FC = () => {
           <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">About</button>
           <button onClick={() => scrollToSection('competitions')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Competitions</button>
           <button onClick={() => scrollToSection('gallery')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Gallery</button>
-          <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Contact</button>
+          <button onClick={() => scrollToSection('registration')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Daftar</button>
         </div>
       )}
     </header>

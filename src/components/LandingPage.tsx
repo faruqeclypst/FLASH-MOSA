@@ -36,8 +36,8 @@ const LandingPage: React.FC = () => {
               repeat={Infinity}
             />
           </p>
-          <a href="#about" className="bg-white text-blue-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-blue-100 transition duration-300">
-            Yuk Ikuti!
+          <a href="#registration" className="bg-white text-blue-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-blue-100 transition duration-300">
+            DAFTAR SEKARANG!
           </a>
         </div>
       </div>

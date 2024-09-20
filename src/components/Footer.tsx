@@ -17,13 +17,13 @@ const Footer: React.FC = () => {
               Menyalakan semangat kreativitas dan inovasi melalui acara yang menginspirasi generasi muda.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="hover:text-blue-400 transition-colors duration-300">
+              <a href="https://instagram.com/flashmosa" className="hover:text-blue-400 transition-colors duration-300">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="hover:text-pink-400 transition-colors duration-300">
+              <a href="https://instagram.com/flashmosa" className="hover:text-pink-400 transition-colors duration-300">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="hover:text-blue-300 transition-colors duration-300">
+              <a href="https://instagram.com/flashmosa" className="hover:text-blue-300 transition-colors duration-300">
                 <Twitter size={20} />
               </a>
             </div>
