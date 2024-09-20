@@ -107,7 +107,7 @@ const ManageContent: React.FC = () => {
       ...prev,
       competitions: [
         ...prev.competitions,
-        { name: '', description: '', rules: [], icon: '' }
+        { name: '', description: '', rules: [], icon: '', type: '' } // Add the type property here
       ]
     }));
   }, []);

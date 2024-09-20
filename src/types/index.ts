@@ -21,8 +21,8 @@ export interface Competition {
   name: string;
   description: string;
   rules: string[];
-  icon?: string;
-  type: 'single' | 'team';
+  icon: string;
+  type: string; 
 }
 export interface Registration {
   id?: string;
@@ -65,3 +65,5 @@ export type AcehCity =
   | 'Banda Aceh' | 'Sabang' | 'Lhokseumawe' | 'Langsa' | 'Meulaboh'
   | 'Bireuen' | 'Takengon' | 'Blangpidie' | 'Calang' | 'Jantho'
   | 'Sigli' | 'Singkil' | 'Subulussalam' | 'Suka Makmue' | 'Tapaktuan';
+
+  
