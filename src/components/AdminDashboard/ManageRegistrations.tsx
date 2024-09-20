@@ -1,9 +1,12 @@
+//src/components/AdminDashboard/ManageRegistrations.tsx
+
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { Registration, Competition } from '../../types';
 import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
 import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { format } from 'date-fns'; 
 
 const ITEMS_PER_PAGE = 5;
 
@@ -18,6 +21,8 @@ const ManageRegistrations: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [registrationToDelete, setRegistrationToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     console.log('Competitions:', competitions); // For debugging
@@ -30,7 +35,6 @@ const ManageRegistrations: React.FC = () => {
       let aValue = a[1][sortField as keyof Registration] || '';
       let bValue = b[1][sortField as keyof Registration] || '';
   
-      // Special handling for 'name' field
       if (sortField === 'name') {
         aValue = a[1].teamName || a[1].name || a[1].registrantName || '';
         bValue = b[1].teamName || b[1].name || b[1].registrantName || '';
@@ -50,8 +54,10 @@ const ManageRegistrations: React.FC = () => {
     if (registrations) {
       let filtered = Object.entries(registrations).filter(([_, registration]) => 
         (filterStatus === 'all' || registration.status === filterStatus) &&
-        (registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.registrantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         registration.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.competition.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -73,11 +79,13 @@ const ManageRegistrations: React.FC = () => {
     }
   }, [registrations, updateData]);
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this registration?')) {
-      await deleteData(id);
+  const handleDelete = useCallback(async () => {
+    if (registrationToDelete) {
+      await deleteData(registrationToDelete);
+      setIsDeleteModalOpen(false);
+      setRegistrationToDelete(null);
     }
-  }, [deleteData]);
+  }, [deleteData, registrationToDelete]);
 
   const openModal = useCallback((registration: Registration) => {
     setSelectedRegistration(registration);
@@ -87,6 +95,16 @@ const ManageRegistrations: React.FC = () => {
   const closeModal = useCallback(() => {
     setSelectedRegistration(null);
     setIsModalOpen(false);
+  }, []);
+
+  const openDeleteModal = useCallback((id: string) => {
+    setRegistrationToDelete(id);
+    setIsDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setRegistrationToDelete(null);
+    setIsDeleteModalOpen(false);
   }, []);
 
   const handleSort = (field: string) => {
@@ -120,6 +138,10 @@ const ManageRegistrations: React.FC = () => {
               {isTeam ? 'Informasi Tim' : 'Informasi Peserta'}
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <p><span className="font-medium">Tanggal Daftar:</span> {registration.registrationDate
+                  ? format(new Date(registration.registrationDate), 'dd MMMM yyyy (HH:mm)')
+                  : 'Tidak tersedia'}
+              </p>
               <p><span className="font-medium">Kode Pendaftaran:</span> {registration.registrationCode}</p>
               {isTeam ? (
                 <>
@@ -274,7 +296,7 @@ const ManageRegistrations: React.FC = () => {
                     <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('registrationCode')}>
       Kode Pendaftaran {renderSortIcon('registrationCode')}
     </th>
-                    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('name')}>
+    <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('name')}>
                       Nama / Tim {renderSortIcon('name')}
                     </th>
                     <th className="p-3 text-left cursor-pointer" onClick={() => handleSort('schoolCategory')}>
@@ -296,14 +318,14 @@ const ManageRegistrations: React.FC = () => {
     .map(([id, registration], index) => {
       const isTeam = !!registration.teamName || (registration.teamMembers && registration.teamMembers.length > 0);
       return (
-<tr key={id} className="border-b hover:bg-gray-50">
-  <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-  <td className="p-3">{registration.registrationCode}</td>
-  <td className="p-3">
-    {isTeam 
-      ? registration.teamName
-      : (registration.name || registration.registrantName || 'N/A')}
-  </td>
+        <tr key={id} className="border-b hover:bg-gray-50">
+          <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+          <td className="p-3">{registration.registrationCode}</td>
+          <td className="p-3">
+            {isTeam 
+              ? registration.teamName
+              : (registration.name || registration.registrantName || 'N/A')}
+          </td>
           <td className="p-3">{registration.schoolCategory || 'N/A'}</td>
           <td className="p-3">{registration.school || 'N/A'}</td>
           <td className="p-3">{registration.competition}</td>
@@ -366,8 +388,8 @@ const ManageRegistrations: React.FC = () => {
                 )}
               </Menu>
               <button
-                onClick={() => handleDelete(id)}
-                className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
+                onClick={() => openDeleteModal(id)}
+                className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition duration-300"
               >
                 Hapus
               </button>
@@ -413,6 +435,7 @@ const ManageRegistrations: React.FC = () => {
         </Tab.Panels>
       </Tab.Group>
 
+      {/* Modal for registration details */}
       {isModalOpen && selectedRegistration && (
         <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeModal}>
           <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
@@ -430,6 +453,36 @@ const ManageRegistrations: React.FC = () => {
                   className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300"
                 >
                   Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for delete confirmation */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeDeleteModal}>
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Konfirmasi Penghapusan</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  Apakah Anda yakin ingin menghapus pendaftaran ini? Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                >
+                  Hapus
+                </button>
+                <button
+                  onClick={closeDeleteModal}
+                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Batal
                 </button>
               </div>
             </div>

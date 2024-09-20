@@ -101,23 +101,23 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
               
               {competition.type === 'team' && (
                 <div className="space-y-2">
-                  <label htmlFor={`team-size-${index}`} className="block text-sm font-medium text-gray-700">
-                    Team Size
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <Users size={20} className="text-gray-500" />
-                    <input
-                      type="number"
-                      id={`team-size-${index}`}
-                      value={competition.teamSize || ''}
-                      onChange={(e) => handleCompetitionChange(index, 'teamSize', parseInt(e.target.value))}
-                      placeholder="Team Size"
-                      min="2"
-                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                      required={competition.type === 'team'}
-                    />
-                  </div>
+                <label htmlFor={`team-size-${index}`} className="block text-sm font-medium text-gray-700">
+                  Team Size
+                </label>
+                <div className="flex items-center space-x-2">
+                  <Users size={20} className="text-gray-500" />
+                  <input
+                    type="number"
+                    id={`team-size-${index}`}
+                    value={competition.teamSize || ''}
+                    onChange={(e) => handleCompetitionChange(index, 'teamSize', parseInt(e.target.value))}
+                    placeholder="Team Size"
+                    min="2"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    required={competition.type === 'team'}
+                  />
                 </div>
+              </div>
               )}
               
               <textarea

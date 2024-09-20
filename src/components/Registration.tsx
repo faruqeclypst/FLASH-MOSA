@@ -1,9 +1,14 @@
+//src/components/Registration.tsx
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Registration, Competition } from '../types';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import RegistrationAlert from './RegistrationAlert';
 
 const RegistrationForm: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
@@ -15,6 +20,8 @@ const RegistrationForm: React.FC = () => {
   const [teamMembers, setTeamMembers] = useState<string[]>(['']);
   const [ktsSuratAktifFile, setKtsSuratAktifFile] = useState<File | null>(null);
   const [buktiPembayaranFile, setBuktiPembayaranFile] = useState<File | null>(null);
+  const [teamSize, setTeamSize] = useState<number>(2);
+  const [showAlert, setShowAlert] = useState(false);
 
   const schoolCategories = ['SD', 'SMP', 'SMA', 'Umum'];
   const acehCities = [
@@ -29,6 +36,7 @@ const RegistrationForm: React.FC = () => {
       setTeamMembers(['']);
       setKtsSuratAktifFile(null);
       setBuktiPembayaranFile(null);
+      setTeamSize(selectedCompetition.teamSize || 2);
     }
   }, [selectedCompetition]);
 
@@ -41,12 +49,30 @@ const RegistrationForm: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const validateFile = (file: File) => {
+    const maxSize = 500 * 1024; // 500KB dalam bytes
+    if (file.size > maxSize) {
+      toast.error('File terlalu besar! Maksimal 500KB');
+      return false;
+    }
+    if (file.type !== 'application/pdf') {
+      toast.error('File harus berformat PDF');
+      return false;
+    }
+    return true;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      if (e.target.name === 'ktsSuratAktif') {
-        setKtsSuratAktifFile(e.target.files[0]);
-      } else if (e.target.name === 'buktiPembayaran') {
-        setBuktiPembayaranFile(e.target.files[0]);
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (validateFile(file)) {
+        if (e.target.name === 'ktsSuratAktif') {
+          setKtsSuratAktifFile(file);
+        } else if (e.target.name === 'buktiPembayaran') {
+          setBuktiPembayaranFile(file);
+        }
+      } else {
+        e.target.value = ''; // Reset input file jika validasi gagal
       }
     }
   };
@@ -59,7 +85,9 @@ const RegistrationForm: React.FC = () => {
   };
 
   const addTeamMember = () => {
-    setTeamMembers([...teamMembers, '']);
+    if (teamMembers.length < teamSize) {
+      setTeamMembers([...teamMembers, '']);
+    }
   };
 
   const removeTeamMember = (index: number) => {
@@ -89,6 +117,7 @@ const RegistrationForm: React.FC = () => {
       }
   
       const registrationCode = generateRegistrationCode();
+      const registrationDate = new Date().toISOString();
   
       const registrationData: Registration = {
         ...formData,
@@ -97,10 +126,11 @@ const RegistrationForm: React.FC = () => {
         ktsSuratAktif: ktsSuratAktifUrl,
         buktiPembayaran: buktiPembayaranUrl,
         registrationCode,
+        registrationDate,
       } as Registration;
   
       await pushData(registrationData);
-      alert(`Registration submitted successfully! Your registration code is: ${registrationCode}`);
+      setShowAlert(true);
       setFormData({});
       setTeamMembers(['']);
       setSelectedCompetition(null);
@@ -108,7 +138,7 @@ const RegistrationForm: React.FC = () => {
       setBuktiPembayaranFile(null);
     } catch (error) {
       console.error('Error submitting registration:', error);
-      alert('Error submitting registration. Please try again.');
+      toast.error('Error submitting registration. Please try again.');
     }
   };
 
@@ -140,6 +170,8 @@ const RegistrationForm: React.FC = () => {
 
   return (
     <section id="registration" className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
+      <RegistrationAlert isOpen={showAlert} onClose={() => setShowAlert(false)} />
       <motion.div
         className="container mx-auto px-4"
         variants={containerVariants}
@@ -483,7 +515,7 @@ const RegistrationForm: React.FC = () => {
               {isTeam && (
                 <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
                   <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Anggota Tim
+                    Anggota Tim (Maksimum {teamSize} anggota)
                   </label>
                   {teamMembers.map((member, index) => (
                     <div key={index} className="flex mb-2">
@@ -510,15 +542,17 @@ const RegistrationForm: React.FC = () => {
                       )}
                     </div>
                   ))}
-                  <motion.button
-                    type="button"
-                    onClick={addTeamMember}
-                    className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Tambah Anggota
-                  </motion.button>
+                  {teamMembers.length < teamSize && (
+                    <motion.button
+                      type="button"
+                      onClick={addTeamMember}
+                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Tambah Anggota
+                    </motion.button>
+                  )}
                 </motion.div>
               )}
 
