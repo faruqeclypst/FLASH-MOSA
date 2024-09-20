@@ -1,5 +1,3 @@
-// src/components/Dashboard.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -47,19 +45,19 @@ const Dashboard: React.FC = () => {
       
       <main className="dashboard-content">
         <div className="dashboard-stats">
-          <div className="stat-card">
+          <div className="stat-card total">
             <h3>Total Registrations</h3>
             <p>{stats.totalRegistrations}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card pending">
             <h3>Pending Registrations</h3>
             <p>{stats.pendingRegistrations}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card approved">
             <h3>Approved Registrations</h3>
             <p>{stats.approvedRegistrations}</p>
           </div>
-          <div className="stat-card">
+          <div className="stat-card rejected">
             <h3>Rejected Registrations</h3>
             <p>{stats.rejectedRegistrations}</p>
           </div>

@@ -1,27 +1,32 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
-import { Registration } from '../../types';
+import { Registration, Competition } from '../../types';
 import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
 import { FiChevronDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
 const ManageRegistrations: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
+  const { data: competitions } = useFirebase<Record<string, Competition>>('competitions');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRegistrations, setFilteredRegistrations] = useState<[string, Registration][]>([]);
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [fileUrls, setFileUrls] = useState<{ ktsSuratAktif?: string; buktiPembayaran?: string }>({});
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    console.log('Competitions:', competitions); // For debugging
+  }, [competitions]);
 
   useEffect(() => {
     if (registrations) {
       const filtered = Object.entries(registrations).filter(([_, registration]) => 
         (filterStatus === 'all' || registration.status === filterStatus) &&
         (registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         registration.registrantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.school?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.competition.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,11 +37,10 @@ const ManageRegistrations: React.FC = () => {
     }
   }, [registrations, filterStatus, searchTerm]);
 
-  const pageCount = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
-  const paginatedRegistrations = filteredRegistrations.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
+  const pageCount = Math.ceil(filteredRegistrations.filter(([_, reg]) => filterStatus === 'all' || reg.status === filterStatus).length / ITEMS_PER_PAGE);
+  const paginatedRegistrations = filteredRegistrations
+    .filter(([_, reg]) => filterStatus === 'all' || reg.status === filterStatus)
+    .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
     if (registrations && registrations[id].status !== newStatus) {
@@ -53,17 +57,126 @@ const ManageRegistrations: React.FC = () => {
   const openModal = useCallback((registration: Registration) => {
     setSelectedRegistration(registration);
     setIsModalOpen(true);
-    setFileUrls({
-      ktsSuratAktif: registration.ktsSuratAktif,
-      buktiPembayaran: registration.buktiPembayaran,
-    });
   }, []);
 
   const closeModal = useCallback(() => {
     setSelectedRegistration(null);
     setIsModalOpen(false);
-    setFileUrls({});
   }, []);
+
+  const renderRegistrationDetails = (registration: Registration) => {
+    const isTeam = !!registration.teamName || (registration.teamMembers && registration.teamMembers.length > 0);
+  
+    console.log('Registration:', registration); // For debugging
+    console.log('Is Team:', isTeam); // For debugging
+  
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div className="space-y-4">
+          <section>
+            <h4 className="font-semibold text-lg text-gray-700 mb-2">
+              {isTeam ? 'Informasi Tim' : 'Informasi Peserta'}
+            </h4>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              {isTeam ? (
+                <>
+                  <p><span className="font-medium">Nama Pendaftar:</span> {registration.registrantName}</p>
+                  <p><span className="font-medium">Nama Tim:</span> {registration.teamName}</p>
+                  {registration.teamMembers && registration.teamMembers.length > 0 && (
+                    <div>
+                      <span className="font-medium">Anggota Tim:</span>
+                      <ul className="list-disc list-inside ml-4">
+                        {registration.teamMembers.map((member, index) => (
+                          <li key={index}>{member}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p><span className="font-medium">Nama Lengkap:</span> {registration.name || registration.registrantName}</p>
+                  {registration.gender && <p><span className="font-medium">Jenis Kelamin:</span> {registration.gender}</p>}
+                  {registration.birthDate && <p><span className="font-medium">Tanggal Lahir:</span> {registration.birthDate}</p>}
+                </>
+              )}
+              <p><span className="font-medium">No. WhatsApp:</span> {registration.whatsapp}</p>
+              <p><span className="font-medium">Email:</span> {registration.email}</p>
+            </div>
+          </section>
+  
+          <section>
+            <h4 className="font-semibold text-lg text-gray-700 mb-2">Detail Kompetisi</h4>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <p><span className="font-medium">Kompetisi:</span> {registration.competition}</p>
+              <p><span className="font-medium">Status:</span> 
+                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold
+                  ${registration.status === 'approved' ? 'bg-green-200 text-green-800' : 
+                    registration.status === 'rejected' ? 'bg-red-200 text-red-800' : 
+                    'bg-yellow-200 text-yellow-800'}`}>
+                  {registration.status === 'approved' ? 'Disetujui' : 
+                   registration.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+                </span>
+              </p>
+            </div>
+          </section>
+          
+          <section>
+            <h4 className="font-semibold text-lg text-gray-700 mb-2">Informasi Sekolah</h4>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+              <p><span className="font-medium">Kategori Sekolah:</span> {registration.schoolCategory}</p>
+              {registration.school && <p><span className="font-medium">Nama Sekolah:</span> {registration.school}</p>}
+            </div>
+          </section>
+          
+          <section>
+            <h4 className="font-semibold text-lg text-gray-700 mb-2">Lokasi</h4>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p><span className="font-medium">Kota/Kabupaten:</span> {registration.city}</p>
+            </div>
+          </section>
+        </div>
+        
+        <div className="space-y-4">
+          <h4 className="font-semibold text-lg text-gray-700 mb-2">Dokumen</h4>
+          {registration.ktsSuratAktif && (
+            <section className="bg-gray-50 p-4 rounded-lg">
+              <p className="font-medium mb-2">KTS / Surat Aktif:</p>
+              <a href={registration.ktsSuratAktif} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mb-2 inline-block">
+                Unduh KTS / Surat Aktif
+              </a>
+              <div className="mt-2 border border-gray-300 rounded-lg overflow-hidden h-44">
+                <iframe
+                  src={`${registration.ktsSuratAktif}#toolbar=0`}
+                  className="w-full h-full"
+                  title="KTS / Surat Aktif"
+                >
+                  Browser Anda tidak mendukung tampilan PDF. Silakan unduh file untuk melihatnya.
+                </iframe>
+              </div>
+            </section>
+          )}
+          {registration.buktiPembayaran && (
+            <section className="bg-gray-50 p-4 rounded-lg">
+              <p className="font-medium mb-2">Bukti Pembayaran:</p>
+              <a href={registration.buktiPembayaran} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mb-2 inline-block">
+                Unduh Bukti Pembayaran
+              </a>
+              <div className="mt-2 border border-gray-300 rounded-lg overflow-hidden h-44">
+                <iframe
+                  src={`${registration.buktiPembayaran}#toolbar=0`}
+                  className="w-full h-full"
+                  title="Bukti Pembayaran"
+                >
+                  Browser Anda tidak mendukung tampilan PDF. Silakan unduh file untuk melihatnya.
+                </iframe>
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   if (!registrations) return (
     <div className="flex justify-center items-center h-screen">
@@ -73,12 +186,12 @@ const ManageRegistrations: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Manage Registrations</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Kelola Pendaftaran</h1>
       
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search registrations..."
+          placeholder="Cari pendaftaran..."
           className="w-full p-2 border border-gray-300 rounded"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -87,9 +200,9 @@ const ManageRegistrations: React.FC = () => {
 
       <Tab.Group>
         <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
-          {['All', 'Pending', 'Approved', 'Rejected'].map((category) => (
+          {['all', 'pending', 'approved', 'rejected'].map((status) => (
             <Tab
-              key={category}
+              key={status}
               className={({ selected }) =>
                 `w-full py-2.5 text-sm font-medium leading-5 text-blue-700 rounded-lg
                 focus:outline-none focus:ring-2 ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60
@@ -99,9 +212,11 @@ const ManageRegistrations: React.FC = () => {
                     : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
                 }`
               }
-              onClick={() => setFilterStatus(category.toLowerCase() as any)}
+              onClick={() => setFilterStatus(status as any)}
             >
-              {category}
+              {status === 'all' ? 'Semua' :
+               status === 'pending' ? 'Menunggu' :
+               status === 'approved' ? 'Disetujui' : 'Ditolak'}
             </Tab>
           ))}
         </Tab.List>
@@ -113,43 +228,48 @@ const ManageRegistrations: React.FC = () => {
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="p-3 text-left">No</th>
-                    <th className="p-3 text-left">Name</th>
-                    <th className="p-3 text-left">School Category</th>
-                    <th className="p-3 text-left">School</th>
-                    <th className="p-3 text-left">City</th>
-                    <th className="p-3 text-left">Competition</th>
+                    <th className="p-3 text-left">Nama Lengkap</th>
+                    <th className="p-3 text-left">Kategori</th>
+                    <th className="p-3 text-left">Sekolah</th>
+                    <th className="p-3 text-left">Kompetisi</th>
                     <th className="p-3 text-left">Status</th>
-                    <th className="p-3 text-left">Actions</th>
+                    <th className="p-3 text-left">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {paginatedRegistrations
-                    .filter(([_, reg]) => status === 'all' || reg.status === status)
-                    .map(([id, registration], index) => (
-                    <tr key={id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
-                      <td className="p-3">{registration.name || registration.registrantName || 'N/A'}</td>
-                      <td className="p-3">{registration.schoolCategory || 'N/A'}</td>
-                      <td className="p-3">{registration.school || 'N/A'}</td>
-                      <td className="p-3">{registration.city}</td>
-                      <td className="p-3">{registration.competition}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold
-                          ${registration.status === 'approved' ? 'bg-green-200 text-green-800' : 
-                            registration.status === 'rejected' ? 'bg-red-200 text-red-800' : 
-                            'bg-yellow-200 text-yellow-800'}`}>
-                          {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => openModal(registration)}
-                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300"
-                          >
-                            Detail
-                          </button>
-                          <Menu as="div" className="relative inline-block text-left">
+  {paginatedRegistrations
+    .filter(([_, reg]) => status === 'all' || reg.status === status)
+    .map(([id, registration], index) => {
+      const isTeam = !!registration.teamName || (registration.teamMembers && registration.teamMembers.length > 0);
+      return (
+        <tr key={id} className="border-b hover:bg-gray-50">
+          <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
+          <td className="p-3">
+            {isTeam 
+              ? registration.teamName
+              : (registration.name || registration.registrantName || 'N/A')}
+          </td>
+          <td className="p-3">{registration.schoolCategory || 'N/A'}</td>
+          <td className="p-3">{registration.school || 'N/A'}</td>
+          <td className="p-3">{registration.competition}</td>
+          <td className="p-3">
+            <span className={`px-2 py-1 rounded-full text-xs font-semibold
+              ${registration.status === 'approved' ? 'bg-green-200 text-green-800' : 
+                registration.status === 'rejected' ? 'bg-red-200 text-red-800' : 
+                'bg-yellow-200 text-yellow-800'}`}>
+              {registration.status === 'approved' ? 'Disetujui' : 
+               registration.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
+            </span>
+          </td>
+          <td className="p-3">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => openModal(registration)}
+                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300"
+              >
+                Detail
+              </button>
+              <Menu as="div" className="relative inline-block text-left">
                             {({ open }) => (
                               <>
                                 <Menu.Button className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
@@ -159,7 +279,8 @@ const ManageRegistrations: React.FC = () => {
                                       registration.status === 'rejected' ? '#EF4444' : '#FBBF24'
                                   }}
                                 >
-                                  {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
+                                  {registration.status === 'approved' ? 'Disetujui' : 
+                                   registration.status === 'rejected' ? 'Ditolak' : 'Menunggu'}
                                   <FiChevronDown
                                     className="w-5 h-5 ml-2 -mr-1 text-white"
                                     aria-hidden="true"
@@ -177,7 +298,8 @@ const ManageRegistrations: React.FC = () => {
                                               } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
                                               onClick={() => handleStatusChange(id, status as any)}
                                             >
-                                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                                              {status === 'approved' ? 'Disetujui' : 
+                                               status === 'rejected' ? 'Ditolak' : 'Menunggu'}
                                             </button>
                                           )}
                                         </Menu.Item>
@@ -189,18 +311,18 @@ const ManageRegistrations: React.FC = () => {
                             )}
                           </Menu>
                           <button
-                            onClick={() => handleDelete(id)}
-                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {/* Add empty rows if less than 10 items */}
-                  {paginatedRegistrations.length < ITEMS_PER_PAGE && 
-                    Array(ITEMS_PER_PAGE - paginatedRegistrations.length).fill(null).map((_, index) => (
+                onClick={() => handleDelete(id)}
+                className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
+              >
+                Hapus
+              </button>
+            </div>
+          </td>
+        </tr>
+      );
+    })}
+                  {paginatedRegistrations.filter(([_, reg]) => status === 'all' || reg.status === status).length < ITEMS_PER_PAGE && 
+                    Array(ITEMS_PER_PAGE - paginatedRegistrations.filter(([_, reg]) => status === 'all' || reg.status === status).length).fill(null).map((_, index) => (
                       <tr key={`empty-${index}`} className="border-b">
                         <td colSpan={8} className="p-3">&nbsp;</td>
                       </tr>
@@ -217,17 +339,17 @@ const ManageRegistrations: React.FC = () => {
                   className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
                   <FiChevronLeft className="mr-2" />
-                  Previous
+                  Sebelumnya
                 </button>
                 <span className="text-sm text-gray-700">
-                  Page {currentPage} of {pageCount}
+                  Halaman {currentPage} dari {pageCount}
                 </span>
                 <button 
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
                   disabled={currentPage === pageCount}
                   className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                 >
-                  Next
+                  Selanjutnya
                   <FiChevronRight className="ml-2" />
                 </button>
               </div>
@@ -241,120 +363,18 @@ const ManageRegistrations: React.FC = () => {
           <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
             <div className="mt-3">
               <div className="flex justify-between items-center border-b pb-3">
-                <h3 className="text-2xl font-semibold text-gray-900">Registration Details</h3>
+                <h3 className="text-2xl font-semibold text-gray-900">Detail Pendaftaran</h3>
                 <button onClick={closeModal} className="text-gray-400 hover:text-gray-500 text-xl font-bold">
                   &times;
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div className="space-y-4">
-                  <section>
-                    <h4 className="font-semibold text-lg text-gray-700 mb-2">Personal Information</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                      <p><span className="font-medium">Name:</span> {selectedRegistration.name || selectedRegistration.registrantName}</p>
-                      <p><span className="font-medium">Email:</span> {selectedRegistration.email}</p>
-                      <p><span className="font-medium">WhatsApp:</span> {selectedRegistration.whatsapp}</p>
-                      {selectedRegistration.gender && <p><span className="font-medium">Gender:</span> {selectedRegistration.gender}</p>}
-                      {selectedRegistration.birthDate && <p><span className="font-medium">Birth Date:</span> {selectedRegistration.birthDate}</p>}
-                    </div>
-                  </section>
-                  
-                  <section>
-                    <h4 className="font-semibold text-lg text-gray-700 mb-2">Competition Details</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                      <p><span className="font-medium">Competition:</span> {selectedRegistration.competition}</p>
-                      <p><span className="font-medium">Status:</span> 
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold
-                          ${selectedRegistration.status === 'approved' ? 'bg-green-200 text-green-800' : 
-                            selectedRegistration.status === 'rejected' ? 'bg-red-200 text-red-800' : 
-                            'bg-yellow-200 text-yellow-800'}`}>
-                          {selectedRegistration.status.charAt(0).toUpperCase() + selectedRegistration.status.slice(1)}
-                        </span>
-                      </p>
-                    </div>
-                  </section>
-                  
-                  {selectedRegistration.teamName && (
-                    <section>
-                      <h4 className="font-semibold text-lg text-gray-700 mb-2">Team Information</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                        <p><span className="font-medium">Team Name:</span> {selectedRegistration.teamName}</p>
-                        {selectedRegistration.teamMembers && (
-                          <div>
-                            <span className="font-medium">Team Members:</span>
-                            <ul className="list-disc list-inside ml-4">
-                              {selectedRegistration.teamMembers.map((member, index) => (
-                                <li key={index}>{member}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </div>
-                    </section>
-                  )}
-                  
-                  {selectedRegistration.schoolCategory && (
-                    <section>
-                      <h4 className="font-semibold text-lg text-gray-700 mb-2">School Information</h4>
-                      <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                        <p><span className="font-medium">School Category:</span> {selectedRegistration.schoolCategory}</p>
-                        <p><span className="font-medium">School:</span> {selectedRegistration.school}</p>
-                      </div>
-                    </section>
-                  )}
-                  
-                  <section>
-                    <h4 className="font-semibold text-lg text-gray-700 mb-2">Location</h4>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p><span className="font-medium">City:</span> {selectedRegistration.city}</p>
-                    </div>
-                  </section>
-                </div>
-                
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-700 mb-2">Documents</h4>
-                  {fileUrls.ktsSuratAktif && (
-                    <section className="bg-gray-50 p-4 rounded-lg">
-                      <p className="font-medium mb-2">KTS / Surat Aktif:</p>
-                      <a href={fileUrls.ktsSuratAktif} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mb-2 inline-block">
-                        Download KTS / Surat Aktif
-                      </a>
-                      <div className="mt-2 border border-gray-300 rounded-lg overflow-hidden h-44">
-                        <iframe
-                          src={`${fileUrls.ktsSuratAktif}#toolbar=0`}
-                          className="w-full h-full"
-                          title="KTS / Surat Aktif"
-                        >
-                          This browser does not support PDFs. Please download the PDF to view it.
-                        </iframe>
-                      </div>
-                    </section>
-                  )}
-                  {fileUrls.buktiPembayaran && (
-                    <section className="bg-gray-50 p-4 rounded-lg">
-                      <p className="font-medium mb-2">Bukti Pembayaran:</p>
-                      <a href={fileUrls.buktiPembayaran} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline mb-2 inline-block">
-                        Download Bukti Pembayaran
-                      </a>
-                      <div className="mt-2 border border-gray-300 rounded-lg overflow-hidden h-44">
-                        <iframe
-                          src={`${fileUrls.buktiPembayaran}#toolbar=0`}
-                          className="w-full h-full"
-                          title="Bukti Pembayaran"
-                        >
-                          This browser does not support PDFs. Please download the PDF to view it.
-                        </iframe>
-                      </div>
-                    </section>
-                  )}
-                </div>
-              </div>
+              {renderRegistrationDetails(selectedRegistration)}
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={closeModal}
                   className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300"
                 >
-                  Close
+                  Tutup
                 </button>
               </div>
             </div>

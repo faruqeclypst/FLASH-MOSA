@@ -16,7 +16,7 @@ const RegistrationForm: React.FC = () => {
   const [ktsSuratAktifFile, setKtsSuratAktifFile] = useState<File | null>(null);
   const [buktiPembayaranFile, setBuktiPembayaranFile] = useState<File | null>(null);
 
-  const schoolCategories = ['SD', 'SMP', 'SMA'];
+  const schoolCategories = ['SD', 'SMP', 'SMA', 'Umum'];
   const acehCities = [
     'Banda Aceh', 'Sabang', 'Lhokseumawe', 'Langsa', 'Meulaboh',
     'Bireuen', 'Takengon', 'Blangpidie', 'Calang', 'Jantho',
@@ -128,8 +128,7 @@ const RegistrationForm: React.FC = () => {
 
   if (!flashEvent) return <div className="text-center py-8">Loading...</div>;
 
-  const isTeam = selectedCompetition?.name.toLowerCase().includes('tim');
-  const isGeneral = selectedCompetition?.name.toLowerCase().includes('umum');
+  const isTeam = selectedCompetition?.type === 'team';
 
   return (
     <section className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
@@ -344,47 +343,43 @@ const RegistrationForm: React.FC = () => {
                   </div>
                 </motion.div>
 
-                {!isGeneral && (
-                  <>
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="schoolCategory" className="block text-gray-700 text-sm font-bold mb-2">
-                        Kategori Sekolah
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="schoolCategory"
-                          name="schoolCategory"
-                          value={formData.schoolCategory || ''}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
-                        >
-                          <option value="">Pilih Kategori Sekolah</option>
-                          {schoolCategories.map((category) => (
-                            <option key={category} value={category}>
-                              {category}
-                            </option>
-                          ))}
-                        </select>
-                        <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                          <svg
-                            className="fill-current h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </motion.div>
-                  </>
-                )}
+                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                  <label htmlFor="schoolCategory" className="block text-gray-700 text-sm font-bold mb-2">
+                    Kategori Sekolah
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="schoolCategory"
+                      name="schoolCategory"
+                      value={formData.schoolCategory || ''}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                    >
+                      <option value="">Pilih Kategori Sekolah</option>
+                      {schoolCategories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                    <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                      <svg
+                        className="fill-current h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                      </svg>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
 
               {/* Column 3 */}
               <div>
-                {!isGeneral && (
+                {formData.schoolCategory !== 'Umum' && (
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
                       Nama Sekolah
@@ -437,7 +432,7 @@ const RegistrationForm: React.FC = () => {
                   </div>
                 </motion.div>
 
-                {!isGeneral && (
+                {formData.schoolCategory !== 'Umum' && (
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-sm font-bold mb-2">
                       KTS / Surat Aktif (PDF)
@@ -527,7 +522,7 @@ const RegistrationForm: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  Register Now
+                  Daftar Sekarang
                 </motion.button>
               </motion.div>
             </motion.div>

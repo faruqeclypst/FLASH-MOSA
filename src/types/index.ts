@@ -27,21 +27,27 @@ export interface Competition {
 }
 export interface Registration {
   id?: string;
-  name?: string;
-  email: string;
-  school?: string;
   competition: string;
   status: 'pending' | 'approved' | 'rejected';
+  whatsapp: string;
+  email: string;
+  city: AcehCity;
+  ktsSuratAktif?: string;
+  buktiPembayaran: string;
+  
+  // Fields for individual competition
+  name?: string;
+  gender?: 'Laki-laki' | 'Perempuan';
+  birthDate?: string;
+  
+  // Fields for team competition
   registrantName?: string;
   teamName?: string;
   teamMembers?: string[];
-  gender?: 'Laki-laki' | 'Perempuan';
-  birthDate?: string;
-  whatsapp: string;
-  schoolCategory?: SchoolCategory;
-  city: AcehCity;
-  ktsSuratAktif?: string; // URL of the uploaded file
-  buktiPembayaran: string; // URL of the uploaded file
+  
+  // Common fields
+  schoolCategory?: SchoolCategory | 'Umum';
+  school?: string;
 }
 
 export interface DashboardStats {
