@@ -1,10 +1,10 @@
 import React from 'react';
 import { Competition } from '../../types';
-import { PlusCircle, X, Upload, Plus, Trash2 } from 'lucide-react';
+import { PlusCircle, X, Upload, Plus, Trash2, Users } from 'lucide-react';
 
 interface CompetitionsManagerProps {
   competitions: Competition[];
-  handleCompetitionChange: (index: number, field: keyof Competition, value: string) => void;
+  handleCompetitionChange: (index: number, field: keyof Competition, value: string | number) => void;
   handleAddCompetition: () => void;
   handleRemoveCompetition: (index: number) => void;
   handleAddRule: (competitionIndex: number) => void;
@@ -90,7 +90,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                 <select
                   id={`competition-type-${index}`}
                   value={competition.type}
-                  onChange={(e) => handleCompetitionChange(index, 'type', e.target.value as 'single' | 'team')}
+                  onChange={(e) => handleCompetitionChange(index, 'type', e.target.value)}
                   className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
                   required
                 >
@@ -98,6 +98,27 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                   <option value="team">Team</option>
                 </select>
               </div>
+              
+              {competition.type === 'team' && (
+                <div className="space-y-2">
+                  <label htmlFor={`team-size-${index}`} className="block text-sm font-medium text-gray-700">
+                    Team Size
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <Users size={20} className="text-gray-500" />
+                    <input
+                      type="number"
+                      id={`team-size-${index}`}
+                      value={competition.teamSize || ''}
+                      onChange={(e) => handleCompetitionChange(index, 'teamSize', parseInt(e.target.value))}
+                      placeholder="Team Size"
+                      min="2"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                      required={competition.type === 'team'}
+                    />
+                  </div>
+                </div>
+              )}
               
               <textarea
                 value={competition.description}

@@ -1,10 +1,32 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { motion, useAnimation } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';
+import { useInView } from 'react-intersection-observer';
 
 const AboutFlash: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+  const controls = useAnimation();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (inView || !isMobile) {
+      controls.start('visible');
+    }
+  }, [controls, inView, isMobile]);
 
   if (!flashEvent) return null;
 
@@ -33,10 +55,11 @@ const AboutFlash: React.FC = () => {
   return (
     <section id="about" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <motion.div
+        ref={ref}
         className="container mx-auto px-4"
         variants={containerVariants}
         initial="hidden"
-        whileInView="visible"
+        animate={controls}
         viewport={{ once: true, amount: 0.3 }}
       >
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -77,9 +100,7 @@ const AboutFlash: React.FC = () => {
                 src={flashEvent.aboutImage || "/api/placeholder/600/400"}
                 alt="About FLASH" 
                 className="w-auto h-auto max-w-full max-h-[1000px] object-contain filter drop-shadow-2xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.5 }}
+                variants={itemVariants}
               />
             </div>
           </motion.div>

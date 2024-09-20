@@ -12,7 +12,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../services/firebase';
 import { Tab } from '@headlessui/react';
 
-
 const ManageContent: React.FC = () => {
   const { data: flashEvent, updateData } = useFirebase<FlashEvent>('flashEvent');
   const [formData, setFormData] = useState<FlashEvent>({
@@ -96,7 +95,7 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, activities: updatedActivities }));
   };
 
-  const handleCompetitionChange = (index: number, field: keyof Competition, value: string) => {
+  const handleCompetitionChange = (index: number, field: keyof Competition, value: string | number) => {
     const updatedCompetitions = [...formData.competitions];
     updatedCompetitions[index] = { ...updatedCompetitions[index], [field]: value };
     setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
@@ -107,7 +106,7 @@ const ManageContent: React.FC = () => {
       ...prev,
       competitions: [
         ...prev.competitions,
-        { name: '', description: '', rules: [], icon: '', type: '' } // Add the type property here
+        { name: '', description: '', rules: [], icon: '', type: 'single' }
       ]
     }));
   }, []);

@@ -9,6 +9,7 @@ import Registration from '../components/Registration';
 import Gallery from '../components/Gallery';
 import MapLocation from '../components/MapLocation';
 import CTASection from '../components/CTASection';
+import SocialProof from '../components/SocialProof';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -21,7 +22,8 @@ const Home: React.FC = () => {
         <FlashActivities />
         <CompetitionList />
         <Gallery />
-        <CTASection /> 
+        <CTASection />
+        <SocialProof /> 
         {/* <ContactForm /> */}
       </main>
       <Registration />

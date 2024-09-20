@@ -109,7 +109,7 @@ const RegistrationForm: React.FC = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.3,
+        staggerChildren: 0.2,
       },
     },
   };
@@ -120,7 +120,7 @@ const RegistrationForm: React.FC = () => {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.8,
+        duration: 0.5,
         ease: 'easeInOut',
       },
     },
@@ -132,7 +132,7 @@ const RegistrationForm: React.FC = () => {
   const isGeneral = selectedCompetition?.name.toLowerCase().includes('umum');
 
   return (
-    <section className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <motion.div
         className="container mx-auto px-4"
         variants={containerVariants}
@@ -141,19 +141,19 @@ const RegistrationForm: React.FC = () => {
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h2
-          className="text-6xl font-bold mb-8 text-center text-gray-800 leading-tight"
+          className="text-4xl md:text-6xl font-bold mb-4 md:mb-8 text-center text-gray-800 leading-tight"
           variants={itemVariants}
         >
           Register for a Competition
         </motion.h2>
-        <div className="bg-blue-600 w-24 h-2 mb-16 mx-auto"></div>
+        <div className="bg-blue-600 w-24 h-2 mb-8 md:mb-16 mx-auto"></div>
 
         <motion.form
           onSubmit={handleSubmit}
-          className="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg p-8"
+          className="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
           variants={itemVariants}
         >
-          <motion.div className="mb-6" variants={itemVariants}>
+          <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
             <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
               Competition
             </label>
@@ -169,7 +169,7 @@ const RegistrationForm: React.FC = () => {
                   setSelectedCompetition(selected || null);
                 }}
                 required
-                className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
               >
                 <option value="">Select a competition</option>
                 {flashEvent.competitions.map((competition, index) => (
@@ -178,7 +178,7 @@ const RegistrationForm: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <Award className="absolute left-3 top-3 text-gray-400" size={20} />
+              <Award className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg
                   className="fill-current h-4 w-4"
@@ -196,13 +196,13 @@ const RegistrationForm: React.FC = () => {
               variants={containerVariants} 
               initial="hidden" 
               animate="visible"
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
             >
               {/* Column 1 */}
               <div>
                 {isTeam ? (
                   <>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="registrantName" className="block text-gray-700 text-sm font-bold mb-2">
                         Nama Pendaftar
                       </label>
@@ -214,12 +214,12 @@ const RegistrationForm: React.FC = () => {
                           value={formData.registrantName || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
-                        <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="teamName" className="block text-gray-700 text-sm font-bold mb-2">
                         Nama Tim
                       </label>
@@ -231,15 +231,15 @@ const RegistrationForm: React.FC = () => {
                           value={formData.teamName || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
-                        <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
                   </>
                 ) : (
                   <>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
                         Nama Lengkap
                       </label>
@@ -251,12 +251,12 @@ const RegistrationForm: React.FC = () => {
                           value={formData.name || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
-                        <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="gender" className="block text-gray-700 text-sm font-bold mb-2">
                         Jenis Kelamin
                       </label>
@@ -267,13 +267,13 @@ const RegistrationForm: React.FC = () => {
                           value={formData.gender || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                         >
                           <option value="">Pilih Jenis Kelamin</option>
                           <option value="Laki-laki">Laki-laki</option>
                           <option value="Perempuan">Perempuan</option>
                         </select>
-                        <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                           <svg
                             className="fill-current h-4 w-4"
@@ -285,7 +285,7 @@ const RegistrationForm: React.FC = () => {
                         </div>
                       </div>
                     </motion.div>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="birthDate" className="block text-gray-700 text-sm font-bold mb-2">
                         Tanggal Lahir
                       </label>
@@ -297,9 +297,9 @@ const RegistrationForm: React.FC = () => {
                           value={formData.birthDate || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
-                        <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
                   </>
@@ -308,7 +308,7 @@ const RegistrationForm: React.FC = () => {
 
               {/* Column 2 */}
               <div>
-                <motion.div className="mb-6" variants={itemVariants}>
+                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                   <label htmlFor="whatsapp" className="block text-gray-700 text-sm font-bold mb-2">
                     No. WhatsApp
                   </label>
@@ -320,13 +320,13 @@ const RegistrationForm: React.FC = () => {
                       value={formData.whatsapp || ''}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                     />
-                    <Phone className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                   </div>
                 </motion.div>
 
-                <motion.div className="mb-6" variants={itemVariants}>
+                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                   <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
                     Email
                   </label>
@@ -338,15 +338,15 @@ const RegistrationForm: React.FC = () => {
                       value={formData.email || ''}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                     />
-                    <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                   </div>
                 </motion.div>
 
                 {!isGeneral && (
                   <>
-                    <motion.div className="mb-6" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="schoolCategory" className="block text-gray-700 text-sm font-bold mb-2">
                         Kategori Sekolah
                       </label>
@@ -357,7 +357,7 @@ const RegistrationForm: React.FC = () => {
                           value={formData.schoolCategory || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                         >
                           <option value="">Pilih Kategori Sekolah</option>
                           {schoolCategories.map((category) => (
@@ -366,7 +366,7 @@ const RegistrationForm: React.FC = () => {
                             </option>
                           ))}
                         </select>
-                        <School className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                           <svg
                             className="fill-current h-4 w-4"
@@ -385,7 +385,7 @@ const RegistrationForm: React.FC = () => {
               {/* Column 3 */}
               <div>
                 {!isGeneral && (
-                  <motion.div className="mb-6" variants={itemVariants}>
+                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
                       Nama Sekolah
                     </label>
@@ -397,14 +397,14 @@ const RegistrationForm: React.FC = () => {
                         value={formData.school || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
-                      <School className="absolute left-3 top-3 text-gray-400" size={20} />
+                      <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
                 )}
 
-                <motion.div className="mb-6" variants={itemVariants}>
+                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                   <label htmlFor="city" className="block text-gray-700 text-sm font-bold mb-2">
                     Kota/Kabupaten
                   </label>
@@ -415,7 +415,7 @@ const RegistrationForm: React.FC = () => {
                       value={formData.city || ''}
                       onChange={handleChange}
                       required
-                      className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                     >
                       <option value="">Pilih Kota/Kabupaten</option>
                       {acehCities.map((city, index) => (
@@ -424,7 +424,7 @@ const RegistrationForm: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                    <MapPin className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <MapPin className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                       <svg
                         className="fill-current h-4 w-4"
@@ -438,7 +438,7 @@ const RegistrationForm: React.FC = () => {
                 </motion.div>
 
                 {!isGeneral && (
-                  <motion.div className="mb-6" variants={itemVariants}>
+                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-sm font-bold mb-2">
                       KTS / Surat Aktif (PDF)
                     </label>
@@ -450,14 +450,14 @@ const RegistrationForm: React.FC = () => {
                         onChange={handleFileChange}
                         accept=".pdf"
                         required
-                        className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
-                      <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
+                      <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
                 )}
 
-                <motion.div className="mb-6" variants={itemVariants}>
+                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                   <label htmlFor="buktiPembayaran" className="block text-gray-700 text-sm font-bold mb-2">
                     Bukti Pembayaran (PDF)
                   </label>
@@ -469,16 +469,16 @@ const RegistrationForm: React.FC = () => {
                       onChange={handleFileChange}
                       accept=".pdf"
                       required
-                      className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                     />
-                    <Upload className="absolute left-3 top-3 text-gray-400" size={20} />
+                    <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                   </div>
                 </motion.div>
               </div>
 
               {/* Team Members section (if applicable) */}
               {isTeam && (
-                <motion.div className="col-span-3 mt-6" variants={itemVariants}>
+                <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
                   <label className="block text-gray-700 text-sm font-bold mb-2">
                     Anggota Tim
                   </label>
@@ -489,10 +489,10 @@ const RegistrationForm: React.FC = () => {
                           type="text"
                           value={member}
                           onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                          className="w-full px-3 py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           placeholder={`Nama Anggota ${index + 1}`}
                         />
-                        <User className="absolute left-3 top-3 text-gray-400" size={20} />
+                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                       {index > 0 && (
                         <motion.button
@@ -520,10 +520,10 @@ const RegistrationForm: React.FC = () => {
               )}
 
               {/* Submit button */}
-              <motion.div className="col-span-3 mt-6" variants={itemVariants}>
+              <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
                 <motion.button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
+                  className="w-full bg-blue-600 text-white py-2 md:py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >

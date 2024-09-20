@@ -2,22 +2,109 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+:root {
+  --color-text: 51, 51, 51;
+  --color-background: 255, 255, 255;
+  --color-primary: 0, 123, 255;
+  --color-primary-light: 51, 153, 255;
+  --color-secondary: 255, 193, 7;
+}
+
+/* Base styles */
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  @apply text-base leading-relaxed text-[rgb(var(--color-text)/0.87)] bg-[rgb(var(--color-background))];
 }
 
-.parallax {
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+  @apply font-bold leading-tight mb-4;
 }
 
-/* LOADING LANDING PAGE */
+h1 {
+  @apply text-2xl sm:text-3xl md:text-4xl lg:text-5xl;
+}
+
+h2 {
+  @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+}
+
+h3 {
+  @apply text-lg sm:text-xl md:text-2xl lg:text-3xl;
+}
+
+a {
+  @apply font-medium text-[rgb(var(--color-primary))] no-underline transition-colors duration-300 hover:text-[rgb(var(--color-primary-light))];
+}
+
+img {
+  @apply max-w-full h-auto;
+}
+
+/* Component styles */
+@layer components {
+  .btn {
+    @apply rounded-lg border border-transparent px-4 py-2 text-sm sm:text-base font-semibold 
+           bg-[rgb(var(--color-primary))] text-white cursor-pointer transition-all duration-300
+           hover:bg-[rgb(var(--color-primary-light))]
+           focus:outline-none focus:ring-4 focus:ring-[rgb(var(--color-primary)/0.25)]
+           min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .btn-secondary {
+    @apply bg-[rgb(var(--color-secondary))] hover:bg-[rgb(var(--color-secondary)/0.8)];
+  }
+
+  .container {
+    @apply px-4 mx-auto max-w-7xl sm:px-6 lg:px-8;
+  }
+
+  .section {
+    @apply py-8 sm:py-12 md:py-16 lg:py-20;
+  }
+
+  .nav-link {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+}
+
+/* Utility styles */
+@layer utilities {
+  .content-layout {
+    @apply flex items-center justify-center min-h-screen min-w-[320px] px-4 sm:px-6 lg:px-8;
+  }
+
+  .parallax {
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+
+  .hide-on-mobile {
+    @apply hidden sm:block;
+  }
+
+  .show-on-mobile {
+    @apply block sm:hidden;
+  }
+
+  .flex-container {
+    @apply flex flex-col sm:flex-row;
+  }
+}
+
+/* Animation styles */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
@@ -26,37 +113,126 @@ body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
-/* LOADING LANDING PAGE */
 
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
 
-body {
-  @apply text-base font-normal leading-relaxed text-[rgb(var(--color-text)/0.87)] bg-[rgb(var(--color-background))];
-  font-family: 'Poppins', sans-serif;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  .btn {
+    @apply px-3 py-1.5;
+  }
+
+  .nav-menu {
+    @apply hidden;
+  }
+
+  .hamburger-menu {
+    @apply block;
+  }
 }
 
-a {
-  @apply font-medium text-[rgb(var(--color-primary))] no-underline hover:text-[rgb(var(--color-primary-light))];
+@media (min-width: 641px) and (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+
+  .nav-menu {
+    @apply flex;
+  }
+
+  .hamburger-menu {
+    @apply hidden;
+  }
 }
 
-h1 {
-  @apply text-5xl leading-tight;
+@media (min-width: 1025px) {
+  html {
+    font-size: 16px;
+  }
+
+  .nav-menu {
+    @apply flex;
+  }
+
+  .hamburger-menu {
+    @apply hidden;
+  }
 }
 
-@layer components {
-.btn {
-  @apply rounded-lg border border-transparent px-5 py-2.5 text-base font-medium 
-         bg-[rgb(var(--color-background))] cursor-pointer transition-colors duration-250
-         hover:border-[rgb(var(--color-primary))] focus:outline-none focus:ring-4 focus:ring-[rgb(var(--color-primary)/0.25)];
-}
+/* Additional Poppins-specific styles */
+.font-light {
+  font-weight: 300;
 }
 
-@layer utilities {
-.content-layout {
-  @apply flex items-center justify-center min-h-screen min-w-[320px];
-}
+.font-normal {
+  font-weight: 400;
 }
 
+.font-medium {
+  font-weight: 500;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+/* Additional responsive utilities */
+.responsive-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4;
+}
+
+.responsive-padding {
+  @apply p-4 sm:p-6 md:p-8 lg:p-10;
+}
+
+.responsive-margin {
+  @apply m-4 sm:m-6 md:m-8 lg:m-10;
+}
+
+/* Touch-friendly hover states for mobile */
+@media (hover: hover) and (pointer: fine) {
+  .hover-effect:hover {
+    @apply opacity-80 transition-opacity duration-300;
+  }
+}
+
+/* Ensure proper text wrapping on small screens */
+.text-wrap {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Improve form element styling on mobile */
+input, select, textarea {
+  @apply w-full px-3 py-2 text-base border rounded-md focus:outline-none focus:ring-2 focus:ring-[rgb(var(--color-primary))];
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Ensure proper scaling of iframes (e.g., for embedded videos) */
+iframe {
+  @apply max-w-full;
+}
+
+/* Improve table responsiveness */
+.table-responsive {
+  @apply overflow-x-auto;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  @apply outline-none ring-2 ring-[rgb(var(--color-primary))];
+}

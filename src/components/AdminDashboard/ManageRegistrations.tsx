@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { Registration } from '../../types';
 import { Tab } from '@headlessui/react';
+import { Menu } from '@headlessui/react';
+import { FiChevronDown, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+
+const ITEMS_PER_PAGE = 10;
 
 const ManageRegistrations: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
@@ -11,6 +15,7 @@ const ManageRegistrations: React.FC = () => {
   const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fileUrls, setFileUrls] = useState<{ ktsSuratAktif?: string; buktiPembayaran?: string }>({});
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     if (registrations) {
@@ -23,35 +28,42 @@ const ManageRegistrations: React.FC = () => {
          registration.city.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredRegistrations(filtered);
+      setCurrentPage(1);
     }
   }, [registrations, filterStatus, searchTerm]);
 
-  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
-    if (registrations) {
+  const pageCount = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
+  const paginatedRegistrations = filteredRegistrations.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
+    if (registrations && registrations[id].status !== newStatus) {
       await updateData({ [id]: { ...registrations[id], status: newStatus } });
     }
-  };
+  }, [registrations, updateData]);
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (window.confirm('Are you sure you want to delete this registration?')) {
       await deleteData(id);
     }
-  };
+  }, [deleteData]);
 
-  const openModal = (registration: Registration) => {
+  const openModal = useCallback((registration: Registration) => {
     setSelectedRegistration(registration);
     setIsModalOpen(true);
     setFileUrls({
       ktsSuratAktif: registration.ktsSuratAktif,
       buktiPembayaran: registration.buktiPembayaran,
     });
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedRegistration(null);
     setIsModalOpen(false);
     setFileUrls({});
-  };
+  }, []);
 
   if (!registrations) return (
     <div className="flex justify-center items-center h-screen">
@@ -102,7 +114,6 @@ const ManageRegistrations: React.FC = () => {
                   <tr className="bg-gray-100">
                     <th className="p-3 text-left">No</th>
                     <th className="p-3 text-left">Name</th>
-                    <th className="p-3 text-left">Email</th>
                     <th className="p-3 text-left">School Category</th>
                     <th className="p-3 text-left">School</th>
                     <th className="p-3 text-left">City</th>
@@ -112,13 +123,12 @@ const ManageRegistrations: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredRegistrations
+                  {paginatedRegistrations
                     .filter(([_, reg]) => status === 'all' || reg.status === status)
                     .map(([id, registration], index) => (
                     <tr key={id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">{index + 1}</td>
+                      <td className="p-3">{(currentPage - 1) * ITEMS_PER_PAGE + index + 1}</td>
                       <td className="p-3">{registration.name || registration.registrantName || 'N/A'}</td>
-                      <td className="p-3">{registration.email}</td>
                       <td className="p-3">{registration.schoolCategory || 'N/A'}</td>
                       <td className="p-3">{registration.school || 'N/A'}</td>
                       <td className="p-3">{registration.city}</td>
@@ -132,56 +142,95 @@ const ManageRegistrations: React.FC = () => {
                         </span>
                       </td>
                       <td className="p-3">
-                        <button
-                          onClick={() => openModal(registration)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600 transition duration-300"
-                        >
-                          Detail
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(id, 'approved')}
-                          className={`${
-                            registration.status === 'approved' 
-                              ? 'bg-green-300 cursor-not-allowed' 
-                              : 'bg-green-500 hover:bg-green-600'
-                          } text-white px-3 py-1 rounded mr-2 transition duration-300`}
-                          disabled={registration.status === 'approved'}
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(id, 'rejected')}
-                          className={`${
-                            registration.status === 'rejected' 
-                              ? 'bg-red-300 cursor-not-allowed' 
-                              : 'bg-red-500 hover:bg-red-600'
-                          } text-white px-3 py-1 rounded mr-2 transition duration-300`}
-                          disabled={registration.status === 'rejected'}
-                        >
-                          Reject
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(id, 'pending')}
-                          className={`${
-                            registration.status === 'pending' 
-                              ? 'bg-yellow-300 cursor-not-allowed' 
-                              : 'bg-yellow-500 hover:bg-yellow-600'
-                          } text-white px-3 py-1 rounded mr-2 transition duration-300`}
-                          disabled={registration.status === 'pending'}
-                        >
-                          Pending
-                        </button>
-                        <button
-                          onClick={() => handleDelete(id)}
-                          className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => openModal(registration)}
+                            className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300"
+                          >
+                            Detail
+                          </button>
+                          <Menu as="div" className="relative inline-block text-left">
+                            {({ open }) => (
+                              <>
+                                <Menu.Button className="inline-flex justify-center w-full px-4 py-2 text-sm font-medium text-white rounded-md bg-opacity-20 hover:bg-opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75"
+                                  style={{
+                                    backgroundColor: 
+                                      registration.status === 'approved' ? '#34D399' :
+                                      registration.status === 'rejected' ? '#EF4444' : '#FBBF24'
+                                  }}
+                                >
+                                  {registration.status.charAt(0).toUpperCase() + registration.status.slice(1)}
+                                  <FiChevronDown
+                                    className="w-5 h-5 ml-2 -mr-1 text-white"
+                                    aria-hidden="true"
+                                  />
+                                </Menu.Button>
+                                {open && (
+                                  <Menu.Items static className="absolute right-0 w-56 mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                                    <div className="px-1 py-1">
+                                      {['approved', 'rejected', 'pending'].map((status) => (
+                                        <Menu.Item key={status}>
+                                          {({ active }) => (
+                                            <button
+                                              className={`${
+                                                active ? 'bg-violet-500 text-white' : 'text-gray-900'
+                                              } group flex rounded-md items-center w-full px-2 py-2 text-sm`}
+                                              onClick={() => handleStatusChange(id, status as any)}
+                                            >
+                                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                                            </button>
+                                          )}
+                                        </Menu.Item>
+                                      ))}
+                                    </div>
+                                  </Menu.Items>
+                                )}
+                              </>
+                            )}
+                          </Menu>
+                          <button
+                            onClick={() => handleDelete(id)}
+                            className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
+                  {/* Add empty rows if less than 10 items */}
+                  {paginatedRegistrations.length < ITEMS_PER_PAGE && 
+                    Array(ITEMS_PER_PAGE - paginatedRegistrations.length).fill(null).map((_, index) => (
+                      <tr key={`empty-${index}`} className="border-b">
+                        <td colSpan={8} className="p-3">&nbsp;</td>
+                      </tr>
+                    ))
+                  }
                 </tbody>
               </table>
+              
+              {/* Pagination */}
+              <div className="mt-4 flex justify-between items-center">
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  <FiChevronLeft className="mr-2" />
+                  Previous
+                </button>
+                <span className="text-sm text-gray-700">
+                  Page {currentPage} of {pageCount}
+                </span>
+                <button 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
+                  disabled={currentPage === pageCount}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Next
+                  <FiChevronRight className="ml-2" />
+                </button>
+              </div>
             </Tab.Panel>
           ))}
         </Tab.Panels>
@@ -316,4 +365,4 @@ const ManageRegistrations: React.FC = () => {
   );
 };
 
-export default ManageRegistrations;
+export default memo(ManageRegistrations);

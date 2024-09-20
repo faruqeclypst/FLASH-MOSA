@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 const MapLocation: React.FC = () => {
   const highlightRef = useRef<HTMLDivElement>(null);
-  const [mapHeight, setMapHeight] = useState('400px');
+  const [mapHeight, setMapHeight] = useState('300px');
 
   useEffect(() => {
     const updateMapHeight = () => {
@@ -41,26 +41,26 @@ const MapLocation: React.FC = () => {
   };
 
   return (
-    <section id="location" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="location" className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-6xl font-bold mb-8 text-gray-800 leading-tight"
+            className="text-4xl md:text-6xl font-bold mb-4 md:mb-8 text-gray-800 leading-tight"
             variants={itemVariants}
           >
             Our Location & Event Highlights
           </motion.h2>
-          <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto" variants={itemVariants}></motion.div>
+          <motion.div className="bg-blue-600 w-24 h-2 mb-6 md:mb-8 mx-auto" variants={itemVariants}></motion.div>
         </motion.div>
 
         <motion.div 
-          className="flex flex-col md:flex-row gap-8"
+          className="flex flex-col md:flex-row gap-6 md:gap-8"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -80,36 +80,36 @@ const MapLocation: React.FC = () => {
           </motion.div>
           <motion.div 
             ref={highlightRef} 
-            className="w-full md:w-1/3 bg-white p-6 rounded-lg shadow-lg"
+            className="w-full md:w-1/3 bg-white p-4 md:p-6 rounded-lg shadow-lg"
             variants={itemVariants}
           >
-            <h3 className="text-2xl font-semibold mb-6">Event Highlights</h3>
-            <div className="space-y-6">
+            <h3 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6">Event Highlights</h3>
+            <div className="space-y-4 md:space-y-6">
               <motion.div className="flex items-center" variants={itemVariants}>
-                <Trophy className="text-yellow-500 mr-4" size={24} />
+                <Trophy className="text-yellow-500 mr-3 md:mr-4" size={20} />
                 <div>
-                  <p className="text-lg font-bold">10+</p>
-                  <p className="text-gray-600">Awards Won</p>
+                  <p className="text-base md:text-lg font-bold">10+</p>
+                  <p className="text-sm md:text-base text-gray-600">Awards Won</p>
                 </div>
               </motion.div>
               <motion.div className="flex items-center" variants={itemVariants}>
-                <Users className="text-blue-500 mr-4" size={24} />
+                <Users className="text-blue-500 mr-3 md:mr-4" size={20} />
                 <div>
-                  <p className="text-lg font-bold">1000+</p>
-                  <p className="text-gray-600">Participants</p>
+                  <p className="text-base md:text-lg font-bold">1000+</p>
+                  <p className="text-sm md:text-base text-gray-600">Participants</p>
                 </div>
               </motion.div>
               <motion.div className="flex items-center" variants={itemVariants}>
-                <Calendar className="text-green-500 mr-4" size={24} />
+                <Calendar className="text-green-500 mr-3 md:mr-4" size={20} />
                 <div>
-                  <p className="text-lg font-bold">August 15-17, 2023</p>
-                  <p className="text-gray-600">Event Date</p>
+                  <p className="text-base md:text-lg font-bold">August 15-17, 2023</p>
+                  <p className="text-sm md:text-base text-gray-600">Event Date</p>
                 </div>
               </motion.div>
             </div>
-            <motion.div className="mt-8" variants={itemVariants}>
-              <h4 className="text-xl font-semibold mb-2">Address</h4>
-              <p className="text-gray-600">
+            <motion.div className="mt-6 md:mt-8" variants={itemVariants}>
+              <h4 className="text-lg md:text-xl font-semibold mb-2">Address</h4>
+              <p className="text-sm md:text-base text-gray-600">
                 Jl. Medan Merdeka Barat No.12, Gambir, Kecamatan Gambir, Kota Jakarta Pusat, Daerah Khusus Ibukota Jakarta 10110
               </p>
             </motion.div>

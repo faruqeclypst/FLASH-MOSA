@@ -22,7 +22,8 @@ export interface Competition {
   description: string;
   rules: string[];
   icon: string;
-  type: string; 
+  type: 'single' | 'team';
+  teamSize?: number;
 }
 export interface Registration {
   id?: string;
