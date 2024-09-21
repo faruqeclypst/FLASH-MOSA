@@ -10,6 +10,7 @@ import Gallery from '../components/Gallery';
 import MapLocation from '../components/MapLocation';
 import CTASection from '../components/CTASection';
 import SocialProof from '../components/SocialProof';
+import Reviews from '../components/Reviews';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -23,6 +24,7 @@ const Home: React.FC = () => {
         <CompetitionList />
         <Gallery />
         <CTASection />
+        <Reviews /> 
         <SocialProof /> 
         {/* <ContactForm /> */}
       </main>
