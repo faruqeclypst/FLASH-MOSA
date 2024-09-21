@@ -7,49 +7,92 @@ import BSILogo from '../assets/img/BSI.png';
 import BPDAcehLogo from '../assets/img/BPDAceh.png';
 import Kominfo from '../assets/img/kominfo.png';
 import Kemenhub from '../assets/img/kemenhub.png';
+import Bazaars_1 from '../assets/img/bazaars/1.png';
+import Bazaars_2 from '../assets/img/bazaars/2.jpg';
+import Bazaars_3 from '../assets/img/bazaars/3.webp';
+import Bazaars_4 from '../assets/img/bazaars/4.webp';
+import Bazaars_5 from '../assets/img/bazaars/5.png';
+import Bazaars_6 from '../assets/img/bazaars/6.jpg';
 
 interface SocialProofData {
   partners: { name: string; logo: string }[];
-  awards: { name: string; icon: string; description: string }[];
+  bazaars: { name: string; logo: string }[];
+  awards: { name: string; icon: 'trophy' | 'star'; description: string }[];
 }
+
+const socialProofData: SocialProofData = {
+  partners: [
+    { name: 'BSI', logo: BSILogo },
+    { name: 'BPDAceh', logo: BPDAcehLogo },
+    { name: 'Kominfo', logo: Kominfo },
+    { name: 'Kemenhub', logo: Kemenhub },
+  ],
+  bazaars: [
+    { name: 'Bazaars_1', logo: Bazaars_1 },
+    { name: 'Bazaars_2', logo: Bazaars_2 },
+    { name: 'Bazaars_3', logo: Bazaars_3 },
+    { name: 'Bazaars_4', logo: Bazaars_4 },
+    { name: 'Bazaars_5', logo: Bazaars_5 },
+    { name: 'Bazaars_6', logo: Bazaars_6 },
+    { name: 'Bazaars_1', logo: Bazaars_1 },
+    { name: 'Bazaars_2', logo: Bazaars_2 },
+    { name: 'Bazaars_3', logo: Bazaars_3 },
+    { name: 'Bazaars_4', logo: Bazaars_4 },
+    { name: 'Bazaars_5', logo: Bazaars_5 },
+    { name: 'Bazaars_6', logo: Bazaars_6 },
+  ],
+  awards: [
+    { name: 'Best Tech Event 2023', icon: 'trophy', description: 'Awarded by TechEvents Global' },
+    { name: 'Innovation Excellence', icon: 'star', description: 'Recognized by InnovateTech Magazine' },
+    { name: 'Community Impact Award', icon: 'trophy', description: 'Presented by Local Tech Community' },
+  ],
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.3,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 24,
+    },
+  },
+};
+
+const createRowVariants = (direction: 'left' | 'right') => ({
+  hidden: { x: direction === 'right' ? -100 : 100, opacity: 0 },
+  visible: {
+    x: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 100,
+      damping: 10,
+      bounce: 0.5,
+    },
+  },
+});
 
 const SocialProof: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
   
   if (!flashEvent) return null;
 
-  const socialProofData: SocialProofData = {
-    partners: [
-      { name: 'BSI', logo: BSILogo },
-      { name: 'BPDAceh', logo: BPDAcehLogo },
-      { name: 'Kominfo', logo: Kominfo },
-      { name: 'Kemenhub', logo: Kemenhub },
-    ],
-    awards: [
-      { name: 'Best Tech Event 2023', icon: 'trophy', description: 'Awarded by TechEvents Global' },
-      { name: 'Innovation Excellence', icon: 'star', description: 'Recognized by InnovateTech Magazine' },
-      { name: 'Community Impact Award', icon: 'users', description: 'Presented by Local Tech Community' },
-    ],
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' }
-    }
-  };
+  const itemsPerRow = 6;
+  const rows = Math.ceil(socialProofData.bazaars.length / itemsPerRow);
 
   return (
     <section className="py-24 bg-gradient-to-b from-white to-gray-100">
@@ -107,6 +150,52 @@ const SocialProof: React.FC = () => {
               </motion.div>
             ))}
           </div>
+        </motion.div>
+
+        {/* Bazaars Section */}
+        <motion.div
+          className="mb-20"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          <motion.h3
+            className="text-3xl font-bold mb-8 text-center text-gray-800"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            Our Bazaars
+          </motion.h3>
+          {[...Array(rows)].map((_, rowIndex) => (
+            <motion.div
+              key={rowIndex}
+              className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 md:gap-8 mb-4 sm:mb-6 md:mb-8"
+              variants={createRowVariants(rowIndex % 2 === 0 ? 'right' : 'left')}
+            >
+              {socialProofData.bazaars.slice(rowIndex * itemsPerRow, (rowIndex + 1) * itemsPerRow).map((bazaar, index) => (
+                <motion.div
+                  key={index}
+                  className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 bg-white rounded-lg shadow-md flex items-center justify-center p-3 sm:p-4"
+                  whileHover={{ scale: 1.05, rotate: 5 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <motion.div
+                    className="w-full h-full relative"
+                    whileHover={{ rotate: -5 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 10 }}
+                  >
+                    <img
+                      src={bazaar.logo}
+                      alt={`${bazaar.name} logo`}
+                      className="absolute inset-0 w-full h-full object-contain"
+                    />
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Awards Section */}
