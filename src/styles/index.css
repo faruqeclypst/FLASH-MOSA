@@ -17,6 +17,7 @@ html {
 }
 
 body {
+  
   font-family: 'Poppins', sans-serif;
   font-weight: 400;
   font-synthesis: none;
@@ -235,4 +236,15 @@ iframe {
 /* Focus styles for keyboard navigation */
 :focus-visible {
   @apply outline-none ring-2 ring-[rgb(var(--color-primary))];
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.bg-gradient-to-br {
+  background-size: 200% 200%;
+  animation: gradientBG 5s ease infinite;
 }

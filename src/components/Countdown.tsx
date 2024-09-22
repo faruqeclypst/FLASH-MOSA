@@ -15,11 +15,11 @@ interface TimeLeft {
 
 const CountdownUnit: React.FC<{ value: number; unit: string }> = ({ value, unit }) => {
   return (
-    <div className="countdown-unit">
-      <div className="countdown-value text-2xl sm:text-3xl md:text-4xl lg:text-5xl">
+    <div className="countdown-unit flex flex-col items-center">
+      <div className="countdown-value text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
         {value.toString().padStart(2, '0')}
       </div>
-      <div className="countdown-label text-xs sm:text-sm md:text-base lg:text-lg font-bold">
+      <div className="countdown-label text-[10px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold">
         {unit}
       </div>
     </div>
@@ -56,7 +56,7 @@ const Countdown: React.FC<CountdownProps> = ({ eventDate }) => {
   }, [eventDate]);
 
   return (
-    <div className="countdown-container flex justify-center items-center space-x-2 sm:space-x-4 md:space-x-6 lg:space-x-8 my-4 sm:my-6 md:my-8 lg:my-10">
+    <div className="countdown-container flex flex-row justify-center items-center space-x-1 sm:space-x-2 md:space-x-4 lg:space-x-6 xl:space-x-8 my-2 sm:my-4 md:my-6 lg:my-8 xl:my-10 text-center">
       {Object.entries(timeLeft).map(([unit, value]) => (
         <CountdownUnit key={unit} value={value} unit={unit} />
       ))}

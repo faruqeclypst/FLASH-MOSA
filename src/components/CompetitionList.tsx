@@ -3,6 +3,7 @@ import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTrophy, FaChevronDown, FaChevronUp, FaUsers, FaClock } from 'react-icons/fa';
+import { useMediaQuery } from 'react-responsive';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -24,10 +25,64 @@ const itemVariants = {
 const CompetitionCard: React.FC<{ 
   competition: Competition; 
   index: number;
-}> = ({ competition, index }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleExpand = () => setIsExpanded(!isExpanded);
+  isMobile: boolean;
+  isExpanded: boolean;
+  toggleExpand: () => void;
+}> = ({ competition, index, isMobile, isExpanded, toggleExpand }) => {
+  if (isMobile) {
+    return (
+      <motion.div
+        variants={itemVariants}
+        className="bg-white rounded-lg shadow-md mb-4"
+      >
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-lg font-semibold text-gray-800">{competition.name}</h3>
+            <button
+              onClick={toggleExpand}
+              className="text-blue-600"
+            >
+              {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
+            </button>
+          </div>
+          <img 
+            src={competition.icon || 'path/to/default/image.jpg'} 
+            alt={`${competition.name} icon`} 
+            className="w-full h-40 object-cover rounded-lg mb-2"
+          />
+        </div>
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="px-4 pb-4"
+            >
+              <p className="text-gray-600 text-sm mb-2">{competition.description}</p>
+              <div className="flex items-center space-x-4 text-gray-500 text-sm mb-2">
+                <div className="flex items-center">
+                  <FaUsers className="mr-1" />
+                  <span>2-4 Players</span>
+                </div>
+                <div className="flex items-center">
+                  <FaClock className="mr-1" />
+                  <span>60 Minutes</span>
+                </div>
+              </div>
+              <h4 className="font-semibold text-sm mb-1 text-gray-700">Rules:</h4>
+              <ul className="list-disc list-inside text-sm text-gray-600">
+                {competition.rules?.map((rule, ruleIndex) => (
+                  <li key={ruleIndex}>{rule}</li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -61,7 +116,7 @@ const CompetitionCard: React.FC<{
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-20 rounded-tl-full">
-              <FaTrophy className="text-6xl text-white opacity-20" />
+              <FaTrophy className="text-4xl text-white opacity-20" />
             </div>
           )}
         </div>
@@ -112,38 +167,48 @@ const CompetitionCard: React.FC<{
 
 const CompetitionList: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  const isMobile = useMediaQuery({ query: '(max-width: 767px)' });
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   if (!flashEvent || !flashEvent.competitions) return null;
 
+  const toggleExpand = (index: number) => {
+    setExpandedIndex(prevIndex => prevIndex === index ? null : index);
+  };
+
   return (
-    <section id="competitions" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="competitions" className={`py-8 ${isMobile ? 'bg-gray-100' : 'bg-gradient-to-b from-gray-100 to-white'}`}>
       <div className="container mx-auto px-4">
         <motion.div 
-          className="text-center mb-16"
+          className="text-center mb-8"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-6xl font-bold mb-6 text-gray-800 leading-tight"
+            className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold mb-2 text-gray-800 leading-tight`}
             variants={itemVariants}
           >
-            Our Exciting Competitions
+            {isMobile ? 'Our Competitions' : 'Our Exciting Competitions'}
           </motion.h2>
-          <motion.div 
-            className="bg-blue-600 w-24 h-2 mb-8 mx-auto"
-            variants={itemVariants}
-          ></motion.div>
-          <motion.p 
-            className="text-2xl text-gray-600 max-w-3xl mx-auto"
-            variants={itemVariants}
-          >
-            Showcase your skills and compete with the best in our thrilling competitions
-          </motion.p>
+          {!isMobile && (
+            <>
+              <motion.div 
+                className="bg-blue-600 w-24 h-2 mb-8 mx-auto"
+                variants={itemVariants}
+              ></motion.div>
+              <motion.p 
+                className="text-2xl text-gray-600 max-w-3xl mx-auto"
+                variants={itemVariants}
+              >
+                Showcase your skills and compete with the best in our thrilling competitions
+              </motion.p>
+            </>
+          )}
         </motion.div>
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className={isMobile ? '' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -151,9 +216,12 @@ const CompetitionList: React.FC = () => {
         >
           {flashEvent.competitions.map((competition, index) => (
             <CompetitionCard 
-              key={index} 
+              key={index}
               competition={competition} 
               index={index}
+              isMobile={isMobile}
+              isExpanded={expandedIndex === index}
+              toggleExpand={() => toggleExpand(index)}
             />
           ))}
         </motion.div>
@@ -163,102 +231,3 @@ const CompetitionList: React.FC = () => {
 };
 
 export default CompetitionList;
-
-// import React, { useState } from 'react';
-// import { useFirebase } from '../hooks/useFirebase';
-// import { FlashEvent, Competition } from '../types';
-// import { motion, AnimatePresence } from 'framer-motion';
-// import { FaTrophy, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-
-// const CompetitionCard: React.FC<{ 
-//   competition: Competition; 
-//   index: number;
-//   isExpanded: boolean;
-//   toggleExpand: () => void;
-// }> = ({ competition, index, isExpanded, toggleExpand }) => {
-//   return (
-//     <motion.div
-//       initial={{ opacity: 0, y: 20 }}
-//       animate={{ opacity: 1, y: 0 }}
-//       transition={{ duration: 0.5, delay: index * 0.1 }}
-//       className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
-//     >
-//       <div className="relative h-40 bg-gradient-to-r from-blue-500 to-purple-600">
-//         <div className="absolute inset-0 flex items-center justify-center">
-//           {competition.icon ? (
-//             <img 
-//               src={competition.icon} 
-//               alt={`${competition.name} icon`} 
-//               className="w-20 h-20 object-cover rounded-full border-4 border-white"
-//             />
-//           ) : (
-//             <FaTrophy className="text-5xl text-white" />
-//           )}
-//         </div>
-//       </div>
-//       <div className="p-6">
-//         <h3 className="text-xl font-bold text-gray-800 mb-2">{competition.name}</h3>
-//         <p className="text-gray-600 text-sm mb-4">{competition.description}</p>
-//         <button
-//           onClick={toggleExpand}
-//           className="flex items-center justify-between w-full text-blue-600 font-semibold text-sm"
-//         >
-//           {isExpanded ? 'Hide Rules' : 'Show Rules'}
-//           {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-//         </button>
-//         <AnimatePresence>
-//           {isExpanded && (
-//             <motion.div
-//               initial={{ opacity: 0, height: 0 }}
-//               animate={{ opacity: 1, height: 'auto' }}
-//               exit={{ opacity: 0, height: 0 }}
-//               transition={{ duration: 0.3 }}
-//               className="mt-4"
-//             >
-//               <h4 className="font-bold text-sm mb-2 text-gray-700">Rules:</h4>
-//               <ul className="list-disc list-inside text-gray-600 text-sm">
-//                 {competition.rules?.map((rule, ruleIndex) => (
-//                   <li key={ruleIndex}>{rule}</li>
-//                 ))}
-//               </ul>
-//             </motion.div>
-//           )}
-//         </AnimatePresence>
-//       </div>
-//     </motion.div>
-//   );
-// };
-
-// const CompetitionList: React.FC = () => {
-//   const { data: flashEvent, loading, error } = useFirebase<FlashEvent>('flashEvent');
-//   const [isExpanded, setIsExpanded] = useState(false);
-
-//   const toggleExpand = () => {
-//     setIsExpanded(!isExpanded);
-//   };
-
-//   if (loading) return <div className="text-center py-10">Loading competitions...</div>;
-//   if (error) return <div className="text-center py-10 text-red-500">Error: {error.message}</div>;
-//   if (!flashEvent?.competitions?.length) return <div className="text-center py-10">No competitions available.</div>;
-
-//   return (
-//     <section id="competitions" className="py-16 bg-gray-50">
-//       <div className="container mx-auto px-4">
-//         <h2 className="text-3xl font-bold mb-10 text-center text-gray-800">Our Exciting Competitions</h2>
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-//           {flashEvent.competitions.map((competition, index) => (
-//             <CompetitionCard 
-//               key={index} 
-//               competition={competition} 
-//               index={index}
-//               isExpanded={isExpanded}
-//               toggleExpand={toggleExpand}
-//             />
-//           ))}
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-
-// export default CompetitionList;

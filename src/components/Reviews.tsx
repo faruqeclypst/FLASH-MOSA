@@ -82,7 +82,7 @@ const Reviews: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2
-            className="text-6xl font-bold mb-6 text-gray-800 leading-tight"
+            className="text-4xl font-bold mb-6 text-gray-800 leading-tight"
             variants={itemVariants}
           >
             What People Are Saying

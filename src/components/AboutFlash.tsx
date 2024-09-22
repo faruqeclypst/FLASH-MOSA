@@ -66,7 +66,7 @@ const AboutFlash: React.FC = () => {
           <motion.div className="lg:w-3/5" variants={itemVariants}>
             <div className="max-w-2xl mx-auto lg:mx-0">
               <motion.h2 
-                className="text-6xl font-bold mb-8 text-gray-800 leading-tight"
+                className="text-4xl font-bold mb-8 text-gray-800 leading-tight"
                 variants={itemVariants}
               >
                 Discover the Power of FLASH

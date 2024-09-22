@@ -38,7 +38,7 @@ const CTASection: React.FC = () => {
       >
         <motion.div className="text-center mb-12" variants={itemVariants}>
           <motion.h2 
-            className="text-6xl font-bold mb-8 text-gray-800 leading-tight"
+            className="text-4xl font-bold mb-8 text-gray-800 leading-tight"
             variants={itemVariants}
           >
             Join the FLASH Experience

@@ -180,7 +180,7 @@ const RegistrationForm: React.FC = () => {
         viewport={{ once: true, amount: 0.3 }}
       >
         <motion.h2
-          className="text-4xl md:text-6xl font-bold mb-4 md:mb-8 text-center text-gray-800 leading-tight"
+          className="text-4xl md:text-4xl font-bold mb-4 md:mb-8 text-center text-gray-800 leading-tight"
           variants={itemVariants}
         >
           Register for a Competition
