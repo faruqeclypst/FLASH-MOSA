@@ -7,14 +7,20 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
+
 const FlashActivities: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
 
   if (!flashEvent) return null;
 
+  const filterProps = (props: any) => {
+    const { className, style, onClick } = props;
+    return { className, style, onClick };
+  };
+
   const CustomPrevArrow = (props: any) => (
     <button
-      {...props}
+      {...filterProps(props)}
       className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-lg"
     >
       <ChevronLeft size={24} className="text-blue-600" />
@@ -23,7 +29,7 @@ const FlashActivities: React.FC = () => {
 
   const CustomNextArrow = (props: any) => (
     <button
-      {...props}
+      {...filterProps(props)}
       className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white p-2 rounded-full shadow-lg"
     >
       <ChevronRight size={24} className="text-blue-600" />
