@@ -24,7 +24,9 @@ export interface Competition {
   icon: string;
   type: 'single' | 'team';
   teamSize?: number;
+  categories: SchoolCategory[];
 }
+
 export interface Registration {
   id?: string;
   registrationCode: string;
@@ -48,7 +50,7 @@ export interface Registration {
   teamMembers?: string[];
   
   // Common fields
-  schoolCategory?: SchoolCategory | 'Umum';
+  schoolCategory: SchoolCategory;
   school?: string;
 }
 
@@ -68,11 +70,9 @@ export interface City {
   name: AcehCity;
 }
 
-export type SchoolCategory = 'SD' | 'SMP' | 'SMA';
+export type SchoolCategory = 'SD/MI' | 'SMP/MTs' | 'SMA/SMK/MA' | 'UMUM';
 
 export type AcehCity = 
   | 'Banda Aceh' | 'Sabang' | 'Lhokseumawe' | 'Langsa' | 'Meulaboh'
   | 'Bireuen' | 'Takengon' | 'Blangpidie' | 'Calang' | 'Jantho'
   | 'Sigli' | 'Singkil' | 'Subulussalam' | 'Suka Makmue' | 'Tapaktuan';
-
-  

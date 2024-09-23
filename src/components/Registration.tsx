@@ -1,9 +1,7 @@
-//src/components/Registration.tsx
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
-import { FlashEvent, Registration, Competition } from '../types';
+import { FlashEvent, Registration, Competition, SchoolCategory } from '../types';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
@@ -15,6 +13,7 @@ const RegistrationForm: React.FC = () => {
   const { pushData } = useFirebase<Registration>('registrations');
   const storage = getStorage();
 
+  const [selectedCategory, setSelectedCategory] = useState<SchoolCategory | null>(null);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [formData, setFormData] = useState<Partial<Registration>>({});
   const [teamMembers, setTeamMembers] = useState<string[]>(['']);
@@ -23,7 +22,7 @@ const RegistrationForm: React.FC = () => {
   const [teamSize, setTeamSize] = useState<number>(2);
   const [showAlert, setShowAlert] = useState(false);
 
-  const schoolCategories = ['SD', 'SMP', 'SMA', 'Umum'];
+  const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
   const acehCities = [
     'Banda Aceh', 'Sabang', 'Lhokseumawe', 'Langsa', 'Meulaboh',
     'Bireuen', 'Takengon', 'Blangpidie', 'Calang', 'Jantho',
@@ -127,6 +126,7 @@ const RegistrationForm: React.FC = () => {
         buktiPembayaran: buktiPembayaranUrl,
         registrationCode,
         registrationDate,
+        schoolCategory: selectedCategory || 'UMUM',
       } as Registration;
   
       await pushData(registrationData);
@@ -134,6 +134,7 @@ const RegistrationForm: React.FC = () => {
       setFormData({});
       setTeamMembers(['']);
       setSelectedCompetition(null);
+      setSelectedCategory(null);
       setKtsSuratAktifFile(null);
       setBuktiPembayaranFile(null);
     } catch (error) {
@@ -193,31 +194,29 @@ const RegistrationForm: React.FC = () => {
           variants={itemVariants}
         >
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-            <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
-              Competition
+            <label htmlFor="category" className="block text-gray-700 text-sm font-bold mb-2">
+              Category
             </label>
             <div className="relative">
               <select
-                id="competition"
-                name="competition"
-                value={selectedCompetition?.name || ''}
+                id="category"
+                name="category"
+                value={selectedCategory || ''}
                 onChange={(e) => {
-                  const selected = flashEvent.competitions.find(
-                    (c) => c.name === e.target.value
-                  );
-                  setSelectedCompetition(selected || null);
+                  setSelectedCategory(e.target.value as SchoolCategory);
+                  setSelectedCompetition(null);
                 }}
                 required
                 className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
               >
-                <option value="">Select a competition</option>
-                {flashEvent.competitions.map((competition, index) => (
-                  <option key={index} value={competition.name}>
-                    {competition.name}
+                <option value="">Select a category</option>
+                {schoolCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
                   </option>
                 ))}
               </select>
-              <Award className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+              <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg
                   className="fill-current h-4 w-4"
@@ -229,6 +228,53 @@ const RegistrationForm: React.FC = () => {
               </div>
             </div>
           </motion.div>
+
+          {selectedCategory && (
+  <motion.div 
+    className="mb-4 md:mb-6" 
+    variants={itemVariants}
+    initial="hidden"
+    animate="visible"
+  >
+    <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
+      Competition
+    </label>
+    <div className="relative">
+      <select
+        id="competition"
+        name="competition"
+        value={selectedCompetition?.name || ''}
+        onChange={(e) => {
+          const selected = flashEvent.competitions.find(
+            (c) => c.name === e.target.value && c.categories?.includes(selectedCategory)
+          );
+          setSelectedCompetition(selected || null);
+        }}
+        required
+        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+      >
+        <option value="">Select a competition</option>
+        {flashEvent.competitions
+          .filter((competition) => competition.categories?.includes(selectedCategory))
+          .map((competition, index) => (
+            <option key={index} value={competition.name}>
+              {competition.name}
+            </option>
+          ))}
+      </select>
+      <Award className="absolute left-3 top-2 md:top-3 text-gray-400 pointer-events-none" size={20} />
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+        <svg
+          className="fill-current h-4 w-4"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+        >
+          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+        </svg>
+      </div>
+    </div>
+  </motion.div>
+)}
 
           {selectedCompetition && (
             <motion.div 
@@ -383,43 +429,7 @@ const RegistrationForm: React.FC = () => {
                   </div>
                 </motion.div>
 
-                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                  <label htmlFor="schoolCategory" className="block text-gray-700 text-sm font-bold mb-2">
-                    Kategori Sekolah
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="schoolCategory"
-                      name="schoolCategory"
-                      value={formData.schoolCategory || ''}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
-                    >
-                      <option value="">Pilih Kategori Sekolah</option>
-                      {schoolCategories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                    <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                      <svg
-                        className="fill-current h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Column 3 */}
-              <div>
-                {formData.schoolCategory !== 'Umum' && (
+                {selectedCategory !== 'UMUM' && (
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
                       Nama Sekolah
@@ -433,146 +443,149 @@ const RegistrationForm: React.FC = () => {
                         onChange={handleChange}
                         required
                         className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                      />
-                      <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        />
+                        <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+  
+                {/* Column 3 */}
+                <div>
+                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                    <label htmlFor="city" className="block text-gray-700 text-sm font-bold mb-2">
+                      Kota/Kabupaten
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="city"
+                        name="city"
+                        value={formData.city || ''}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                      >
+                        <option value="">Pilih Kota/Kabupaten</option>
+                        {acehCities.map((city, index) => (
+                          <option key={index} value={city}>
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                      <MapPin className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg
+                          className="fill-current h-4 w-4"
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                        </svg>
+                      </div>
                     </div>
                   </motion.div>
-                )}
-
-                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                  <label htmlFor="city" className="block text-gray-700 text-sm font-bold mb-2">
-                    Kota/Kabupaten
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="city"
-                      name="city"
-                      value={formData.city || ''}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
-                    >
-                      <option value="">Pilih Kota/Kabupaten</option>
-                      {acehCities.map((city, index) => (
-                        <option key={index} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                    <MapPin className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                      <svg
-                        className="fill-current h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {formData.schoolCategory !== 'Umum' && (
+  
+                  {selectedCategory !== 'UMUM' && (
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                      <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-sm font-bold mb-2">
+                        KTS / Surat Aktif (PDF)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="ktsSuratAktif"
+                          name="ktsSuratAktif"
+                          onChange={handleFileChange}
+                          accept=".pdf"
+                          required
+                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        />
+                        <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      </div>
+                    </motion.div>
+                  )}
+  
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-sm font-bold mb-2">
-                      KTS / Surat Aktif (PDF)
+                    <label htmlFor="buktiPembayaran" className="block text-gray-700 text-sm font-bold mb-2">
+                      Bukti Pembayaran (PDF)
                     </label>
                     <div className="relative">
                       <input
                         type="file"
-                        id="ktsSuratAktif"
-                        name="ktsSuratAktif"
+                        id="buktiPembayaran"
+                        name="buktiPembayaran"
                         onChange={handleFileChange}
                         accept=".pdf"
                         required
                         className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
-                      <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
-                )}
-
-                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                  <label htmlFor="buktiPembayaran" className="block text-gray-700 text-sm font-bold mb-2">
-                    Bukti Pembayaran (PDF)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      id="buktiPembayaran"
-                      name="buktiPembayaran"
-                      onChange={handleFileChange}
-                      accept=".pdf"
-                      required
-                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                    />
-                    <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Team Members section (if applicable) */}
-              {isTeam && (
-                <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
-                  <label className="block text-gray-700 text-sm font-bold mb-2">
-                    Anggota Tim (Maksimum {teamSize} anggota)
-                  </label>
-                  {teamMembers.map((member, index) => (
-                    <div key={index} className="flex mb-2">
-                      <div className="relative flex-grow">
-                        <input
-                          type="text"
-                          value={member}
-                          onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                          placeholder={`Nama Anggota ${index + 1}`}
-                        />
-                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                </div>
+  
+                {/* Team Members section (if applicable) */}
+                {isTeam && (
+                  <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                      Anggota Tim (Maksimum {teamSize} anggota)
+                    </label>
+                    {teamMembers.map((member, index) => (
+                      <div key={index} className="flex mb-2">
+                        <div className="relative flex-grow">
+                          <input
+                            type="text"
+                            value={member}
+                            onChange={(e) => handleTeamMemberChange(index, e.target.value)}
+                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            placeholder={`Nama Anggota ${index + 1}`}
+                          />
+                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
+                        {index > 0 && (
+                          <motion.button
+                            type="button"
+                            onClick={() => removeTeamMember(index)}
+                            className="bg-red-500 text-white px-3 py-1 rounded ml-2 hover:bg-red-600 transition duration-300"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Hapus
+                          </motion.button>
+                        )}
                       </div>
-                      {index > 0 && (
-                        <motion.button
-                          type="button"
-                          onClick={() => removeTeamMember(index)}
-                          className="bg-red-500 text-white px-3 py-1 rounded ml-2 hover:bg-red-600 transition duration-300"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          Hapus
-                        </motion.button>
-                      )}
-                    </div>
-                  ))}
-                  {teamMembers.length < teamSize && (
-                    <motion.button
-                      type="button"
-                      onClick={addTeamMember}
-                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      Tambah Anggota
-                    </motion.button>
-                  )}
+                    ))}
+                    {teamMembers.length < teamSize && (
+                      <motion.button
+                        type="button"
+                        onClick={addTeamMember}
+                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Tambah Anggota
+                      </motion.button>
+                    )}
+                  </motion.div>
+                )}
+  
+                {/* Submit button */}
+                <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
+                  <motion.button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 md:py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Daftar Sekarang
+                  </motion.button>
                 </motion.div>
-              )}
-
-              {/* Submit button */}
-              <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
-                <motion.button
-                  type="submit"
-                  className="w-full bg-blue-600 text-white py-2 md:py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Daftar Sekarang
-                </motion.button>
               </motion.div>
-            </motion.div>
-          )}
-        </motion.form>
-      </motion.div>
-    </section>
-  );
-};
-
-export default RegistrationForm;
+            )}
+          </motion.form>
+        </motion.div>
+      </section>
+    );
+  };
+  
+  export default RegistrationForm;

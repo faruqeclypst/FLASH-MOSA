@@ -1,10 +1,11 @@
 import React from 'react';
-import { Competition } from '../../types';
+import { Competition, SchoolCategory } from '../../types';
 import { PlusCircle, X, Upload, Plus, Trash2, Users } from 'lucide-react';
+// import { PlusCircle, X, Upload, Plus, Trash2, Users, Check } from 'lucide-react';
 
 interface CompetitionsManagerProps {
   competitions: Competition[];
-  handleCompetitionChange: (index: number, field: keyof Competition, value: string | number) => void;
+  handleCompetitionChange: (index: number, field: keyof Competition, value: any) => void;
   handleAddCompetition: () => void;
   handleRemoveCompetition: (index: number) => void;
   handleAddRule: (competitionIndex: number) => void;
@@ -23,6 +24,19 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
   handleRemoveRule,
   handleIconUpload
 }) => {
+  const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
+
+  const toggleCategory = (index: number, category: SchoolCategory) => {
+    const currentCategories = competitions[index].categories || [];
+    let newCategories: SchoolCategory[];
+    if (currentCategories.includes(category)) {
+      newCategories = currentCategories.filter(c => c !== category);
+    } else {
+      newCategories = [...currentCategories, category];
+    }
+    handleCompetitionChange(index, 'categories', newCategories);
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Competitions</h2>
@@ -97,6 +111,33 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                   <option value="single">Single</option>
                   <option value="team">Team</option>
                 </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Competition Categories
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {schoolCategories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={(e) => {
+                        e.preventDefault(); // Mencegah form submission
+                        toggleCategory(index, category);
+                      }}
+                      className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        competition.categories?.includes(category)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-700'
+                      } transition-colors duration-300`}
+                    >
+                      {category}
+                      {/* {competition.categories?.includes(category) && (
+                        <Check size={16} className="ml-1 inline" />
+                      )} */}
+                    </button>
+                  ))}
+                </div>
               </div>
               
               {competition.type === 'team' && (

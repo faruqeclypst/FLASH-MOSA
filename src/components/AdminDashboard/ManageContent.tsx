@@ -1,8 +1,6 @@
-// src/components/AdminDashboard/ManageContent.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
-import { FlashEvent, Activity, Competition } from '../../types';
+import { FlashEvent, Activity, Competition, SchoolCategory } from '../../types';
 import EventInfoManager from './EventInfoManager';
 import ActivitiesManager from './ActivitiesManager';
 import CompetitionsManager from './CompetitionsManager';
@@ -95,7 +93,7 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, activities: updatedActivities }));
   };
 
-  const handleCompetitionChange = (index: number, field: keyof Competition, value: string | number) => {
+  const handleCompetitionChange = (index: number, field: keyof Competition, value: any) => {
     const updatedCompetitions = [...formData.competitions];
     updatedCompetitions[index] = { ...updatedCompetitions[index], [field]: value };
     setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
@@ -106,7 +104,7 @@ const ManageContent: React.FC = () => {
       ...prev,
       competitions: [
         ...prev.competitions,
-        { name: '', description: '', rules: [], icon: '', type: 'single' }
+        { name: '', description: '', rules: [], icon: '', type: 'single', categories: [] }
       ]
     }));
   }, []);

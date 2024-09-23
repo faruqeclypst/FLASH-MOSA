@@ -1,3 +1,4 @@
+//src/components/CompetitionList.tsx
 import React, { useState } from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition } from '../types';
