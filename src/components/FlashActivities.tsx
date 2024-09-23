@@ -122,7 +122,7 @@ const FlashActivities: React.FC = () => {
                 <div className="bg-white rounded-lg md:rounded-2xl shadow-md md:shadow-xl overflow-hidden">
                   <div className="relative h-64 md:h-96">
                     <img 
-                      src={isMobile ? activity.image.replace('.jpg', '-small.jpg') : activity.image} 
+                      src={activity.image} 
                       alt={activity.name} 
                       className="w-full h-full object-cover" 
                       loading="lazy"

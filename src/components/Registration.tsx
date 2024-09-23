@@ -190,7 +190,8 @@ const RegistrationForm: React.FC = () => {
 
         <motion.form
           onSubmit={handleSubmit}
-          className="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
+          className="mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
+          // className="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
           variants={itemVariants}
         >
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -574,8 +575,8 @@ const RegistrationForm: React.FC = () => {
                   <motion.button
                     type="submit"
                     className="w-full bg-blue-600 text-white py-2 md:py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.80 }}
                   >
                     Daftar Sekarang
                   </motion.button>

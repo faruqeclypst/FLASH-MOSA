@@ -90,11 +90,16 @@ const AboutFlash: React.FC = () => {
             </div>
           </motion.div>
           <motion.div 
-            className="lg:w-2/5"
-            variants={itemVariants}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
+  className="lg:w-2/5"
+  variants={itemVariants}
+  whileHover={{ scale: 1.32 }}
+  transition={{
+    type: "keyframes",
+    duration: 0.58,
+    times: [0, 0.5, 1],
+    ease: "easeInOut",
+  }}
+>
             <div className="flex justify-center items-center h-full">
               <motion.img 
                 src={flashEvent.aboutImage || "/api/placeholder/600/400"}
