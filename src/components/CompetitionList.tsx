@@ -1,9 +1,8 @@
-//src/components/CompetitionList.tsx
 import React, { useState } from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTrophy, FaChevronDown, FaChevronUp, FaUsers, FaClock } from 'react-icons/fa';
+import { FaTrophy, FaChevronDown, FaChevronUp, FaUsers } from 'react-icons/fa';
 import { useMediaQuery } from 'react-responsive';
 
 const containerVariants = {
@@ -30,6 +29,16 @@ const CompetitionCard: React.FC<{
   isExpanded: boolean;
   toggleExpand: () => void;
 }> = ({ competition, index, isMobile, isExpanded, toggleExpand }) => {
+  const renderTeamSize = () => {
+    if (competition.type === 'single') {
+      return 'Individual';
+    } else if (competition.teamSize) {
+      return `${competition.teamSize} Players`;
+    } else {
+      return 'Team';
+    }
+  };
+
   if (isMobile) {
     return (
       <motion.div
@@ -65,11 +74,7 @@ const CompetitionCard: React.FC<{
               <div className="flex items-center space-x-4 text-gray-500 text-sm mb-2">
                 <div className="flex items-center">
                   <FaUsers className="mr-1" />
-                  <span>2-4 Players</span>
-                </div>
-                <div className="flex items-center">
-                  <FaClock className="mr-1" />
-                  <span>60 Minutes</span>
+                  <span>{renderTeamSize()}</span>
                 </div>
               </div>
               <h4 className="font-semibold text-sm mb-1 text-gray-700">Rules:</h4>
@@ -100,11 +105,7 @@ const CompetitionCard: React.FC<{
           <div className="flex items-center space-x-4 text-white text-sm">
             <div className="flex items-center">
               <FaUsers className="mr-2" />
-              <span>2-4 Players</span>
-            </div>
-            <div className="flex items-center">
-              <FaClock className="mr-2" />
-              <span>60 Minutes</span>
+              <span>{renderTeamSize()}</span>
             </div>
           </div>
         </div>
