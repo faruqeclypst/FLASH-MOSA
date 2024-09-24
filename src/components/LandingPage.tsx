@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+
+
+import React, { useState, useEffect, useRef } from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';
 import Countdown from './Countdown';
@@ -10,19 +12,50 @@ const LandingPage: React.FC = () => {
   const { data: flashEvent, loading, error } = useFirebase<FlashEvent>('flashEvent');
   const [isLoaded, setIsLoaded] = useState(false);
   const [showTyping, setShowTyping] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!loading && !error) {
       const loadTimer = setTimeout(() => {
         setIsLoaded(true);
-        // Start typing animation after a short delay when content is loaded
         setTimeout(() => setShowTyping(true), 500);
       }, 1000);
       return () => clearTimeout(loadTimer);
     }
   }, [loading, error]);
 
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(error => {
+        console.error("Video autoplay was prevented:", error);
+      });
+    }
+  }, [flashEvent]);
+
   if (error) return <div>Error: {error.message}</div>;
+
+  const renderBackground = () => {
+    if (flashEvent?.heroVideo) {
+      return (
+        <video 
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full object-cover"
+          src={flashEvent.heroVideo}
+          loop
+          muted
+          playsInline
+        />
+      );
+    } else if (flashEvent?.heroImage) {
+      return (
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{backgroundImage: `url(${flashEvent.heroImage})`}}
+        />
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
@@ -51,9 +84,9 @@ const LandingPage: React.FC = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: isLoaded ? 1 : 0 }}
         transition={{ duration: 0.5 }}
-        className="relative min-h-screen flex items-center justify-center bg-cover bg-center"
-        style={{backgroundImage: flashEvent ? `url(${flashEvent.heroImage})` : 'none'}}
+        className="relative min-h-screen flex items-center justify-center"
       >
+        {renderBackground()}
         <div className="absolute inset-0 bg-black opacity-50"></div>
         <div className="z-10 text-center text-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">

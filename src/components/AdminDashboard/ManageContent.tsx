@@ -1,6 +1,8 @@
+// ManageContent.tsx
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
-import { FlashEvent, Activity, Competition, SchoolCategory } from '../../types';
+import { FlashEvent, Activity, Competition } from '../../types';
 import EventInfoManager from './EventInfoManager';
 import ActivitiesManager from './ActivitiesManager';
 import CompetitionsManager from './CompetitionsManager';
@@ -15,6 +17,7 @@ const ManageContent: React.FC = () => {
   const [formData, setFormData] = useState<FlashEvent>({
     title: '',
     heroImage: '',
+    heroVideo: '',
     aboutFlash: '',
     activities: [],
     competitions: [],
@@ -48,7 +51,7 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string, index?: number) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string, index?: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const storageRef = ref(storage, `flashEvent/${field}/${Date.now()}_${file.name}`);
@@ -67,7 +70,7 @@ const ManageContent: React.FC = () => {
           setFormData(prev => ({ ...prev, [field]: downloadURL }));
         }
       } catch (error) {
-        console.error("Error uploading image: ", error);
+        console.error("Error uploading file: ", error);
       }
     }
   };
@@ -149,10 +152,8 @@ const ManageContent: React.FC = () => {
   const handleConfirmUpdate = async () => {
     try {
       await updateData(formData);
-      // Tidak perlu alert di sini, karena pesan sukses akan ditampilkan di modal
     } catch (error) {
       console.error('Error updating content:', error);
-      // Anda bisa menangani error di sini jika diperlukan
     }
   };
 
@@ -190,17 +191,17 @@ const ManageContent: React.FC = () => {
               <EventInfoManager 
                 formData={formData} 
                 handleChange={handleChange} 
-                handleImageUpload={handleImageUpload}
+                handleFileUpload={handleFileUpload}
               />
             </Tab.Panel>
             <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-              <ActivitiesManager
-                activities={formData.activities}
-                handleActivityChange={handleActivityChange}
-                handleAddActivity={handleAddActivity}
-                handleRemoveActivity={handleRemoveActivity}
-                handleImageUpload={handleImageUpload}
-              />
+            <ActivitiesManager
+  activities={formData.activities}
+  handleActivityChange={handleActivityChange}
+  handleAddActivity={handleAddActivity}
+  handleRemoveActivity={handleRemoveActivity}
+  handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
+/>
             </Tab.Panel>
             <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
               <CompetitionsManager
@@ -215,11 +216,11 @@ const ManageContent: React.FC = () => {
               />
             </Tab.Panel>
             <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-              <GalleryManager 
-                gallery={formData.gallery}
-                handleImageUpload={handleImageUpload}
-                handleRemoveGalleryImage={handleRemoveGalleryImage}
-              />
+            <GalleryManager 
+  gallery={formData.gallery}
+  handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
+  handleRemoveGalleryImage={handleRemoveGalleryImage}
+/>
             </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>

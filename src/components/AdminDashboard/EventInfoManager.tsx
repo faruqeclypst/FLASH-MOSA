@@ -1,17 +1,16 @@
-// File: EventInfoManager.tsx
+// EventInfoManager.tsx
 
 import React from 'react';
 import { FlashEvent } from '../../types';
-import { Upload, Image as ImageIcon, Calendar, Clock } from 'lucide-react';
+import { Upload, Image as ImageIcon, Calendar, Clock, Video } from 'lucide-react';
 
 interface EventInfoManagerProps {
   formData: FlashEvent;
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, field: string) => Promise<void>;
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, field: string) => Promise<void>;
 }
 
-const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleChange, handleImageUpload }) => {
-  // Memisahkan tanggal dan waktu dari formData.eventDate dengan pengecekan tambahan
+const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleChange, handleFileUpload }) => {
   const [eventDate, eventTime] = formData.eventDate ? formData.eventDate.split('T') : ['', ''];
   const timeValue = eventTime ? eventTime.slice(0, 5) : '';
 
@@ -91,7 +90,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
             </div>
           </div>
 
-          {/* Image Upload Section */}
+          {/* Hero Image/Video Upload Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Hero Image */}
             <div>
@@ -101,7 +100,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                   type="file"
                   id="heroImage"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, 'heroImage')}
+                  onChange={(e) => handleFileUpload(e, 'heroImage')}
                   className="hidden"
                 />
                 <label
@@ -121,7 +120,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                   )}
                 </label>
               </div>
-              {formData.heroImage ? (
+              {formData.heroImage && (
                 <div className="mt-4 relative group">
                   <img 
                     src={formData.heroImage} 
@@ -138,64 +137,104 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-4 border-2 border-dashed border-gray-300 rounded-md h-[250px] flex items-center justify-center text-gray-400">
-                  No hero image uploaded
-                </div>
               )}
             </div>
 
-            {/* About Image */}
+            {/* Hero Video */}
             <div>
-              <label htmlFor="aboutImage" className="block text-sm font-medium text-gray-700 mb-1">About Image</label>
+              <label htmlFor="heroVideo" className="block text-sm font-medium text-gray-700 mb-1">Hero Video</label>
               <div className="relative">
                 <input
                   type="file"
-                  id="aboutImage"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, 'aboutImage')}
+                  id="heroVideo"
+                  accept="video/*"
+                  onChange={(e) => handleFileUpload(e, 'heroVideo')}
                   className="hidden"
                 />
                 <label
-                  htmlFor="aboutImage"
+                  htmlFor="heroVideo"
                   className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
                 >
-                  {formData.aboutImage ? (
+                  {formData.heroVideo ? (
                     <>
-                      <ImageIcon size={20} className="mr-2" />
-                      Change About Image
+                      <Video size={20} className="mr-2" />
+                      Change Hero Video
                     </>
                   ) : (
                     <>
                       <Upload size={20} className="mr-2" />
-                      Upload About Image
+                      Upload Hero Video
                     </>
                   )}
                 </label>
               </div>
-              {formData.aboutImage ? (
+              {formData.heroVideo && (
                 <div className="mt-4 relative group">
-                  <img 
-                    src={formData.aboutImage} 
-                    alt="About" 
+                  <video 
+                    src={formData.heroVideo} 
                     className="w-full h-[250px] object-cover rounded-md"
+                    controls
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <button
                       type="button"
-                      onClick={() => handleChange({ target: { name: 'aboutImage', value: '' } } as React.ChangeEvent<HTMLInputElement>)}
+                      onClick={() => handleChange({ target: { name: 'heroVideo', value: '' } } as React.ChangeEvent<HTMLInputElement>)}
                       className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md transition-colors duration-300"
                     >
-                      Remove Image
+                      Remove Video
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-4 border-2 border-dashed border-gray-300 rounded-md h-[250px] flex items-center justify-center text-gray-400">
-                  No about image uploaded
-                </div>
               )}
             </div>
+          </div>
+
+          {/* About Image */}
+          <div className="mt-6">
+            <label htmlFor="aboutImage" className="block text-sm font-medium text-gray-700 mb-1">About Image</label>
+            <div className="relative">
+              <input
+                type="file"
+                id="aboutImage"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e, 'aboutImage')}
+                className="hidden"
+              />
+              <label
+                htmlFor="aboutImage"
+                className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
+              >
+                {formData.aboutImage ? (
+                  <>
+                    <ImageIcon size={20} className="mr-2" />
+                    Change About Image
+                  </>
+                ) : (
+                  <>
+                    <Upload size={20} className="mr-2" />
+                    Upload About Image
+                  </>
+                )}
+              </label>
+            </div>
+            {formData.aboutImage && (
+              <div className="mt-4 relative group">
+                <img 
+                  src={formData.aboutImage} 
+                  alt="About" 
+                  className="w-full h-[250px] object-cover rounded-md"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <button
+                    type="button"
+                    onClick={() => handleChange({ target: { name: 'aboutImage', value: '' } } as React.ChangeEvent<HTMLInputElement>)}
+                    className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md transition-colors duration-300"
+                  >
+                    Remove Image
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
