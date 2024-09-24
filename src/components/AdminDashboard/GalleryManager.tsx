@@ -5,7 +5,7 @@ import { Upload, X, Image as ImageIcon } from 'lucide-react';
 
 interface GalleryManagerProps {
   gallery: string[];
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, field: string) => Promise<void>;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   handleRemoveGalleryImage: (index: number) => void;
 }
 
@@ -19,23 +19,23 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Gallery</h2>
       <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl p-6">
         <div className="mb-6">
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, 'gallery')}
-              className="hidden"
-              id="gallery-upload"
-              multiple
-            />
-            <label
-              htmlFor="gallery-upload"
-              className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
-            >
-              <Upload size={24} className="mr-2 text-gray-500" />
-              <span className="text-gray-500 font-medium">Upload Images</span>
-            </label>
-          </div>
+        <div className="relative">
+  <input
+    type="file"
+    accept="image/*"
+    onChange={handleImageUpload}
+    className="hidden"
+    id="gallery-upload"
+    multiple
+  />
+  <label
+    htmlFor="gallery-upload"
+    className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
+  >
+    <Upload size={24} className="mr-2 text-gray-500" />
+    <span className="text-gray-500 font-medium">Upload Images</span>
+  </label>
+</div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {gallery.map((image, index) => (

@@ -7,7 +7,7 @@ interface ActivitiesManagerProps {
   handleActivityChange: (index: number, field: keyof Activity, value: string) => void;
   handleAddActivity: () => void;
   handleRemoveActivity: (index: number) => void;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, field: string, index?: number) => Promise<void>;
+  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>, index: number) => Promise<void>;
 }
 
 const ActivitiesManager: React.FC<ActivitiesManagerProps> = ({ 
@@ -48,31 +48,31 @@ const ActivitiesManager: React.FC<ActivitiesManagerProps> = ({
                 placeholder="Activity Description"
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 h-32 resize-none"
               />
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleImageUpload(e, 'activities', index)}
-                  className="hidden"
-                  id={`activity-image-${index}`}
-                />
-                <label
-                  htmlFor={`activity-image-${index}`}
-                  className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
-                >
-                  {activity.image ? (
-                    <>
-                      <ImageIcon size={20} className="mr-2" />
-                      Change Image
-                    </>
-                  ) : (
-                    <>
-                      <Upload size={20} className="mr-2" />
-                      Upload Image
-                    </>
-                  )}
-                </label>
-              </div>
+ <div className="relative">
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => handleImageUpload(e, index)}
+    className="hidden"
+    id={`activity-image-${index}`}
+  />
+  <label
+    htmlFor={`activity-image-${index}`}
+    className="flex items-center justify-center w-full p-3 border border-gray-300 rounded-md cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
+  >
+    {activity.image ? (
+      <>
+        <ImageIcon size={20} className="mr-2" />
+        Change Image
+      </>
+    ) : (
+      <>
+        <Upload size={20} className="mr-2" />
+        Upload Image
+      </>
+    )}
+  </label>
+</div>
               {activity.image && (
                 <div className="mt-4 relative group">
                   <img src={activity.image} alt={activity.name} className="w-full h-48 object-cover rounded-md" />

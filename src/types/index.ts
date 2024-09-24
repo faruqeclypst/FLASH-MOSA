@@ -3,6 +3,7 @@
 export interface FlashEvent {
   title: string;
   heroImage: string;
+  heroVideo?: string; // Tambahkan ini
   aboutFlash: string;
   aboutImage?: string;
   eventDate: string; // Format: "YYYY-MM-DDTHH:mm"
