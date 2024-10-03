@@ -180,13 +180,16 @@ const RegistrationForm: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
-        <motion.h2
-          className="text-4xl md:text-4xl font-bold mb-4 md:mb-8 text-center text-gray-800 leading-tight"
-          variants={itemVariants}
-        >
-          Register for a Competition
-        </motion.h2>
-        <div className="bg-blue-600 w-24 h-2 mb-8 md:mb-16 mx-auto"></div>
+       
+       <motion.div className="text-center mb-16" variants={itemVariants}>
+          <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
+            Pendaftaran <span className="text-blue-600">Lomba</span>
+          </h2>
+          <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
+          <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            FLASH 2024
+          </p>
+        </motion.div>
 
         <motion.form
           onSubmit={handleSubmit}
@@ -562,7 +565,7 @@ const RegistrationForm: React.FC = () => {
                         onClick={addTeamMember}
                         className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        whileTap={{ scale: 1.00 }}
                       >
                         Tambah Anggota
                       </motion.button>

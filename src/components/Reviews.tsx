@@ -1,115 +1,278 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion, useAnimation } from 'framer-motion';
 import { Star } from 'lucide-react';
+import { useMediaQuery } from 'react-responsive';
 
 interface Review {
+  id: number;
   name: string;
+  avatar: string;
   rating: number;
-  review: string;
+  content: string;
 }
 
-const reviewsData: Review[] = [
+const reviews: Review[] = [
   {
-    name: 'John Doe',
+    id: 1,
+    name: "Budi Santoso",
+    avatar: "https://i.pravatar.cc/150?img=1",
     rating: 5,
-    review: 'This event was absolutely amazing! The organization was top-notch, and the content was very informative.',
+    content: "FLASH adalah pengalaman yang luar biasa! Kompetisinya menantang dan workshopnya sangat informatif."
   },
   {
-    name: 'Jane Smith',
+    id: 2,
+    name: "Siti Nurhayati",
+    avatar: "https://i.pravatar.cc/150?img=2",
     rating: 4,
-    review: 'I had a great time at the event. The only downside was the long queue at the registration.',
+    content: "Saya belajar banyak di FLASH. Kesempatan networking sangat berharga untuk karir saya."
   },
   {
-    name: 'Alice Johnson',
+    id: 3,
+    name: "Agus Setiawan",
+    avatar: "https://i.pravatar.cc/150?img=3",
     rating: 5,
-    review: 'The event exceeded my expectations. The speakers were knowledgeable, and the networking opportunities were fantastic.',
+    content: "Organisasi FLASH sangat bagus. Setiap aspek acara direncanakan dan dilaksanakan dengan sempurna."
   },
+  {
+    id: 4,
+    name: "Rina Wulandari",
+    avatar: "https://i.pravatar.cc/150?img=4",
+    rating: 5,
+    content: "FLASH melampaui semua harapan saya. Kualitas pembicara dan berbagai topik yang dibahas sangat mengesankan."
+  },
+  {
+    id: 5,
+    name: "Adi Nugroho",
+    avatar: "https://i.pravatar.cc/150?img=5",
+    rating: 4,
+    content: "Workshop praktis di FLASH sangat membantu. Saya mendapatkan keterampilan praktis yang bisa langsung saya terapkan dalam pekerjaan saya."
+  },
+  {
+    id: 6,
+    name: "Dewi Lestari",
+    avatar: "https://i.pravatar.cc/150?img=6",
+    rating: 5,
+    content: "FLASH adalah acara yang luar biasa! Saya sangat terkesan dengan keragaman topik dan kualitas presentasi."
+  },
+  {
+    id: 7,
+    name: "Doni Kusuma",
+    avatar: "https://i.pravatar.cc/150?img=7",
+    rating: 4,
+    content: "Sesi networking di FLASH membuka banyak peluang baru untuk saya. Sangat berharga untuk karir saya."
+  },
+  {
+    id: 8,
+    name: "Lina Wijaya",
+    avatar: "https://i.pravatar.cc/150?img=8",
+    rating: 5,
+    content: "Kompetisi di FLASH sangat menantang dan menyenangkan. Saya belajar banyak dari peserta lain."
+  },
+  {
+    id: 9,
+    name: "Tono Prasetyo",
+    avatar: "https://i.pravatar.cc/150?img=9",
+    rating: 4,
+    content: "Workshop praktis di FLASH sangat membantu. Saya mendapatkan keterampilan baru yang dapat langsung saya terapkan."
+  },
+  {
+    id: 10,
+    name: "Eka Putri",
+    avatar: "https://i.pravatar.cc/150?img=10",
+    rating: 5,
+    content: "Pembicara tamu di FLASH sangat menginspirasi. Saya pulang dengan banyak ide baru untuk proyek saya."
+  },
+  {
+    id: 11,
+    name: "Rudi Hermawan",
+    avatar: "https://i.pravatar.cc/150?img=11",
+    rating: 5,
+    content: "FLASH memberikan wawasan yang luar biasa tentang tren terbaru dalam industri. Sangat bermanfaat untuk pengembangan profesional saya."
+  },
+  {
+    id: 12,
+    name: "Olivia Sari",
+    avatar: "https://i.pravatar.cc/150?img=12",
+    rating: 4,
+    content: "Saya sangat menikmati sesi tanya jawab dengan para ahli di FLASH. Mereka sangat terbuka dan informatif."
+  },
+  {
+    id: 13,
+    name: "Dani Gunawan",
+    avatar: "https://i.pravatar.cc/150?img=13",
+    rating: 5,
+    content: "Fasilitas dan organisasi FLASH sangat mengesankan. Setiap detail diperhatikan dengan baik."
+  },
+  {
+    id: 14,
+    name: "Sari Indah",
+    avatar: "https://i.pravatar.cc/150?img=14",
+    rating: 4,
+    content: "FLASH memberikan platform yang luar biasa untuk bertukar ide dengan rekan-rekan dari seluruh dunia."
+  },
+  {
+    id: 15,
+    name: "Candra Wijaya",
+    avatar: "https://i.pravatar.cc/150?img=15",
+    rating: 5,
+    content: "Saya sangat merekomendasikan FLASH kepada siapa pun yang ingin memperluas pengetahuan dan jaringan mereka dalam industri ini."
+  }
 ];
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.3,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 300,
-      damping: 24,
-    },
-  },
-};
-
-const ReviewCard: React.FC<Review> = ({ name, rating, review }) => (
-  <motion.div
-    className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center"
-    variants={itemVariants}
-    whileHover={{ scale: 1.03 }}
-    transition={{ type: 'spring', stiffness: 300 }}
+const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
+  <motion.div 
+    className="bg-white p-6 rounded-xl mb-6 shadow-md"
+    initial={{ opacity: 0, y: 50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
   >
-    <div className="flex space-x-1 mb-4">
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Star
-          key={index}
-          className={`w-6 h-6 ${index < rating ? 'text-yellow-500' : 'text-gray-300'}`}
-        />
-      ))}
+    <div className="flex items-start mb-4">
+      <img src={review.avatar} alt={review.name} className="w-16 h-16 rounded-full mr-4 object-cover" />
+      <div className="flex-grow">
+        <h3 className="font-bold text-xl text-gray-800 mb-1">{review.name}</h3>
+        <div className="flex mb-2">
+          {[...Array(5)].map((_, i) => (
+            <Star 
+              key={i} 
+              className={`w-5 h-5 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`} 
+              fill="currentColor" 
+            />
+          ))}
+        </div>
+        <p className="text-gray-600 leading-relaxed">{review.content}</p>
+      </div>
     </div>
-    <h4 className="text-xl font-bold mb-2 text-gray-800">{name}</h4>
-    <p className="text-gray-600">{review}</p>
   </motion.div>
 );
 
 const Reviews: React.FC = () => {
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
+  const controls1 = useAnimation();
+  const controls2 = useAnimation();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mobileReviews, setMobileReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    if (isMobile) {
+      const shuffledReviews = [...reviews].sort(() => Math.random() - 0.5);
+      setMobileReviews(shuffledReviews.slice(0, 10));
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    const scrollAnimation = async () => {
+      if (isMobile) {
+        await controls1.start({
+          y: [0, -1000, 0],
+          transition: {
+            y: {
+              repeat: Infinity,
+              repeatType: "loop",
+              duration: 30,
+              ease: "linear",
+            },
+          },
+        });
+      } else {
+        const containerHeight = containerRef.current?.offsetHeight || 0;
+        const viewportHeight = 500;
+        const scrollDistance = containerHeight - viewportHeight;
+
+        controls1.start({
+          y: [0, -scrollDistance, 0],
+          transition: {
+            y: {
+              repeat: Infinity,
+              repeatType: "reverse",
+              duration: 230,
+              ease: "linear",
+            },
+          },
+        });
+        controls2.start({
+          y: [-scrollDistance, 0, -scrollDistance],
+          transition: {
+            y: {
+              repeat: Infinity,
+              repeatType: "reverse",
+              duration: 120,
+              ease: "linear",
+            },
+          },
+        });
+      }
+    };
+
+    scrollAnimation();
+  }, [controls1, controls2, isMobile]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: 'easeOut' }
+    }
+  };
+
   return (
-    <section className="py-24 bg-gradient-to-b from-gray-100 to-white">
+    <section className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <div className="container mx-auto px-4">
-        <motion.div
+        <motion.div 
           className="text-center mb-16"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={containerVariants}
         >
-          <motion.h2
-            className="text-4xl font-bold mb-6 text-gray-800 leading-tight"
+          <motion.h2 
+            className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight"
             variants={itemVariants}
           >
-            What People Are Saying
+            Apa yang <span className="text-blue-600">Peserta</span> Kami Katakan
           </motion.h2>
-          <motion.div
-            className="bg-blue-600 w-24 h-2 mb-8 mx-auto"
-            variants={itemVariants}
-          ></motion.div>
-          <motion.p
-            className="text-2xl text-gray-600 max-w-4xl mx-auto"
+          <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
+          <motion.p 
+            className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-            See what our attendees have to say about their experience at FLASH.
+            Dengarkan dari mereka yang telah mengalami acara FLASH secara langsung
           </motion.p>
         </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          {reviewsData.map((review, index) => (
-            <ReviewCard key={index} {...review} />
-          ))}
-        </motion.div>
+        <div className="relative overflow-hidden" style={{ height: '500px' }}>
+          {isMobile ? (
+            <motion.div 
+              className="grid grid-cols-1 gap-6"
+              animate={controls1}
+            >
+              {mobileReviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-2 gap-6" ref={containerRef}>
+              <motion.div animate={controls1}>
+                {reviews.map((review) => (
+                  <ReviewCard key={`${review.id}-1`} review={review} />
+                ))}
+              </motion.div>
+              <motion.div animate={controls2}>
+                {reviews.map((review) => (
+                  <ReviewCard key={`${review.id}-2`} review={review} />
+                ))}
+              </motion.div>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

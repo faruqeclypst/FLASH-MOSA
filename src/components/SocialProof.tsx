@@ -10,7 +10,7 @@ import Kemenhub from '../assets/img/kemenhub.png';
 import Aceh from '../assets/img/aceh.png';
 import Kebab from '../assets/img/kebab.jpg';
 import Bazaars_1 from '../assets/img/bazaars/1.png';
-import Bazaars_2 from '../assets/img/bazaars/2.jpg';
+import Bazaars_2 from '../assets/img/bazaars/2.png';
 import Bazaars_3 from '../assets/img/bazaars/3.webp';
 import Bazaars_4 from '../assets/img/bazaars/4.webp';
 import Bazaars_5 from '../assets/img/bazaars/5.png';
@@ -194,7 +194,7 @@ const SocialProof: React.FC = () => {
         </motion.div>
 
         {/* Awards Section */}
-        <motion.div
+        {/* <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -220,7 +220,7 @@ const SocialProof: React.FC = () => {
               </motion.div>
             ))}
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </section>
   );

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import LogoutButton from './LogoutButton';
 import '../../styles/adminDashboard.css';
 import { DashboardStats, Registration } from '../../types';
 
@@ -38,11 +37,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="admin-dashboard">
-      <header className="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <LogoutButton />
-      </header>
-      
       <main className="dashboard-content">
         <div className="dashboard-stats">
           <div className="stat-card total">

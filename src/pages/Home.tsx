@@ -3,7 +3,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import LandingPage from '../components/LandingPage';
 import AboutFlash from '../components/AboutFlash';
-import FlashActivities from '../components/FlashActivities';
+// import FlashActivities from '../components/FlashActivities';
 import CompetitionList from '../components/CompetitionList';
 import Registration from '../components/Registration';
 import Gallery from '../components/Gallery';
@@ -20,16 +20,16 @@ const Home: React.FC = () => {
       <main className="flex-grow">
         <LandingPage />
         <AboutFlash />
-        <FlashActivities />
+        {/* <FlashActivities /> */}
         <CompetitionList />
         <Gallery />
-        <CTASection />
         <Reviews /> 
         <SocialProof /> 
         {/* <ContactForm /> */}
       </main>
       <Registration />
       <MapLocation />
+     <CTASection />
       <Footer />
     </div>
   );

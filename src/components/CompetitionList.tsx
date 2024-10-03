@@ -1,34 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { motion, useAnimation } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaTrophy, FaChevronDown, FaChevronUp, FaUsers } from 'react-icons/fa';
-import { useMediaQuery } from 'react-responsive';
+import { useInView } from 'react-intersection-observer';
+import { FaUsers, FaTrophy, FaCheckCircle } from 'react-icons/fa';
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' }
-  }
-};
-
-const CompetitionCard: React.FC<{ 
-  competition: Competition; 
-  index: number;
-  isMobile: boolean;
-  isExpanded: boolean;
-  toggleExpand: () => void;
-}> = ({ competition, index, isMobile, isExpanded, toggleExpand }) => {
+const CompetitionCard: React.FC<{ competition: Competition }> = ({ competition }) => {
   const renderTeamSize = () => {
     if (competition.type === 'single') {
       return 'Individual';
@@ -39,195 +16,156 @@ const CompetitionCard: React.FC<{
     }
   };
 
-  if (isMobile) {
-    return (
-      <motion.div
-        variants={itemVariants}
-        className="bg-white rounded-lg shadow-md mb-4"
-      >
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-gray-800">{competition.name}</h3>
-            <button
-              onClick={toggleExpand}
-              className="text-blue-600"
-            >
-              {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-            </button>
-          </div>
-          <img 
-            src={competition.icon || 'path/to/default/image.jpg'} 
-            alt={`${competition.name} icon`} 
-            className="w-full h-40 object-cover rounded-lg mb-2"
-          />
-        </div>
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="px-4 pb-4"
-            >
-              <p className="text-gray-600 text-sm mb-2">{competition.description}</p>
-              <div className="flex items-center space-x-4 text-gray-500 text-sm mb-2">
-                <div className="flex items-center">
-                  <FaUsers className="mr-1" />
-                  <span>{renderTeamSize()}</span>
-                </div>
-              </div>
-              <h4 className="font-semibold text-sm mb-1 text-gray-700">Rules:</h4>
-              <ul className="list-disc list-inside text-sm text-gray-600">
-                {competition.rules?.map((rule, ruleIndex) => (
-                  <li key={ruleIndex}>{rule}</li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  }
-
   return (
-    <motion.div
-      variants={itemVariants}
-      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-    >
-      <div className="relative h-64 bg-gradient-to-r from-blue-500 to-purple-600 p-6">
-        <div className="absolute top-4 right-4 bg-white bg-opacity-20 backdrop-blur-sm rounded-full p-2">
-          <FaTrophy className="text-2xl text-white" />
-        </div>
-        <div className="relative z-10">
-          <h3 className="text-2xl font-bold text-white mb-2">{competition.name}</h3>
-          <p className="text-white text-opacity-80 text-sm mb-4">{competition.description}</p>
-          <div className="flex items-center space-x-4 text-white text-sm">
-            <div className="flex items-center">
-              <FaUsers className="mr-2" />
-              <span>{renderTeamSize()}</span>
-            </div>
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden h-full flex flex-col transform transition duration-300 hover:scale-105">
+      <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-600">
+        {competition.icon ? (
+          <img 
+            src={competition.icon} 
+            alt={`${competition.name} icon`} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <FaTrophy className="text-6xl text-white opacity-20" />
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+          <h3 className="text-xl font-bold text-white mb-1 drop-shadow-lg">{competition.name}</h3>
+          <div className="flex items-center text-white text-sm">
+            <FaUsers className="mr-2" />
+            <span>{renderTeamSize()}</span>
           </div>
         </div>
-        <div className="absolute right-0 bottom-0 w-40 h-40 overflow-hidden">
-          {competition.icon ? (
-            <img 
-              src={competition.icon} 
-              alt={`${competition.name} icon`} 
-              className="w-full h-full object-cover rounded-tl-full border-t-4 border-l-4 border-white shadow-lg"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-white bg-opacity-20 rounded-tl-full">
-              <FaTrophy className="text-4xl text-white opacity-20" />
-            </div>
-          )}
+      </div>
+      <div className="p-6 flex flex-col flex-grow">
+        <p className="text-gray-600 text-sm mb-4 flex-grow">{competition.description}</p>
+        <div className="mt-auto">
+          <h4 className="font-semibold text-lg mb-3 text-gray-800">Rules:</h4>
+          <ul className="space-y-2">
+            {competition.rules?.map((rule, ruleIndex) => (
+              <li key={ruleIndex} className="flex items-start">
+                <FaCheckCircle className="text-green-500 mt-1 mr-2 flex-shrink-0" />
+                <span className="text-sm text-gray-700">{rule}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
-      <div className="p-6">
-        <motion.button
-          onClick={toggleExpand}
-          className="flex items-center justify-between w-full text-blue-600 font-semibold text-sm bg-blue-50 p-3 rounded-lg hover:bg-blue-100 transition-colors duration-300"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {isExpanded ? 'Hide Rules' : 'Show Rules'}
-          {isExpanded ? <FaChevronUp /> : <FaChevronDown />}
-        </motion.button>
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4 bg-gray-50 p-4 rounded-lg"
-            >
-              <h4 className="font-bold text-sm mb-2 text-gray-700">Rules:</h4>
-              <ul className="space-y-2">
-                {competition.rules?.map((rule, ruleIndex) => (
-                  <motion.li 
-                    key={ruleIndex}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: ruleIndex * 0.1 }}
-                    className="flex items-start"
-                  >
-                    <span className="inline-block w-5 h-5 bg-blue-100 rounded-full flex-shrink-0 mr-2 flex items-center justify-center text-blue-600 font-bold text-xs">
-                      {ruleIndex + 1}
-                    </span>
-                    <span className="text-gray-600 text-sm">{rule}</span>
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
+    </div>
   );
 };
 
 const CompetitionList: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
-  const isMobile = useMediaQuery({ query: '(max-width: 767px)' });
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
+  const controls = useAnimation();
+  const [isMobile, setIsMobile] = useState(false);
+  const [visibleItems, setVisibleItems] = useState(6);
+  const [animateNewItems, setAnimateNewItems] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileDevice = window.innerWidth <= 768;
+      setIsMobile(isMobileDevice);
+      setVisibleItems(isMobileDevice ? 3 : 6);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    }
+  }, [controls, inView]);
 
   if (!flashEvent || !flashEvent.competitions) return null;
 
-  const toggleExpand = (index: number) => {
-    setExpandedIndex(prevIndex => prevIndex === index ? null : index);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.3,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: 'easeInOut',
+      },
+    },
+  };
+
+  const loadMore = () => {
+    setVisibleItems(prevVisibleItems => {
+      const increment = isMobile ? 3 : 6;
+      return Math.min(prevVisibleItems + increment, flashEvent.competitions.length);
+    });
+    setAnimateNewItems(true);
+    setTimeout(() => setAnimateNewItems(false), 100);
   };
 
   return (
-    <section id="competitions" className={`py-8 ${isMobile ? 'bg-gray-100' : 'bg-gradient-to-b from-gray-100 to-white'}`}>
-      <div className="container mx-auto px-4">
-        <motion.div 
-          className="text-center mb-8"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={containerVariants}
-        >
-          <motion.h2 
-            className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold mb-2 text-gray-800 leading-tight`}
-            variants={itemVariants}
-          >
-            {isMobile ? 'Our Competitions' : 'Our Exciting Competitions'}
-          </motion.h2>
-          {!isMobile && (
-            <>
-              <motion.div 
-                className="bg-blue-600 w-24 h-2 mb-8 mx-auto"
-                variants={itemVariants}
-              ></motion.div>
-              <motion.p 
-                className="text-2xl text-gray-600 max-w-3xl mx-auto"
-                variants={itemVariants}
-              >
-                Showcase your skills and compete with the best in our thrilling competitions
-              </motion.p>
-            </>
-          )}
+    <section id="competitions" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+      <motion.div
+        ref={ref}
+        className="container mx-auto px-4"
+        variants={containerVariants}
+        initial="hidden"
+        animate={controls}
+        viewport={{ once: true, amount: 0.3 }}
+      >
+        <motion.div className="text-center mb-16" variants={itemVariants}>
+          <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
+            Our Exciting <span className="text-blue-600">Competitions</span>
+          </h2>
+          <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
+          <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Showcase your skills and compete with the best in our thrilling challenges
+          </p>
         </motion.div>
-        <motion.div
-          className={isMobile ? '' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           variants={containerVariants}
         >
-          {flashEvent.competitions.map((competition, index) => (
-            <CompetitionCard 
-              key={index}
-              competition={competition} 
-              index={index}
-              isMobile={isMobile}
-              isExpanded={expandedIndex === index}
-              toggleExpand={() => toggleExpand(index)}
-            />
+          {flashEvent.competitions.slice(0, visibleItems).map((competition, index) => (
+            <motion.div 
+              key={index} 
+              variants={itemVariants} 
+              className="h-full"
+              initial={animateNewItems && index >= visibleItems - (isMobile ? 3 : 6) ? "hidden" : "visible"}
+              animate="visible"
+            >
+              <CompetitionCard competition={competition} />
+            </motion.div>
           ))}
         </motion.div>
-      </div>
+        {visibleItems < flashEvent.competitions.length && (
+          <motion.div 
+            className="text-center mt-16"
+            variants={itemVariants}
+          >
+            <button
+              onClick={loadMore}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
+            >
+              Load More Competitions
+            </button>
+          </motion.div>
+        )}
+      </motion.div>
     </section>
   );
 };
