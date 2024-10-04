@@ -1,19 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, useAnimation } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition } from '../types';
 import { useInView } from 'react-intersection-observer';
-import { FaUsers, FaTrophy, FaCheckCircle } from 'react-icons/fa';
+import { FaUsers, FaTrophy, FaCheckCircle, FaGraduationCap } from 'react-icons/fa';
 
 const CompetitionCard: React.FC<{ competition: Competition }> = ({ competition }) => {
-  const renderTeamSize = () => {
-    if (competition.type === 'single') {
-      return 'Individual';
-    } else if (competition.teamSize) {
-      return `${competition.teamSize} Players`;
-    } else {
-      return 'Team';
+  const renderTeamInfo = () => {
+    let teamInfo = competition.type === 'single' ? 'Individual' : 'Team';
+    
+    if (competition.type === 'team' && competition.teamSize) {
+      teamInfo += ` (${competition.teamSize} Players)`;
     }
+    
+    return teamInfo;
+  };
+
+
+  const renderCategories = () => {
+    if (!competition.categories || competition.categories.length === 0) {
+      return 'All Categories';
+    }
+    return competition.categories.join(', ');
   };
 
   return (
@@ -32,9 +40,15 @@ const CompetitionCard: React.FC<{ competition: Competition }> = ({ competition }
         )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
           <h3 className="text-xl font-bold text-white mb-1 drop-shadow-lg">{competition.name}</h3>
-          <div className="flex items-center text-white text-sm">
-            <FaUsers className="mr-2" />
-            <span>{renderTeamSize()}</span>
+          <div className="flex flex-col text-white text-sm space-y-2">
+            <div className="flex items-center">
+              <FaGraduationCap className="mr-2" />
+              <span>{renderCategories()}</span>
+            </div>
+            <div className="flex items-center">
+              <FaUsers className="mr-2" />
+              <span>{renderTeamInfo()}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -56,6 +70,8 @@ const CompetitionCard: React.FC<{ competition: Competition }> = ({ competition }
   );
 };
 
+
+
 const CompetitionList: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
   const [ref, inView] = useInView({
@@ -63,20 +79,24 @@ const CompetitionList: React.FC = () => {
     threshold: 0.1,
   });
   const controls = useAnimation();
-  const [isMobile, setIsMobile] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [visibleItems, setVisibleItems] = useState(6);
-  const [animateNewItems, setAnimateNewItems] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  const checkDevice = useCallback(() => {
+    const isAndroidDevice = /Android/i.test(navigator.userAgent);
+    setIsAndroid(isAndroidDevice);
+    if (initialLoad) {
+      setVisibleItems(isAndroidDevice ? 2 : 6);
+      setInitialLoad(false);
+    }
+  }, [initialLoad]);
 
   useEffect(() => {
-    const checkMobile = () => {
-      const isMobileDevice = window.innerWidth <= 768;
-      setIsMobile(isMobileDevice);
-      setVisibleItems(isMobileDevice ? 3 : 6);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, [checkDevice]);
 
   useEffect(() => {
     if (inView) {
@@ -110,11 +130,9 @@ const CompetitionList: React.FC = () => {
 
   const loadMore = () => {
     setVisibleItems(prevVisibleItems => {
-      const increment = isMobile ? 3 : 6;
+      const increment = isAndroid ? 2 : 3;
       return Math.min(prevVisibleItems + increment, flashEvent.competitions.length);
     });
-    setAnimateNewItems(true);
-    setTimeout(() => setAnimateNewItems(false), 100);
   };
 
   return (
@@ -144,9 +162,9 @@ const CompetitionList: React.FC = () => {
             <motion.div 
               key={index} 
               variants={itemVariants} 
-              className="h-full"
-              initial={animateNewItems && index >= visibleItems - (isMobile ? 3 : 6) ? "hidden" : "visible"}
+              initial="hidden"
               animate="visible"
+              className="h-full"
             >
               <CompetitionCard competition={competition} />
             </motion.div>
@@ -154,12 +172,12 @@ const CompetitionList: React.FC = () => {
         </motion.div>
         {visibleItems < flashEvent.competitions.length && (
           <motion.div 
-            className="text-center mt-16"
+            className="text-center mt-8"
             variants={itemVariants}
           >
             <button
               onClick={loadMore}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full text-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-full text-base transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
             >
               Load More Competitions
             </button>

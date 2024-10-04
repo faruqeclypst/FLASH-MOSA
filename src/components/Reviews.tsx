@@ -116,6 +116,41 @@ const reviews: Review[] = [
     avatar: "https://i.pravatar.cc/150?img=15",
     rating: 5,
     content: "Saya sangat merekomendasikan FLASH kepada siapa pun yang ingin memperluas pengetahuan dan jaringan mereka dalam industri ini."
+  },
+  {
+    id: 16,
+    name: "Firman Saputra",
+    avatar: "https://i.pravatar.cc/150?img=16",
+    rating: 5,
+    content: "FLASH SMAN Modal Bangsa adalah acara yang sangat inspiratif! Pembicara tamunya luar biasa dan topik-topiknya sangat relevan."
+  },
+  {
+    id: 17,
+    name: "Yuni Kartika",
+    avatar: "https://i.pravatar.cc/150?img=17",
+    rating: 4,
+    content: "Saya sangat menikmati kompetisi di FLASH SMAN Modal Bangsa. Sangat menantang dan memacu semangat."
+  },
+  {
+    id: 18,
+    name: "Andi Firmansyah",
+    avatar: "https://i.pravatar.cc/150?img=18",
+    rating: 5,
+    content: "FLASH SMAN Modal Bangsa memberikan saya banyak pengetahuan baru. Workshop-nya sangat informatif dan bermanfaat."
+  },
+  {
+    id: 19,
+    name: "Rina Permata",
+    avatar: "https://i.pravatar.cc/150?img=19",
+    rating: 4,
+    content: "Kesempatan networking di FLASH SMAN Modal Bangsa sangat berharga. Saya bertemu banyak profesional yang inspiratif."
+  },
+  {
+    id: 20,
+    name: "Fajar Hidayat",
+    avatar: "https://i.pravatar.cc/150?img=20",
+    rating: 5,
+    content: "FLASH SMAN Modal Bangsa sangat mengesankan! Semua aspek acara direncanakan dan dilaksanakan dengan sempurna."
   }
 ];
 
@@ -237,14 +272,14 @@ const Reviews: React.FC = () => {
             className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight"
             variants={itemVariants}
           >
-            Apa yang <span className="text-blue-600">Peserta</span> Kami Katakan
+            Review <span className="text-blue-600">FLASH</span>
           </motion.h2>
           <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
             className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-            Dengarkan dari mereka yang telah mengalami acara FLASH secara langsung
+             Mereka yang telah mengikuti event FLASH secara langsung
           </motion.p>
         </motion.div>
 
@@ -261,12 +296,12 @@ const Reviews: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 gap-6" ref={containerRef}>
               <motion.div animate={controls1}>
-                {reviews.map((review) => (
+                {reviews.slice(0, 10).map((review) => (
                   <ReviewCard key={`${review.id}-1`} review={review} />
                 ))}
               </motion.div>
               <motion.div animate={controls2}>
-                {reviews.map((review) => (
+                {reviews.slice(10, 20).map((review) => (
                   <ReviewCard key={`${review.id}-2`} review={review} />
                 ))}
               </motion.div>

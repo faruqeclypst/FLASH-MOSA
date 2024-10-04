@@ -15,6 +15,12 @@ import Bazaars_3 from '../assets/img/bazaars/3.webp';
 import Bazaars_4 from '../assets/img/bazaars/4.webp';
 import Bazaars_5 from '../assets/img/bazaars/5.png';
 import Bazaars_6 from '../assets/img/bazaars/6.jpg';
+import Bazaars_7 from '../assets/img/bazaars/7.jpg';
+import Bazaars_8 from '../assets/img/bazaars/8.jpg';
+import Bazaars_9 from '../assets/img/bazaars/9.jpg';
+import Bazaars_10 from '../assets/img/bazaars/10.webp';
+import Bazaars_11 from '../assets/img/bazaars/11.png';
+import Bazaars_12 from '../assets/img/bazaars/12.jpg';
 
 interface SocialProofData {
   partners: { name: string; logo: string }[];
@@ -38,12 +44,12 @@ const socialProofData: SocialProofData = {
     { name: 'Bazaars_4', logo: Bazaars_4 },
     { name: 'Bazaars_5', logo: Bazaars_5 },
     { name: 'Bazaars_6', logo: Bazaars_6 },
-    { name: 'Bazaars_4', logo: Bazaars_4 },
-    { name: 'Bazaars_5', logo: Bazaars_5 },
-    { name: 'Bazaars_6', logo: Bazaars_6 },
-    { name: 'Bazaars_1', logo: Bazaars_1 },
-    { name: 'Bazaars_3', logo: Bazaars_3 },
-    { name: 'Bazaars_2', logo: Bazaars_2 },
+    { name: 'Bazaars_7', logo: Bazaars_7 },
+    { name: 'Bazaars_8', logo: Bazaars_8 },
+    { name: 'Bazaars_9', logo: Bazaars_9 },
+    { name: 'Bazaars_10', logo: Bazaars_10 },
+    { name: 'Bazaars_11', logo: Bazaars_11 },
+    { name: 'Bazaars_12', logo: Bazaars_12 },
   ],
   awards: [
     { name: 'Best Tech Event 2023', icon: 'trophy', description: 'Awarded by TechEvents Global' },
@@ -95,7 +101,7 @@ const SocialProof: React.FC = () => {
             className="text-5xl sm:text-5xl md:text-4xl font-bold mb-4 sm:mb-6 text-gray-800 leading-tight"
             variants={itemVariants}
           >
-            Trusted by the Best
+            Trusted by the <span className="text-blue-600">BEST</span>
           </motion.h2>
           <motion.div 
             className="bg-blue-600 w-16 sm:w-20 md:w-24 h-1 sm:h-2 mb-6 sm:mb-8 mx-auto"

@@ -65,13 +65,12 @@ const AboutFlash: React.FC = () => {
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           <motion.div className="lg:w-3/5" variants={itemVariants}>
             <div className="max-w-2xl mx-auto lg:mx-0">
-              <motion.h2 
-                className="text-4xl font-bold mb-8 text-gray-800 leading-tight"
-                variants={itemVariants}
-              >
-                Discover the Power of FLASH
-              </motion.h2>
-              <div className="bg-blue-600 w-24 h-2 mb-8"></div>
+            <motion.div className="mb-12" variants={itemVariants}>
+          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
+            DISCOVER THE POWER OF <span className="text-blue-600">FLASH</span>
+          </h2>
+          <div className="bg-blue-600 w-24 h-2 mb-8 rounded-full"></div>
+        </motion.div>
               <p className="text-2xl leading-relaxed text-gray-700 mb-8">{flashEvent.aboutFlash}</p>
               <ul className="text-xl text-gray-700 mb-8 space-y-4">
                 <li className="flex items-center">

@@ -3,7 +3,7 @@ import { useFirebase } from '../../hooks/useFirebase';
 import { Registration, Competition } from '../../types';
 import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
-import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown, FiDownload } from 'react-icons/fi';
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown, FiDownload, FiTrash2 } from 'react-icons/fi';
 import { format, parse, isWithinInterval } from 'date-fns';
 import * as XLSX from 'xlsx';
 
@@ -24,6 +24,7 @@ const ManageRegistrations: React.FC = () => {
   const [registrationToDelete, setRegistrationToDelete] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [competitionFilter, setCompetitionFilter] = useState('all');
+  const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
 
   const sortRegistrations = useCallback((registrations: [string, Registration][]) => {
     if (!sortField || sortDirection === null) return registrations;
@@ -114,6 +115,24 @@ const ManageRegistrations: React.FC = () => {
     setIsDeleteModalOpen(false);
   }, []);
 
+  const openDeleteAllModal = useCallback(() => {
+    setIsDeleteAllModalOpen(true);
+  }, []);
+
+  const closeDeleteAllModal = useCallback(() => {
+    setIsDeleteAllModalOpen(false);
+  }, []);
+
+  const handleDeleteAll = useCallback(async () => {
+    if (registrations) {
+      const registrationIds = Object.keys(registrations);
+      for (const id of registrationIds) {
+        await deleteData(id);
+      }
+      setIsDeleteAllModalOpen(false);
+    }
+  }, [registrations, deleteData]);
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(prev => {
@@ -171,7 +190,7 @@ const ManageRegistrations: React.FC = () => {
               {isTeam ? 'Informasi Tim' : 'Informasi Peserta'}
             </h4>
             <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-            <p><span className="font-medium">Tanggal Daftar:</span> {registration.registrationDate
+              <p><span className="font-medium">Tanggal Daftar:</span> {registration.registrationDate
                   ? format(new Date(registration.registrationDate), 'dd MMMM yyyy (HH:mm)')
                   : 'Tidak tersedia'}
               </p>
@@ -316,34 +335,43 @@ const ManageRegistrations: React.FC = () => {
             <option key={index} value={comp.name}>{comp.name}</option>
           ))}
         </select>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-between w-full">
+          <div className="flex gap-2">
+            <button
+              onClick={() => exportToExcel('all')}
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
+            >
+              <FiDownload className="inline mr-2" />
+              Export All
+            </button>
+            <button
+              onClick={() => exportToExcel('approved')}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+            >
+              <FiDownload className="inline mr-2" />
+              Export Approved
+            </button>
+            <button
+              onClick={() => exportToExcel('rejected')}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
+            >
+              <FiDownload className="inline mr-2" />
+              Export Rejected
+            </button>
+            <button
+              onClick={() => exportToExcel('pending')}
+              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
+            >
+              <FiDownload className="inline mr-2" />
+              Export Pending
+            </button>
+          </div>
           <button
-            onClick={() => exportToExcel('all')}
-            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
+            onClick={openDeleteAllModal}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
           >
-            <FiDownload className="inline mr-2" />
-            Export All
-          </button>
-          <button
-            onClick={() => exportToExcel('approved')}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
-          >
-            <FiDownload className="inline mr-2" />
-            Export Approved
-          </button>
-          <button
-            onClick={() => exportToExcel('rejected')}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
-          >
-            <FiDownload className="inline mr-2" />
-            Export Rejected
-          </button>
-          <button
-            onClick={() => exportToExcel('pending')}
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
-          >
-            <FiDownload className="inline mr-2" />
-            Export Pending
+            <FiTrash2 className="inline mr-2" />
+            Delete All Data
           </button>
         </div>
       </div>
@@ -564,22 +592,52 @@ const ManageRegistrations: React.FC = () => {
                 <button
                   onClick={handleDelete}
                   className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-                  >
-                    Hapus
-                  </button>
-                  <button
-                    onClick={closeDeleteModal}
-                    className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                  >
-                    Batal
-                  </button>
-                </div>
+                >
+                  Hapus
+                </button>
+                <button
+                  onClick={closeDeleteModal}
+                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Batal
+                </button>
               </div>
             </div>
           </div>
-        )}
-      </div>
-    );
-  };
-  
-  export default memo(ManageRegistrations);
+        </div>
+      )}
+
+      {/* Modal for delete all confirmation */}
+      {isDeleteAllModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeDeleteAllModal}>
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
+            <div className="mt-3 text-center">
+              <h3 className="text-lg leading-6 font-medium text-gray-900">Konfirmasi Penghapusan Semua Data</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  Apakah Anda yakin ingin menghapus SEMUA data pendaftaran? Tindakan ini tidak dapat dibatalkan dan akan menghapus seluruh data pendaftaran.
+                </p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <button
+                  onClick={handleDeleteAll}
+                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                >
+                  Hapus Semua Data
+                </button>
+                <button
+                  onClick={closeDeleteAllModal}
+                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default memo(ManageRegistrations);

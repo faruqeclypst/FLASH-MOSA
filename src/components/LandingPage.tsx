@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';
@@ -8,21 +6,24 @@ import { TypeAnimation } from 'react-type-animation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PulseLoader } from 'react-spinners';
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onLoadingComplete: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
   const { data: flashEvent, loading, error } = useFirebase<FlashEvent>('flashEvent');
   const [isLoaded, setIsLoaded] = useState(false);
-  const [showTyping, setShowTyping] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!loading && !error) {
       const loadTimer = setTimeout(() => {
         setIsLoaded(true);
-        setTimeout(() => setShowTyping(true), 500);
+        onLoadingComplete(); // Call this when loading is complete
       }, 1000);
       return () => clearTimeout(loadTimer);
     }
-  }, [loading, error]);
+  }, [loading, error, onLoadingComplete]);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -94,11 +95,11 @@ const LandingPage: React.FC = () => {
             {flashEvent?.eventDate && <Countdown eventDate={flashEvent.eventDate} />}
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: showTyping ? 1 : 0 }}
+              animate={{ opacity: isLoaded ? 1 : 0 }}
               transition={{ duration: 0.5 }}
-              className="text-lg sm:text-xl md:text-1xl lg:text-3xl mb-11 max-w-4xl mx-auto h-[1.5em]"
+              className="text-lg sm:text-xl md:text-1xl lg:text-3xl mb-8 max-w-4xl mx-auto h-[1.5em]"
             >
-              {showTyping && (
+              {isLoaded && (
                 <TypeAnimation
                   sequence={[
                     'Future Language and Art for Smart Student of Highschool',
@@ -110,12 +111,14 @@ const LandingPage: React.FC = () => {
                 />
               )}
             </motion.div>
-            <a 
-              href="#registration" 
-              className="bg-white text-blue-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-blue-100 transition duration-300"
-            >
-              DAFTAR SEKARANG!
-            </a>
+            <div className="mt-16 sm:mt-20 md:mt-16 lg:mt-10 xl:mt-12"> {/* Adjusted for mobile and kept PC spacing */}
+              <a 
+                href="#registration" 
+                className="bg-white text-blue-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-blue-100 transition duration-300"
+              >
+                DAFTAR SEKARANG!
+              </a>
+            </div>
           </div>
         </div>
       </motion.div>

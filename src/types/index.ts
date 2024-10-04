@@ -25,7 +25,7 @@ export interface Competition {
   icon: string;
   type: 'single' | 'team';
   teamSize?: number;
-  categories: SchoolCategory[];
+  categories?: SchoolCategory[];
 }
 
 export interface Registration {

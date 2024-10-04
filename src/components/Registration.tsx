@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Registration, Competition, SchoolCategory } from '../types';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -10,7 +10,7 @@ import RegistrationAlert from './RegistrationAlert';
 
 const RegistrationForm: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
-  const { pushData } = useFirebase<Registration>('registrations');
+  const { pushData: pushRegistration, getLatestRegistrationCode } = useFirebase<Registration>('registrations');
   const storage = getStorage();
 
   const [selectedCategory, setSelectedCategory] = useState<SchoolCategory | null>(null);
@@ -21,6 +21,7 @@ const RegistrationForm: React.FC = () => {
   const [buktiPembayaranFile, setBuktiPembayaranFile] = useState<File | null>(null);
   const [teamSize, setTeamSize] = useState<number>(2);
   const [showAlert, setShowAlert] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
   const acehCities = [
@@ -39,9 +40,11 @@ const RegistrationForm: React.FC = () => {
     }
   }, [selectedCompetition]);
 
-  const generateRegistrationCode = () => {
-    const randomNumber = Math.floor(1000 + Math.random() * 9000);
-    return `FLASH#${randomNumber}`;
+  const generateRegistrationCode = async () => {
+    const latestCode = await getLatestRegistrationCode();
+    const currentNumber = parseInt(latestCode.split('#')[1], 10);
+    const nextNumber = (currentNumber + 1) % 10000; // Wrap around to 0000 after 9999
+    return `FLASH#${nextNumber.toString().padStart(4, '0')}`;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -96,14 +99,18 @@ const RegistrationForm: React.FC = () => {
   };
 
   const uploadFile = async (file: File, path: string) => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    const fileRef = storageRef(storage, path);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent multiple submissions
+
     try {
+      setIsSubmitting(true); // Set submitting state to true
+
       let ktsSuratAktifUrl = '';
       let buktiPembayaranUrl = '';
   
@@ -115,7 +122,7 @@ const RegistrationForm: React.FC = () => {
         buktiPembayaranUrl = await uploadFile(buktiPembayaranFile, `bukti_pembayaran/${Date.now()}_${buktiPembayaranFile.name}`);
       }
   
-      const registrationCode = generateRegistrationCode();
+      const registrationCode = await generateRegistrationCode();
       const registrationDate = new Date().toISOString();
   
       const registrationData: Registration = {
@@ -129,7 +136,7 @@ const RegistrationForm: React.FC = () => {
         schoolCategory: selectedCategory || 'UMUM',
       } as Registration;
   
-      await pushData(registrationData);
+      await pushRegistration(registrationData);
       setShowAlert(true);
       setFormData({});
       setTeamMembers(['']);
@@ -140,6 +147,8 @@ const RegistrationForm: React.FC = () => {
     } catch (error) {
       console.error('Error submitting registration:', error);
       toast.error('Error submitting registration. Please try again.');
+    } finally {
+      setIsSubmitting(false); // Reset submitting state
     }
   };
 
@@ -180,8 +189,7 @@ const RegistrationForm: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
-       
-       <motion.div className="text-center mb-16" variants={itemVariants}>
+        <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
             Pendaftaran <span className="text-blue-600">Lomba</span>
           </h2>
@@ -194,7 +202,6 @@ const RegistrationForm: React.FC = () => {
         <motion.form
           onSubmit={handleSubmit}
           className="mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
-          // className="max-w-6xl mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
           variants={itemVariants}
         >
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -234,51 +241,51 @@ const RegistrationForm: React.FC = () => {
           </motion.div>
 
           {selectedCategory && (
-  <motion.div 
-    className="mb-4 md:mb-6" 
-    variants={itemVariants}
-    initial="hidden"
-    animate="visible"
-  >
-    <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
-      Competition
-    </label>
-    <div className="relative">
-      <select
-        id="competition"
-        name="competition"
-        value={selectedCompetition?.name || ''}
-        onChange={(e) => {
-          const selected = flashEvent.competitions.find(
-            (c) => c.name === e.target.value && c.categories?.includes(selectedCategory)
-          );
-          setSelectedCompetition(selected || null);
-        }}
-        required
-        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
-      >
-        <option value="">Select a competition</option>
-        {flashEvent.competitions
-          .filter((competition) => competition.categories?.includes(selectedCategory))
-          .map((competition, index) => (
-            <option key={index} value={competition.name}>
-              {competition.name}
-            </option>
-          ))}
-      </select>
-      <Award className="absolute left-3 top-2 md:top-3 text-gray-400 pointer-events-none" size={20} />
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-        <svg
-          className="fill-current h-4 w-4"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        >
-          <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-        </svg>
-      </div>
-    </div>
-  </motion.div>
-)}
+            <motion.div 
+              className="mb-4 md:mb-6" 
+              variants={itemVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
+                Competition
+              </label>
+              <div className="relative">
+                <select
+                  id="competition"
+                  name="competition"
+                  value={selectedCompetition?.name || ''}
+                  onChange={(e) => {
+                    const selected = flashEvent.competitions.find(
+                      (c) => c.name === e.target.value && c.categories?.includes(selectedCategory)
+                    );
+                    setSelectedCompetition(selected || null);
+                  }}
+                  required
+                  className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+                >
+                  <option value="">Select a competition</option>
+                  {flashEvent.competitions
+                    .filter((competition) => competition.categories?.includes(selectedCategory))
+                    .map((competition, index) => (
+                      <option key={index} value={competition.name}>
+                        {competition.name}
+                      </option>
+                    ))}
+                </select>
+                <Award className="absolute left-3 top-2 md:top-3 text-gray-400 pointer-events-none" size={20} />
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg
+                    className="fill-current h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {selectedCompetition && (
             <motion.div 
@@ -321,132 +328,132 @@ const RegistrationForm: React.FC = () => {
                           onChange={handleChange}
                           required
                           className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                        />
-                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                      </div>
-                    </motion.div>
-                  </>
-                ) : (
-                  <>
+                          />
+                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
+                      </motion.div>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                        <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
+                          Nama Lengkap
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value={formData.name || ''}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          />
+                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
+                      </motion.div>
+                      <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                        <label htmlFor="gender" className="block text-gray-700 text-sm font-bold mb-2">
+                          Jenis Kelamin
+                        </label>
+                        <div className="relative">
+                          <select
+                            id="gender"
+                            name="gender"
+                            value={formData.gender || ''}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                          >
+                            <option value="">Pilih Jenis Kelamin</option>
+                            <option value="Laki-laki">Laki-laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                          </select>
+                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg
+                              className="fill-current h-4 w-4"
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 20 20"
+                            >
+                              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
+                      <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                        <label htmlFor="birthDate" className="block text-gray-700 text-sm font-bold mb-2">
+                          Tanggal Lahir
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="date"
+                            id="birthDate"
+                            name="birthDate"
+                            value={formData.birthDate || ''}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          />
+                          <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </div>
+  
+                {/* Column 2 */}
+                <div>
+                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                    <label htmlFor="whatsapp" className="block text-gray-700 text-sm font-bold mb-2">
+                      No. WhatsApp
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="tel"
+                        id="whatsapp"
+                        name="whatsapp"
+                        value={formData.whatsapp || ''}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                      />
+                      <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                    </div>
+                  </motion.div>
+  
+                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                    <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                      Email
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={formData.email || ''}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                      />
+                      <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                    </div>
+                  </motion.div>
+  
+                  {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
-                        Nama Lengkap
+                      <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
+                        Nama Sekolah
                       </label>
                       <div className="relative">
                         <input
                           type="text"
-                          id="name"
-                          name="name"
-                          value={formData.name || ''}
+                          id="school"
+                          name="school"
+                          value={formData.school || ''}
                           onChange={handleChange}
                           required
                           className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                        />
-                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                      </div>
-                    </motion.div>
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="gender" className="block text-gray-700 text-sm font-bold mb-2">
-                        Jenis Kelamin
-                      </label>
-                      <div className="relative">
-                        <select
-                          id="gender"
-                          name="gender"
-                          value={formData.gender || ''}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
-                        >
-                          <option value="">Pilih Jenis Kelamin</option>
-                          <option value="Laki-laki">Laki-laki</option>
-                          <option value="Perempuan">Perempuan</option>
-                        </select>
-                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                          <svg
-                            className="fill-current h-4 w-4"
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </motion.div>
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="birthDate" className="block text-gray-700 text-sm font-bold mb-2">
-                        Tanggal Lahir
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="date"
-                          id="birthDate"
-                          name="birthDate"
-                          value={formData.birthDate || ''}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                        />
-                        <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                      </div>
-                    </motion.div>
-                  </>
-                )}
-              </div>
-
-              {/* Column 2 */}
-              <div>
-                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                  <label htmlFor="whatsapp" className="block text-gray-700 text-sm font-bold mb-2">
-                    No. WhatsApp
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      id="whatsapp"
-                      name="whatsapp"
-                      value={formData.whatsapp || ''}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                    />
-                    <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                  </div>
-                </motion.div>
-
-                <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                  <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
-                    Email
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email || ''}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                    />
-                    <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                  </div>
-                </motion.div>
-
-                {selectedCategory !== 'UMUM' && (
-                  <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
-                      Nama Sekolah
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="school"
-                        name="school"
-                        value={formData.school || ''}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
@@ -565,7 +572,7 @@ const RegistrationForm: React.FC = () => {
                         onClick={addTeamMember}
                         className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 1.00 }}
+                        whileTap={{ scale: 0.95 }}
                       >
                         Tambah Anggota
                       </motion.button>
@@ -577,11 +584,14 @@ const RegistrationForm: React.FC = () => {
                 <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
                   <motion.button
                     type="submit"
-                    className="w-full bg-blue-600 text-white py-2 md:py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105"
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.80 }}
+                    disabled={isSubmitting}
+                    className={`w-full ${
+                      isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                    } text-white py-2 md:py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105`}
+                    whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
+                    whileTap={{ scale: isSubmitting ? 1 : 0.80 }}
                   >
-                    Daftar Sekarang
+                    {isSubmitting ? 'Mendaftar...' : 'Daftar Sekarang'}
                   </motion.button>
                 </motion.div>
               </motion.div>
