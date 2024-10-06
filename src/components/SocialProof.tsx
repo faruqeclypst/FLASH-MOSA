@@ -88,7 +88,7 @@ const SocialProof: React.FC = () => {
   if (!flashEvent) return null;
 
   return (
-    <section className="py-12 sm:py-16 md:py-24 bg-gradient-to-b from-white to-gray-100">
+    <section className="py-12 sm:py-16 md:py-12 bg-gradient-to-b from-white to-gray-100">
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-12 sm:mb-16"
