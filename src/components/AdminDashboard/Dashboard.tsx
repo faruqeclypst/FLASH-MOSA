@@ -44,8 +44,8 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-6 py-8 mt-16 min-h-screen bg-white">
-      {/* <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1> */}
+    <div className="container mx-auto px-6 py-8 min-h-screen bg-white">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard icon={<FiUsers />} title="Total Pendaftaran" value={stats.totalRegistrations} color="bg-blue-500" />

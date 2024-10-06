@@ -27,10 +27,10 @@ const HeaderDashboard: React.FC = () => {
   }, [location]);
 
   return (
-    <header className="bg-white shadow-md fixed top-0 right-0 left-0 z-50">
+    <header className="bg-white shadow-md  top-0 right-0 left-0 z-50">
       <nav className="container mx-auto px-6 py-3">
         <div className="flex justify-between items-center">
-          <Link to="/admin" className="text-xl font-bold text-gray-800">Admin Dashboard</Link>
+          <Link to="/admin" className="text-xl font-bold text-blue-500">FLASH 2024</Link>
           <div className="md:hidden">
             <button onClick={toggleMenu} className="text-gray-600 hover:text-gray-800 focus:outline-none">
               {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
