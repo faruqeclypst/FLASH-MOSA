@@ -1,6 +1,7 @@
+// src/components/AdminDashboard/ManageRegistrations.tsx
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
-import { Registration, Competition } from '../../types';
+import { Registration, Competition, SchoolCategory } from '../../types/index';
 import { Tab } from '@headlessui/react';
 import { Menu } from '@headlessui/react';
 import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown, FiDownload, FiTrash2 } from 'react-icons/fi';
@@ -11,7 +12,9 @@ const ITEMS_PER_PAGE = 5;
 
 const ManageRegistrations: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
-  const { data: competitions } = useFirebase<Record<string, Competition>>('competitions');
+  const { data: flashEventData, loading: competitionsLoading, error: competitionsError } = useFirebase<{ competitions: Competition[] }>('flashEvent');
+  const competitions = flashEventData?.competitions;
+
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRegistrations, setFilteredRegistrations] = useState<[string, Registration][]>([]);
@@ -25,6 +28,11 @@ const ManageRegistrations: React.FC = () => {
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [competitionFilter, setCompetitionFilter] = useState('all');
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
+
+  useEffect(() => {
+    console.log("Flash Event Data:", flashEventData);
+    console.log("Competitions:", competitions);
+  }, [flashEventData, competitions]);
 
   const sortRegistrations = useCallback((registrations: [string, Registration][]) => {
     if (!sortField || sortDirection === null) return registrations;
@@ -301,83 +309,127 @@ const ManageRegistrations: React.FC = () => {
     </div>
   );
 
+
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Kelola Pendaftaran</h1>
       
-      <div className="mb-4 flex flex-wrap gap-4">
-        <input
-          type="text"
-          placeholder="Cari pendaftaran..."
-          className="p-2 border border-gray-300 rounded"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+      <div className="mb-4 space-y-4">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div>
+      <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Cari Pendaftaran</label>
+      <input
+        id="search"
+        type="text"
+        placeholder="Cari pendaftaran..."
+        className="w-full p-2 border border-gray-300 rounded"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
+    
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">Rentang Tanggal</label>
+      <div className="flex gap-2">
         <input
           type="date"
-          className="p-2 border border-gray-300 rounded"
+          className="flex-grow p-2 border border-gray-300 rounded"
           value={dateFilter.startDate}
           onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
+          placeholder="Tanggal Mulai"
         />
         <input
           type="date"
-          className="p-2 border border-gray-300 rounded"
+          className="flex-grow p-2 border border-gray-300 rounded"
           value={dateFilter.endDate}
           onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
+          placeholder="Tanggal Akhir"
         />
+      </div>
+    </div>
+    
+    <div>
+      <label htmlFor="competition" className="block text-sm font-medium text-gray-700 mb-1">Kompetisi</label>
+      {competitionsLoading ? (
+        <p>Loading competitions...</p>
+      ) : competitionsError ? (
+        <p>Error loading competitions: {competitionsError.message}</p>
+      ) : competitions && competitions.length > 0 ? (
         <select
-          className="p-2 border border-gray-300 rounded"
+          id="competition"
+          className="w-full p-2 border border-gray-300 rounded"
           value={competitionFilter}
           onChange={(e) => setCompetitionFilter(e.target.value)}
         >
           <option value="all">Semua Kompetisi</option>
-          {competitions && Object.values(competitions).map((comp, index) => (
-            <option key={index} value={comp.name}>{comp.name}</option>
+          {competitions.map((comp) => (
+            <option key={comp.name} value={comp.name}>{comp.name}</option>
           ))}
         </select>
-        <div className="flex gap-2 flex-wrap justify-between w-full">
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportToExcel('all')}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
-            >
-              <FiDownload className="inline mr-2" />
-              Export All
-            </button>
-            <button
-              onClick={() => exportToExcel('approved')}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
-            >
-              <FiDownload className="inline mr-2" />
-              Export Approved
-            </button>
-            <button
-              onClick={() => exportToExcel('rejected')}
-              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
-            >
-              <FiDownload className="inline mr-2" />
-              Export Rejected
-            </button>
-            <button
-              onClick={() => exportToExcel('pending')}
-              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
-            >
-              <FiDownload className="inline mr-2" />
-              Export Pending
-            </button>
-          </div>
-          <button
-            onClick={openDeleteAllModal}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
-          >
-            <FiTrash2 className="inline mr-2" />
-            Delete All Data
-          </button>
-        </div>
-      </div>
+      ) : (
+        <p>No competitions available</p>
+      )}
+    </div>
+    
+    <div>
+      <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+      <select
+        id="status"
+        className="w-full p-2 border border-gray-300 rounded"
+        value={filterStatus}
+        onChange={(e) => setFilterStatus(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
+      >
+        <option value="all">Semua Status</option>
+        <option value="pending">Menunggu</option>
+        <option value="approved">Disetujui</option>
+        <option value="rejected">Ditolak</option>
+      </select>
+    </div>
+  </div>
+
+  <div className="flex flex-wrap gap-2 justify-between">
+    <div className="flex flex-wrap gap-2">
+      <button
+        onClick={() => exportToExcel('all')}
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
+      >
+        <FiDownload className="inline mr-2" />
+        Export All
+      </button>
+      <button
+        onClick={() => exportToExcel('approved')}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
+      >
+        <FiDownload className="inline mr-2" />
+        Export Approved
+      </button>
+      <button
+        onClick={() => exportToExcel('rejected')}
+        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
+      >
+        <FiDownload className="inline mr-2" />
+        Export Rejected
+      </button>
+      <button
+        onClick={() => exportToExcel('pending')}
+        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
+      >
+        <FiDownload className="inline mr-2" />
+        Export Pending
+      </button>
+    </div>
+    <button
+      onClick={openDeleteAllModal}
+      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
+    >
+      <FiTrash2 className="inline mr-2" />
+      Delete All Data
+    </button>
+  </div>
+</div>
 
       <Tab.Group>
-        <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
+        {/* <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
           {['all', 'pending', 'approved', 'rejected'].map((status) => (
             <Tab
               key={status}
@@ -397,11 +449,11 @@ const ManageRegistrations: React.FC = () => {
                status === 'approved' ? 'Disetujui' : 'Ditolak'}
             </Tab>
           ))}
-        </Tab.List>
+        </Tab.List> */}
         
         <Tab.Panels>
           {['all', 'pending', 'approved', 'rejected'].map((status) => (
-            <Tab.Panel key={status} className="bg-white rounded-xl p-6 shadow-md overflow-x-auto">
+           <Tab.Panel key={status} className="bg-white rounded-xl p-6 shadow-md overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-100">
