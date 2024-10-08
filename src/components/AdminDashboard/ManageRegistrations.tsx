@@ -14,7 +14,6 @@ const ManageRegistrations: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
   const { data: flashEventData, loading: competitionsLoading, error: competitionsError } = useFirebase<{ competitions: Competition[] }>('flashEvent');
   const competitions = flashEventData?.competitions;
-
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredRegistrations, setFilteredRegistrations] = useState<[string, Registration][]>([]);
@@ -91,7 +90,24 @@ const ManageRegistrations: React.FC = () => {
 
   const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected' | 'pending') => {
     if (registrations && registrations[id].status !== newStatus) {
-      await updateData({ [id]: { ...registrations[id], status: newStatus } });
+      if (newStatus === 'approved') {
+        const registration = registrations[id];
+        const name = registration.teamName || registration.name || registration.registrantName;
+        const message = `Selamat pendaftaran anda telah disetujui, ${registration.registrationCode}, ${name}, ${registration.competition}, ${format(new Date(registration.registrationDate), 'dd/MM/yyyy')}. Untuk Informasi Selanjutnya silahkan menghubungi panitia FLASH SMAN MODAL BANGSA`;
+  
+        const whatsappUrl = `https://wa.me/${registration.whatsapp}?text=${encodeURIComponent(message)}`;
+  
+        if (confirm(`Kirim WhatsApp Konfirmasi ke ${name}?`)) {
+          window.open(whatsappUrl, '_blank');
+          // Set status to approved after sending confirmation
+          await updateData({ [id]: { ...registrations[id], status: 'approved' } });
+        } else {
+          // If user cancels, set status to pending
+          await updateData({ [id]: { ...registrations[id], status: 'pending' } });
+        }
+      } else {
+        await updateData({ [id]: { ...registrations[id], status: newStatus } });
+      }
     }
   }, [registrations, updateData]);
 

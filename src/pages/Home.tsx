@@ -11,6 +11,7 @@ import MapLocation from '../components/MapLocation';
 import CTASection from '../components/CTASection';
 import SocialProof from '../components/SocialProof';
 import Reviews from '../components/Reviews';
+import WhatsAppButton from '../components/WhatsAppButton';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -60,6 +61,10 @@ const Home: React.FC = () => {
      </>
       )}
       <Footer />
+      <WhatsAppButton 
+        phoneNumber="085359907696" 
+        message="Halo Flash MOSA! kami tertarik untuk sponsor FLASH"
+      />
     </div>
   );
 };
