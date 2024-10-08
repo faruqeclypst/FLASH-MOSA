@@ -54,17 +54,17 @@ const Home: React.FC = () => {
         )}
       </main>
       {!isLoading && (
-        <>
+      <>
       <Registration />
       <MapLocation />
-     <CTASection />
+      <CTASection />
+      <WhatsAppButton 
+      phoneNumber="+6285359907696" 
+      message="Halo Flash MOSA! kami tertarik untuk sponsor FLASH"
+      />
+      <Footer />
      </>
       )}
-      <Footer />
-      <WhatsAppButton 
-        phoneNumber="085359907696" 
-        message="Halo Flash MOSA! kami tertarik untuk sponsor FLASH"
-      />
     </div>
   );
 };

@@ -135,9 +135,10 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
   };
 
-  const handleRemoveGalleryImage = (index: number) => {
+  const handleRemoveGalleryImage = async (index: number): Promise<void> => {
     const updatedGallery = formData.gallery.filter((_, i) => i !== index);
     setFormData(prev => ({ ...prev, gallery: updatedGallery }));
+    return Promise.resolve(); // Mengembalikan Promise
   };
 
   const handleOpenModal = (e: React.FormEvent) => {

@@ -179,7 +179,7 @@ const RegistrationForm: React.FC = () => {
   const isTeam = selectedCompetition?.type === 'team';
 
   return (
-    <section id="registration" className="py-12 md:py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+<section id="registration" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       <RegistrationAlert isOpen={showAlert} onClose={() => setShowAlert(false)} />
       <motion.div
@@ -189,13 +189,13 @@ const RegistrationForm: React.FC = () => {
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
       >
-        <motion.div className="text-center mb-16" variants={itemVariants}>
+                <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
             Pendaftaran <span className="text-blue-600">Lomba</span>
           </h2>
           <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
           <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            FLASH 2024
+            FLASH {new Date().getFullYear()}
           </p>
         </motion.div>
 
@@ -206,7 +206,7 @@ const RegistrationForm: React.FC = () => {
         >
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
             <label htmlFor="category" className="block text-gray-700 text-sm font-bold mb-2">
-              Category
+              Pilih Kategori
             </label>
             <div className="relative">
               <select
@@ -248,7 +248,7 @@ const RegistrationForm: React.FC = () => {
               animate="visible"
             >
               <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
-                Competition
+                Pilih Lomba
               </label>
               <div className="relative">
                 <select

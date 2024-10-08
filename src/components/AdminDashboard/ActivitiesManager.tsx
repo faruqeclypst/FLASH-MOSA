@@ -108,15 +108,6 @@ const ActivitiesManager: React.FC<ActivitiesManagerProps> = ({
 
               {/* Activity Form Fields */}
               <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
-                  {activities[selectedActivity].image ? (
-                    <img src={activities[selectedActivity].image} alt={activities[selectedActivity].name} className="w-20 h-20 object-cover rounded" />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-200 rounded flex items-center justify-center text-gray-500">
-                      No Image
-                    </div>
-                  )}
-                </div>
                 <div className="flex-grow space-y-2">
                   <input
                     type="text"
