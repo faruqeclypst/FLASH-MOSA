@@ -3,7 +3,7 @@
 export interface FlashEvent {
   title: string;
   heroImage: string;
-  heroVideo?: string; // Tambahkan ini
+  heroVideo?: string;
   aboutFlash: string;
   aboutImage?: string;
   eventDate: string; // Format: "YYYY-MM-DDTHH:mm"
@@ -60,6 +60,10 @@ export interface DashboardStats {
   pendingRegistrations: number;
   approvedRegistrations: number;
   rejectedRegistrations: number;
+  sdMiRegistrations: number;
+  smpMtsRegistrations: number;
+  smaSmkMaRegistrations: number;
+  umumRegistrations: number;
 }
 
 export interface School {

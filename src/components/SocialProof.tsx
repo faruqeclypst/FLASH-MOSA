@@ -88,7 +88,7 @@ const SocialProof: React.FC = () => {
   if (!flashEvent) return null;
 
   return (
-    <section className="py-12 sm:py-16 md:py-12 bg-gradient-to-b from-white to-gray-100">
+    <section className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-100">
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-12 sm:mb-16"
@@ -159,7 +159,8 @@ const SocialProof: React.FC = () => {
 
         {/* Bazaars Section */}
         <motion.div
-          className="mb-12 sm:mb-16 md:mb-20"
+          className="mb-1 sm:mb-1 md:mb-1"
+          // className="mb-12 sm:mb-16 md:mb-20"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -198,35 +199,6 @@ const SocialProof: React.FC = () => {
             ))}
           </motion.div>
         </motion.div>
-
-        {/* Awards Section */}
-        {/* <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center text-gray-800">Awards & Recognition</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {socialProofData.awards.map((award, index) => (
-              <motion.div 
-                key={index}
-                className="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center"
-                variants={itemVariants}
-                whileHover={{ scale: 1.03 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                {award.icon === 'trophy' ? (
-                  <Award className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mb-4" />
-                ) : (
-                  <Star className="w-12 h-12 sm:w-16 sm:h-16 text-yellow-500 mb-4" />
-                )}
-                <h4 className="text-lg sm:text-xl font-bold mb-2 text-gray-800">{award.name}</h4>
-                <p className="text-sm sm:text-base text-gray-600">{award.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div> */}
       </div>
     </section>
   );

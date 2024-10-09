@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { DashboardStats, Registration } from '../../types';
-import { FiUsers, FiClock, FiCheckCircle, FiXCircle, FiList, FiEdit, FiActivity } from 'react-icons/fi';
+import { FiUsers, FiClock, FiCheckCircle, FiXCircle, FiList, FiEdit, FiActivity, FiBookOpen } from 'react-icons/fi';
 import { format } from 'date-fns';
 
 const Dashboard: React.FC = () => {
@@ -11,6 +11,10 @@ const Dashboard: React.FC = () => {
     pendingRegistrations: 0,
     approvedRegistrations: 0,
     rejectedRegistrations: 0,
+    sdMiRegistrations: 0,
+    smpMtsRegistrations: 0,
+    smaSmkMaRegistrations: 0,
+    umumRegistrations: 0,
   });
   const [recentActivities, setRecentActivities] = useState<Registration[]>([]);
 
@@ -27,11 +31,20 @@ const Dashboard: React.FC = () => {
         const approvedRegistrations = registrations.filter(r => r.status === 'approved').length;
         const rejectedRegistrations = registrations.filter(r => r.status === 'rejected').length;
 
+        const sdMiRegistrations = registrations.filter(r => r.schoolCategory === 'SD/MI').length;
+        const smpMtsRegistrations = registrations.filter(r => r.schoolCategory === 'SMP/MTs').length;
+        const smaSmkMaRegistrations = registrations.filter(r => r.schoolCategory === 'SMA/SMK/MA').length;
+        const umumRegistrations = registrations.filter(r => r.schoolCategory === 'UMUM').length;
+
         setStats({
           totalRegistrations,
           pendingRegistrations,
           approvedRegistrations,
           rejectedRegistrations,
+          sdMiRegistrations,
+          smpMtsRegistrations,
+          smaSmkMaRegistrations,
+          umumRegistrations,
         });
 
         const sortedRegistrations = registrations.sort((a, b) => 
@@ -52,6 +65,14 @@ const Dashboard: React.FC = () => {
         <StatCard icon={<FiClock />} title="Pendaftaran Tertunda" value={stats.pendingRegistrations} color="bg-yellow-500" />
         <StatCard icon={<FiCheckCircle />} title="Pendaftaran Disetujui" value={stats.approvedRegistrations} color="bg-green-500" />
         <StatCard icon={<FiXCircle />} title="Pendaftaran Ditolak" value={stats.rejectedRegistrations} color="bg-red-500" />
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Total Pendaftaran per Kategori</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard icon={<FiBookOpen />} title="SD/MI" value={stats.sdMiRegistrations} color="bg-indigo-500" />
+        <StatCard icon={<FiBookOpen />} title="SMP/MTs" value={stats.smpMtsRegistrations} color="bg-purple-500" />
+        <StatCard icon={<FiBookOpen />} title="SMA/SMK/MA" value={stats.smaSmkMaRegistrations} color="bg-pink-500" />
+        <StatCard icon={<FiBookOpen />} title="UMUM" value={stats.umumRegistrations} color="bg-teal-500" />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

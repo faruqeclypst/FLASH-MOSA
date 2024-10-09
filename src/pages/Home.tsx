@@ -35,29 +35,29 @@ const Home: React.FC = () => {
     setIsLoading(false);
     document.body.style.overflow = 'unset';
   };
-
+  
   return (
     <div className="flex flex-col min-h-screen">
-      <Header />
+      <Header isLoading={isLoading} />
       <main ref={mainContentRef} className={`flex-grow ${isLoading ? 'overflow-hidden' : ''}`}>
         <LandingPage onLoadingComplete={handleLoadingComplete} />
         {!isLoading && (
-        <>
-        <AboutFlash />
-        {/* <FlashActivities /> */}
-        <CompetitionList />
+          <>
+            <AboutFlash />
+            <CompetitionList />
         <Gallery />
         <Reviews /> 
         <SocialProof /> 
+        <Registration />
+        <MapLocation />
+        <CTASection />
+        {/* <FlashActivities /> */}
         {/* <ContactForm /> */}
         </>
         )}
       </main>
       {!isLoading && (
       <>
-      <Registration />
-      <MapLocation />
-      <CTASection />
       <WhatsAppButton 
       phoneNumber="+6285359907696" 
       message="Halo Flash MOSA! kami tertarik untuk sponsor FLASH"

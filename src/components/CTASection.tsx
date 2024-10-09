@@ -38,17 +38,18 @@ const CTASection: React.FC = () => {
   };
 
   return (
-    <section className="py-24 bg-gradient-to-b from-blue-100 to-purple-100 overflow-hidden">
-      <motion.div
-        className="container mx-auto px-4"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
+<section className="py-16 md:py-20 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+<motion.div
+    className="container mx-auto px-4"
+    variants={containerVariants}
+    initial="hidden"
+    whileInView="visible"
+    viewport={{ once: true, amount: 0.1 }} // Ubah amount menjadi lebih kecil
+    transition={{ duration: 0.3, delay: 0.1 }} // Tambahkan transisi yang lebih cepat
+  >
         <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
-            Join The <span className="text-blue-600">FLASH Experience</span>
+            Join The <span className="text-blue-600">FLASH</span> Experience
           </h2>
           <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
           <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">

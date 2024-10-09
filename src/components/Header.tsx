@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  isLoading: boolean;
+}
+
+const Header: React.FC<HeaderProps> = ({ isLoading }) => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,38 +47,50 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className={`fixed w-full font-bold z-50 transition-all duration-300 ${isScrolled ? 'bg-gray-900' : 'bg-transparent'}`}>
-      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
-        <div className="hidden md:flex space-x-4">
-        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white hover:text-blue-200">Home</button>
-          <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>
-          <button onClick={() => scrollToSection('competitions')} className="text-white hover:text-blue-200">Competitions</button>
-          <button onClick={() => scrollToSection('gallery')} className="text-white hover:text-blue-200">Gallery</button>
-          <button onClick={() => scrollToSection('registration')} className="text-white hover:text-blue-200">Daftar</button>
-        </div>
-        <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
-            <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
-              {isOpen ? (
-                <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 1 1 1.414 1.414l-4.828 4.829 4.828 4.828z" />
-              ) : (
-                <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z" />
-              )}
-            </svg>
-          </button>
-        </div>
-      </nav>
-      {isOpen && (
-        <div className="md:hidden bg-gray-900">
-          <button onClick={() => scrollToSection('home')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Home</button>
-          <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">About</button>
-          <button onClick={() => scrollToSection('competitions')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Competitions</button>
-          <button onClick={() => scrollToSection('gallery')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Gallery</button>
-          <button onClick={() => scrollToSection('registration')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Daftar</button>
-        </div>
+    <AnimatePresence>
+      {!isLoading && (
+        <motion.header
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+          className={`fixed w-full font-bold z-50 transition-all duration-300 ${
+            isScrolled ? 'bg-gray-900' : 'bg-transparent'
+          }`}
+        >
+          <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
+            <div className="hidden md:flex space-x-4">
+              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white hover:text-blue-200">Home</button>
+              <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>
+              <button onClick={() => scrollToSection('competitions')} className="text-white hover:text-blue-200">Competitions</button>
+              <button onClick={() => scrollToSection('gallery')} className="text-white hover:text-blue-200">Gallery</button>
+              <button onClick={() => scrollToSection('registration')} className="text-white hover:text-blue-200">Daftar</button>
+            </div>
+            <div className="md:hidden">
+              <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
+                <svg className="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                  {isOpen ? (
+                    <path fillRule="evenodd" clipRule="evenodd" d="M18.278 16.864a1 1 0 0 1-1.414 1.414l-4.829-4.828-4.828 4.828a1 1 0 0 1-1.414-1.414l4.828-4.829-4.828-4.828a1 1 0 0 1 1.414-1.414l4.829 4.828 4.828-4.828a1 1 0 1 1 1.414 1.414l-4.828 4.829 4.828 4.828z" />
+                  ) : (
+                    <path fillRule="evenodd" d="M4 5h16a1 1 0 0 1 0 2H4a1 1 0 1 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2zm0 6h16a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2z" />
+                  )}
+                </svg>
+              </button>
+            </div>
+          </nav>
+          {isOpen && (
+            <div className="md:hidden bg-gray-900">
+              <button onClick={() => scrollToSection('home')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Home</button>
+              <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">About</button>
+              <button onClick={() => scrollToSection('competitions')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Competitions</button>
+              <button onClick={() => scrollToSection('gallery')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Gallery</button>
+              <button onClick={() => scrollToSection('registration')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Daftar</button>
+            </div>
+          )}
+        </motion.header>
       )}
-    </header>
+    </AnimatePresence>
   );
 };
 

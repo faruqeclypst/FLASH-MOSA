@@ -53,7 +53,7 @@ const AboutFlash: React.FC = () => {
   };
 
   return (
-    <section id="about" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="about" className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-100 overflow-hidden">
       <motion.div
         ref={ref}
         className="container mx-auto px-4"

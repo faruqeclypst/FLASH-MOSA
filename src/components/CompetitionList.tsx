@@ -136,8 +136,8 @@ const CompetitionList: React.FC = () => {
   };
 
   return (
-    <section id="competitions" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
-      <motion.div
+<section id="competitions" className="py-16 md:py-20 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <motion.div
         ref={ref}
         className="container mx-auto px-4"
         variants={containerVariants}

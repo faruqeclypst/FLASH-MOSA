@@ -179,7 +179,7 @@ const RegistrationForm: React.FC = () => {
   const isTeam = selectedCompetition?.type === 'team';
 
   return (
-<section id="registration" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="registration" className="py-16 md:py-20 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       <RegistrationAlert isOpen={showAlert} onClose={() => setShowAlert(false)} />
       <motion.div

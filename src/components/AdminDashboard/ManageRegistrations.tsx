@@ -1,4 +1,3 @@
-// src/components/AdminDashboard/ManageRegistrations.tsx
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { Registration, Competition, SchoolCategory } from '../../types/index';
@@ -7,6 +6,7 @@ import { Menu } from '@headlessui/react';
 import { FiChevronDown, FiChevronLeft, FiChevronRight, FiArrowUp, FiArrowDown, FiDownload, FiTrash2 } from 'react-icons/fi';
 import { format, parse, isWithinInterval } from 'date-fns';
 import * as XLSX from 'xlsx';
+import { X } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 5;
 
@@ -26,12 +26,26 @@ const ManageRegistrations: React.FC = () => {
   const [registrationToDelete, setRegistrationToDelete] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [competitionFilter, setCompetitionFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState<SchoolCategory | 'all'>('all');
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
 
   useEffect(() => {
     console.log("Flash Event Data:", flashEventData);
     console.log("Competitions:", competitions);
   }, [flashEventData, competitions]);
+
+// modal scrolling
+  useEffect(() => {
+    if (selectedRegistration) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedRegistration]);
 
   const sortRegistrations = useCallback((registrations: [string, Registration][]) => {
     if (!sortField || sortDirection === null) return registrations;
@@ -59,6 +73,7 @@ const ManageRegistrations: React.FC = () => {
       let filtered = Object.entries(registrations).filter(([_, registration]) => 
         (filterStatus === 'all' || registration.status === filterStatus) &&
         (competitionFilter === 'all' || registration.competition === competitionFilter) &&
+        (categoryFilter === 'all' || registration.schoolCategory === categoryFilter) &&
         (registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
          registration.registrantName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,7 +98,7 @@ const ManageRegistrations: React.FC = () => {
       setFilteredRegistrations(filtered);
       setCurrentPage(1);
     }
-  }, [registrations, filterStatus, searchTerm, sortField, sortDirection, sortRegistrations, dateFilter, competitionFilter]);
+  }, [registrations, filterStatus, searchTerm, sortField, sortDirection, sortRegistrations, dateFilter, competitionFilter, categoryFilter]);
 
   const pageCount = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
   const paginatedRegistrations = filteredRegistrations.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -319,154 +334,148 @@ const ManageRegistrations: React.FC = () => {
     );
   };
 
+  const getExportButtonText = () => {
+    let text = 'Export';
+    
+    if (filterStatus !== 'all') {
+      text += ` ${filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)}`;
+    }
+    
+    if (competitionFilter !== 'all') {
+      text += ` ${competitionFilter}`;
+    }
+    
+    if (categoryFilter !== 'all') {
+      text += ` ${categoryFilter}`;
+    }
+    
+    if (filterStatus === 'all' && competitionFilter === 'all' && categoryFilter === 'all') {
+      text += ' All';
+    }
+    
+    return text;
+  };
+
   if (!registrations) return (
     <div className="flex justify-center items-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
     </div>
   );
 
-
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Kelola Pendaftaran</h1>
       
-      <div className="mb-4 space-y-4">
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-    <div>
-      <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">Cari Pendaftaran</label>
-      <input
-        id="search"
-        type="text"
-        placeholder="Cari pendaftaran..."
-        className="w-full p-2 border border-gray-300 rounded"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-    </div>
-    
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">Rentang Tanggal</label>
-      <div className="flex gap-2">
-        <input
-          type="date"
-          className="flex-grow p-2 border border-gray-300 rounded"
-          value={dateFilter.startDate}
-          onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
-          placeholder="Tanggal Mulai"
-        />
-        <input
-          type="date"
-          className="flex-grow p-2 border border-gray-300 rounded"
-          value={dateFilter.endDate}
-          onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
-          placeholder="Tanggal Akhir"
-        />
-      </div>
-    </div>
-    
-    <div>
-      <label htmlFor="competition" className="block text-sm font-medium text-gray-700 mb-1">Kompetisi</label>
-      {competitionsLoading ? (
-        <p>Loading competitions...</p>
-      ) : competitionsError ? (
-        <p>Error loading competitions: {competitionsError.message}</p>
-      ) : competitions && competitions.length > 0 ? (
-        <select
-          id="competition"
-          className="w-full p-2 border border-gray-300 rounded"
-          value={competitionFilter}
-          onChange={(e) => setCompetitionFilter(e.target.value)}
-        >
-          <option value="all">Semua Kompetisi</option>
-          {competitions.map((comp) => (
-            <option key={comp.name} value={comp.name}>{comp.name}</option>
-          ))}
-        </select>
-      ) : (
-        <p>No competitions available</p>
-      )}
-    </div>
-    
-    <div>
-      <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-      <select
-        id="status"
-        className="w-full p-2 border border-gray-300 rounded"
-        value={filterStatus}
-        onChange={(e) => setFilterStatus(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
-      >
-        <option value="all">Semua Status</option>
-        <option value="pending">Menunggu</option>
-        <option value="approved">Disetujui</option>
-        <option value="rejected">Ditolak</option>
-      </select>
-    </div>
-  </div>
+      <div className="mb-8 bg-white rounded-xl shadow-md p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700">Cari Pendaftaran</label>
+            <input
+              id="search"
+              type="text"
+              placeholder="Cari pendaftaran..."
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              id="status"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as 'all' | 'pending' | 'approved' | 'rejected')}
+            >
+              <option value="all">Semua Status</option>
+              <option value="pending">Menunggu</option>
+              <option value="approved">Disetujui</option>
+              <option value="rejected">Ditolak</option>
+            </select>
+          </div>
 
-  <div className="flex flex-wrap gap-2 justify-between">
-    <div className="flex flex-wrap gap-2">
-      <button
-        onClick={() => exportToExcel('all')}
-        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition duration-300"
-      >
-        <FiDownload className="inline mr-2" />
-        Export All
-      </button>
-      <button
-        onClick={() => exportToExcel('approved')}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300"
-      >
-        <FiDownload className="inline mr-2" />
-        Export Approved
-      </button>
-      <button
-        onClick={() => exportToExcel('rejected')}
-        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition duration-300"
-      >
-        <FiDownload className="inline mr-2" />
-        Export Rejected
-      </button>
-      <button
-        onClick={() => exportToExcel('pending')}
-        className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
-      >
-        <FiDownload className="inline mr-2" />
-        Export Pending
-      </button>
-    </div>
-    <button
-      onClick={openDeleteAllModal}
-      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
-    >
-      <FiTrash2 className="inline mr-2" />
-      Delete All Data
-    </button>
-  </div>
-</div>
+          <div className="space-y-2">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700">Kategori Sekolah</label>
+            <select
+              id="category"
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value as SchoolCategory | 'all')}
+            >
+              <option value="all">Semua Kategori</option>
+              <option value="SD/MI">SD/MI</option>
+              <option value="SMP/MTs">SMP/MTs</option>
+              <option value="SMA/SMK/MA">SMA/SMK/MA</option>
+              <option value="UMUM">UMUM</option>
+            </select>
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="competition" className="block text-sm font-medium text-gray-700">Kompetisi</label>
+            {competitionsLoading ? (
+              <p className="text-sm text-gray-500">Loading competitions...</p>
+            ) : competitionsError ? (
+              <p className="text-sm text-red-500">Error loading competitions: {competitionsError.message}</p>
+            ) : competitions && competitions.length > 0 ? (
+              <select
+                id="competition"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                value={competitionFilter}
+                onChange={(e) => setCompetitionFilter(e.target.value)}
+              >
+                <option value="all">Semua Kompetisi</option>
+                {competitions.map((comp) => (
+                  <option key={comp.name} value={comp.name}>{comp.name}</option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-sm text-gray-500">No competitions available</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Rentang Tanggal</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                type="date"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                value={dateFilter.startDate}
+                onChange={(e) => setDateFilter(prev => ({ ...prev, startDate: e.target.value }))}
+                placeholder="Tanggal Mulai"
+              />
+              <input
+                type="date"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out"
+                value={dateFilter.endDate}
+                onChange={(e) => setDateFilter(prev => ({ ...prev, endDate: e.target.value }))}
+                placeholder="Tanggal Akhir"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-4 justify-between">
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => exportToExcel(filterStatus)}
+              className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 transition duration-300 flex items-center"
+            >
+              <FiDownload className="mr-2" />
+              {getExportButtonText()}
+            </button>
+          </div>
+          <button
+            onClick={openDeleteAllModal}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-300 flex items-center"
+          >
+            <FiTrash2 className="mr-2" />
+            Delete All Data
+          </button>
+        </div>
+      </div>
 
       <Tab.Group>
-        {/* <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
-          {['all', 'pending', 'approved', 'rejected'].map((status) => (
-            <Tab
-              key={status}
-              className={({ selected }) =>
-                `w-full py-2.5 text-sm font-medium leading-5 text-blue-700 rounded-lg
-                focus:outline-none focus:ring-2 ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60
-                ${
-                  selected
-                    ? 'bg-white shadow'
-                    : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                }`
-              }
-              onClick={() => setFilterStatus(status as any)}
-            >
-              {status === 'all' ? 'Semua' :
-               status === 'pending' ? 'Menunggu' :
-               status === 'approved' ? 'Disetujui' : 'Ditolak'}
-            </Tab>
-          ))}
-        </Tab.List> */}
-        
         <Tab.Panels>
           {['all', 'pending', 'approved', 'rejected'].map((status) => (
            <Tab.Panel key={status} className="bg-white rounded-xl p-6 shadow-md overflow-x-auto">
@@ -586,120 +595,101 @@ const ManageRegistrations: React.FC = () => {
                   {paginatedRegistrations.filter(([_, reg]) => status === 'all' || reg.status === status).length < ITEMS_PER_PAGE && 
                     Array(ITEMS_PER_PAGE - paginatedRegistrations.filter(([_, reg]) => status === 'all' || reg.status === status).length).fill(null).map((_, index) => (
                       <tr key={`empty-${index}`} className="border-b">
-                        <td colSpan={9} className="p-3">&nbsp;</td>
+                                                <td colSpan={9} className="p-3">&nbsp;</td>
                       </tr>
-                    ))
-                  }
+                    ))}
                 </tbody>
               </table>
-              
-              {/* Pagination */}
-              <div className="mt-4 flex justify-between items-center">
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  <FiChevronLeft className="mr-2" />
-                  Sebelumnya
-                </button>
-                <span className="text-sm text-gray-700">
-                  Halaman {currentPage} dari {pageCount}
-                </span>
-                <button 
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
-                  disabled={currentPage === pageCount}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Selanjutnya
-                  <FiChevronRight className="ml-2" />
-                </button>
-              </div>
+              {filteredRegistrations.length > ITEMS_PER_PAGE && (
+                <div className="mt-4 flex justify-between items-center">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+                  >
+                    <FiChevronLeft />
+                  </button>
+                  <span>
+                    Page {currentPage} of {pageCount}
+                  </span>
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, pageCount))}
+                    disabled={currentPage === pageCount}
+                    className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300"
+                  >
+                    <FiChevronRight />
+                  </button>
+                </div>
+              )}
             </Tab.Panel>
           ))}
         </Tab.Panels>
       </Tab.Group>
 
-      {/* Modal for registration details */}
-      {isModalOpen && selectedRegistration && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeModal}>
-          <div className="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
-            <div className="mt-3">
-              <div className="flex justify-between items-center border-b pb-3">
-                <h3 className="text-2xl font-semibold text-gray-900">Detail Pendaftaran</h3>
-                <button onClick={closeModal} className="text-gray-400 hover:text-gray-500 text-xl font-bold">
-                  &times;
-                </button>
-              </div>
+      {selectedRegistration && (
+      <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="absolute inset-0 bg-black bg-opacity-50" onClick={closeModal}></div>
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold">Detail Pendaftaran</h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600 transition duration-300"
+                aria-label="Tutup"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-grow">
               {renderRegistrationDetails(selectedRegistration)}
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300"
-                >
-                  Tutup
-                </button>
-              </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
-      {/* Modal for delete confirmation */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeDeleteModal}>
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Konfirmasi Penghapusan</h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Apakah Anda yakin ingin menghapus pendaftaran ini? Tindakan ini tidak dapat dibatalkan.
-                </p>
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-                >
-                  Hapus
-                </button>
-                <button
-                  onClick={closeDeleteModal}
-                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Batal
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Konfirmasi Hapus</h2>
+            <p>Apakah Anda yakin ingin menghapus pendaftaran ini?</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition duration-300"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
+              >
+                Hapus
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Modal for delete all confirmation */}
       {isDeleteAllModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={closeDeleteAllModal}>
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={e => e.stopPropagation()}>
-            <div className="mt-3 text-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Konfirmasi Penghapusan Semua Data</h3>
-              <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
-                  Apakah Anda yakin ingin menghapus SEMUA data pendaftaran? Tindakan ini tidak dapat dibatalkan dan akan menghapus seluruh data pendaftaran.
-                </p>
-              </div>
-              <div className="items-center px-4 py-3">
-                <button
-                  onClick={handleDeleteAll}
-                  className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-                >
-                  Hapus Semua Data
-                </button>
-                <button
-                  onClick={closeDeleteAllModal}
-                  className="mt-3 px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
-                >
-                  Batal
-                </button>
-              </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg">
+            <h2 className="text-xl font-bold mb-4">Konfirmasi Hapus Semua Data</h2>
+            <p>Apakah Anda yakin ingin menghapus semua data pendaftaran? Tindakan ini tidak dapat dibatalkan.</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              <button
+                onClick={closeDeleteAllModal}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition duration-300"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteAll}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
+              >
+                Hapus Semua
+              </button>
             </div>
           </div>
         </div>

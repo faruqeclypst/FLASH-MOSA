@@ -39,7 +39,7 @@ const MapLocation: React.FC = () => {
   };
 
   return (
-    <section id="location" className="py-24 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
+    <section id="location" className="py-16 md:py-20 bg-gradient-to-b from-white to-gray-100 overflow-hidden">
       <div className="container mx-auto px-4">
         <motion.div 
           className="text-center mb-16"
@@ -52,7 +52,7 @@ const MapLocation: React.FC = () => {
             className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight"
             variants={itemVariants}
           >
-            Event <span className="text-blue-600">Location</span> & Highlights
+            Event <span className="text-blue-600">Location</span> & <span className="text-blue-600">Highlights</span>
           </motion.h2>
           <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
