@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Activity } from '../../types';
 import { PlusCircle, X, Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+import DeleteModal from './DeleteModal';
 
 interface ActivitiesManagerProps {
   activities: Activity[];
@@ -171,12 +171,12 @@ const ActivitiesManager: React.FC<ActivitiesManagerProps> = ({
         )}
       </div>
 
-      <ConfirmDeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={closeDeleteModal}
-        onConfirm={confirmDelete}
-        itemName={activityToDelete !== null ? activities[activityToDelete].name || `Aktivitas ${activityToDelete + 1}` : ''}
-      />
+      <DeleteModal
+  isOpen={isDeleteModalOpen}
+  onClose={closeDeleteModal}
+  onConfirm={confirmDelete}
+  itemName={activityToDelete !== null ? activities[activityToDelete].name || `Aktivitas ${activityToDelete + 1}` : ''}
+/>
     </div>
   );
 };

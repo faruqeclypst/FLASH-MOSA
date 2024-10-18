@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { Competition, SchoolCategory } from '../../types';
 import { PlusCircle, X, Upload, Plus, Trash2 } from 'lucide-react';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+import DeleteModal from './DeleteModal';
 
 interface CompetitionsManagerProps {
   competitions: Competition[];
@@ -281,7 +281,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
       </div>
 
       {isDeleteModalOpen && (
-  <ConfirmDeleteModal
+  <DeleteModal
     isOpen={isDeleteModalOpen}
     onClose={closeDeleteModal}
     onConfirm={confirmDelete}

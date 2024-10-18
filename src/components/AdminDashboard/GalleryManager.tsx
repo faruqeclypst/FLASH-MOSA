@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
-import ConfirmDeleteModal from './ConfirmDeleteModal';
+import DeleteModal from './DeleteModal';
 
 interface GalleryManagerProps {
   gallery: string[];
@@ -87,7 +87,7 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
         </div>
       </div>
 
-      <ConfirmDeleteModal
+      <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
