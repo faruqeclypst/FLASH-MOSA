@@ -1,6 +1,6 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
-import Footer from '../components/Footer';
+// import Footer from '../components/Footer';
 import HeaderDashboard from '../components/AdminDashboard/HeaderDashboard';
 import Dashboard from '../components/AdminDashboard/Dashboard';
 import ManageRegistrations from '../components/AdminDashboard/ManageRegistrations';
@@ -15,7 +15,7 @@ const Admin: React.FC = () => {
           <Route path="/manage-registrations" element={<ManageRegistrations />} />
           <Route path="/manage-content" element={<ManageContent />} />
         </Routes>
-      <Footer />
+      {/* <Footer /> */}
     </div>
   );
 };

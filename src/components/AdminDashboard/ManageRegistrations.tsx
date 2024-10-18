@@ -30,8 +30,8 @@ const ManageRegistrations: React.FC = () => {
   const [isDeleteAllModalOpen, setIsDeleteAllModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log("Flash Event Data:", flashEventData);
-    console.log("Competitions:", competitions);
+    // console.log("Flash Event Data:", flashEventData);
+    // console.log("Competitions:", competitions);
   }, [flashEventData, competitions]);
 
 // modal scrolling
@@ -630,7 +630,7 @@ const ManageRegistrations: React.FC = () => {
             )}
           </div>
           
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Rentang Tanggal</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
@@ -648,7 +648,7 @@ const ManageRegistrations: React.FC = () => {
                 placeholder="Tanggal Akhir"
               />
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="mt-6 flex flex-wrap gap-4 justify-between">
