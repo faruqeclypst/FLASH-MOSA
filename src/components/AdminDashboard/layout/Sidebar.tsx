@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
-  HomeIcon, 
-  UserGroupIcon, 
-  DocumentTextIcon,
+  HomeIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
+  AdjustmentsHorizontalIcon,
 } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 
@@ -11,7 +12,6 @@ type MenuItem = {
   name: string;
   icon: React.ElementType;
   path: string;
-  exact?: boolean;
 }
 
 type SidebarProps = {
@@ -23,18 +23,22 @@ const menuItems: MenuItem[] = [
   {
     name: 'Dashboard',
     icon: HomeIcon,
-    path: '/admin',
-    exact: true
+    path: '/admin'
   },
   {
-    name: 'Kelola Pendaftaran',
+    name: 'Data Pendaftar',
     icon: UserGroupIcon,
-    path: '/admin/registrations'
+    path: '/admin/pendaftar'
   },
   {
-    name: 'Kelola Konten',
-    icon: DocumentTextIcon,
-    path: '/admin/manage-content'
+    name: 'Manajemen Admin',
+    icon: Cog6ToothIcon,
+    path: '/admin/users'
+  },
+  {
+    name: 'Pengaturan PPDB',
+    icon: AdjustmentsHorizontalIcon,
+    path: '/admin/settings'
   }
 ];
 
@@ -103,25 +107,13 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile, onClose }) => {
       onMouseEnter={() => !mobile && setIsCollapsed(false)}
       onMouseLeave={() => !mobile && setIsCollapsed(true)}
     >
-      <div className="flex items-center flex-shrink-0 px-4 h-16">
-        <span className={classNames(
-          "text-xl font-bold text-blue-600 transition-all duration-300",
-          isCollapsed ? "opacity-0" : "opacity-100"
-        )}>
-          FLASH 2024
-        </span>
-      </div>
-
-      <div className="flex-1 overflow-hidden hover:overflow-y-auto py-4">
+      <div className="flex-1 overflow-hidden hover:overflow-y-auto py-4 mt-16">
         <ul className="space-y-1 px-2">
           {menuItems.map((item) => (
             <SidebarItem
               key={item.path}
               item={item}
-              isActive={item.exact 
-                ? location.pathname === item.path
-                : location.pathname.startsWith(item.path)
-              }
+              isActive={location.pathname === item.path}
               onClick={() => handleNavigation(item.path)}
               collapsed={isCollapsed}
             />
@@ -144,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile, onClose }) => {
             isCollapsed ? 'w-0 ml-0' : 'ml-3'
           )}>
             <p className="text-xs font-medium text-gray-900 truncate whitespace-nowrap">v1.0.0</p>
-            <p className="text-[10px] text-gray-500 truncate whitespace-nowrap">© 2024 FLASH MOSA</p>
+            <p className="text-[10px] text-gray-500 truncate whitespace-nowrap">© 2024 PPDB MOSA</p>
           </div>
         </div>
       </div>

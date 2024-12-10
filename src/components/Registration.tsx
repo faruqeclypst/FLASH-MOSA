@@ -22,6 +22,7 @@ const RegistrationForm: React.FC = () => {
   const [teamSize, setTeamSize] = useState<number>(2);
   const [showAlert, setShowAlert] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationData, setRegistrationData] = useState<Registration | undefined>();
 
   const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
   const acehCities = [
@@ -106,26 +107,26 @@ const RegistrationForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
 
     try {
-      setIsSubmitting(true); // Set submitting state to true
+      setIsSubmitting(true);
 
       let ktsSuratAktifUrl = '';
       let buktiPembayaranUrl = '';
-  
+
       if (ktsSuratAktifFile) {
         ktsSuratAktifUrl = await uploadFile(ktsSuratAktifFile, `kts_surat_aktif/${Date.now()}_${ktsSuratAktifFile.name}`);
       }
-  
+
       if (buktiPembayaranFile) {
         buktiPembayaranUrl = await uploadFile(buktiPembayaranFile, `bukti_pembayaran/${Date.now()}_${buktiPembayaranFile.name}`);
       }
-  
+
       const registrationCode = await generateRegistrationCode();
       const registrationDate = new Date().toISOString();
-  
-      const registrationData: Registration = {
+
+      const newRegistrationData: Registration = {
         ...formData,
         competition: selectedCompetition?.name || '',
         status: 'pending',
@@ -135,9 +136,12 @@ const RegistrationForm: React.FC = () => {
         registrationDate,
         schoolCategory: selectedCategory || 'UMUM',
       } as Registration;
-  
-      await pushRegistration(registrationData);
+
+      await pushRegistration(newRegistrationData);
+      setRegistrationData(newRegistrationData);
       setShowAlert(true);
+      
+      // Reset form
       setFormData({});
       setTeamMembers(['']);
       setSelectedCompetition(null);
@@ -148,7 +152,7 @@ const RegistrationForm: React.FC = () => {
       console.error('Error submitting registration:', error);
       toast.error('Error submitting registration. Please try again.');
     } finally {
-      setIsSubmitting(false); // Reset submitting state
+      setIsSubmitting(false);
     }
   };
 
@@ -181,7 +185,11 @@ const RegistrationForm: React.FC = () => {
   return (
     <section id="registration" className="py-16 md:py-20 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
-      <RegistrationAlert isOpen={showAlert} onClose={() => setShowAlert(false)} />
+      <RegistrationAlert 
+        isOpen={showAlert} 
+        onClose={() => setShowAlert(false)}
+        registrationData={registrationData}
+      />
       <motion.div
         className="container mx-auto px-4"
         variants={containerVariants}

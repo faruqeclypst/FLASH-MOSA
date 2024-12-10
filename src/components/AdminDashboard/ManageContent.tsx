@@ -219,7 +219,7 @@ const ManageContent: React.FC = () => {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Manage Content</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Kelola Konten</h1>
       
       {/* Navigation Tabs */}
       <div className="flex space-x-4 mb-8 overflow-x-auto">

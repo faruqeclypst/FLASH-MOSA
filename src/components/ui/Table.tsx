@@ -1,32 +1,69 @@
 import React from 'react';
+import classNames from 'classnames';
 
-interface TableProps {
-  headers: (string | { content: React.ReactNode })[];
-  data: React.ReactNode[][];
-  className?: string;
+interface Column {
+  header: React.ReactNode;
+  width?: string;
+  align?: 'left' | 'center' | 'right';
 }
 
-const Table: React.FC<TableProps> = ({ headers, data, className }) => {
+interface TableProps {
+  columns: Column[];
+  data: React.ReactNode[][];
+  className?: string;
+  hoverable?: boolean;
+  compact?: boolean;
+  striped?: boolean;
+}
+
+const Table: React.FC<TableProps> = ({ 
+  columns, 
+  data, 
+  className,
+  hoverable = true,
+  compact = false,
+  striped = false
+}) => {
   return (
-    <div className={`overflow-x-auto ${className}`}>
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="w-full overflow-x-auto">
+      <table className="w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            {headers.map((header, index) => (
+            {columns.map((column, index) => (
               <th
                 key={index}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                className={classNames(
+                  'text-xs font-medium text-gray-500 uppercase tracking-wider',
+                  compact ? 'p-2' : 'p-4',
+                  column.align === 'right' && 'text-right',
+                  column.align === 'center' && 'text-center',
+                  !column.align && 'text-left'
+                )}
+                style={{ width: column.width }}
               >
-                {typeof header === 'string' ? header : header.content}
+                {column.header}
               </th>
             ))}
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {data.map((row, rowIndex) => (
-            <tr key={rowIndex}>
+            <tr 
+              key={rowIndex}
+              className={classNames(
+                hoverable && 'hover:bg-gray-50',
+                striped && rowIndex % 2 === 0 && 'bg-gray-50'
+              )}
+            >
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-6 py-4 whitespace-nowrap">
+                <td 
+                  key={cellIndex} 
+                  className={classNames(
+                    compact ? 'p-2' : 'p-4',
+                    columns[cellIndex]?.align === 'right' && 'text-right',
+                    columns[cellIndex]?.align === 'center' && 'text-center'
+                  )}
+                >
                   {cell}
                 </td>
               ))}
