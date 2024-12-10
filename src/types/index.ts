@@ -53,6 +53,8 @@ export interface Registration {
   // Common fields
   schoolCategory: SchoolCategory;
   school?: string;
+  adminStatus?: 'diterima' | 'ditolak';
+  jalur: string;
 }
 
 export interface DashboardStats {

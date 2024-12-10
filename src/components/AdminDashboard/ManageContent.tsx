@@ -1,6 +1,6 @@
 // ManageContent.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { FlashEvent, Activity, Competition } from '../../types';
 import EventInfoManager from './EventInfoManager';
@@ -10,7 +10,6 @@ import GalleryManager from './GalleryManager';
 import ConfirmUpdateModal from './ConfirmUpdateModal';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../services/firebase';
-import { Tab } from '@headlessui/react';
 
 const ManageContent: React.FC = () => {
   const { data: flashEvent, updateData } = useFirebase<FlashEvent>('flashEvent');
@@ -25,6 +24,7 @@ const ManageContent: React.FC = () => {
     eventDate: '' 
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSection, setSelectedSection] = useState('eventInfo');
 
   useEffect(() => {
     if (flashEvent) {
@@ -81,7 +81,7 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, activities: updatedActivities }));
   };
 
-  const handleAddActivity = useCallback(() => {
+  const handleAddActivity = () => {
     setFormData(prev => ({
       ...prev,
       activities: [
@@ -89,7 +89,7 @@ const ManageContent: React.FC = () => {
         { name: '', description: '', image: '' }
       ]
     }));
-  }, []);
+  };
 
   const handleRemoveActivity = (index: number) => {
     const updatedActivities = formData.activities.filter((_, i) => i !== index);
@@ -102,7 +102,7 @@ const ManageContent: React.FC = () => {
     setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
   };
 
-  const handleAddCompetition = useCallback(() => {
+  const handleAddCompetition = () => {
     setFormData(prev => ({
       ...prev,
       competitions: [
@@ -110,7 +110,7 @@ const ManageContent: React.FC = () => {
         { name: '', description: '', rules: [], icon: '', type: 'single', categories: [] }
       ]
     }));
-  }, []);
+  };
 
   const handleRemoveCompetition = (index: number) => {
     const updatedCompetitions = formData.competitions.filter((_, i) => i !== index);
@@ -158,6 +158,59 @@ const ManageContent: React.FC = () => {
     }
   };
 
+  const sections = [
+    { id: 'eventInfo', label: 'Info Event' },
+    { id: 'activities', label: 'Aktivitas' },
+    { id: 'competitions', label: 'Kompetisi' },
+    { id: 'gallery', label: 'Galeri' }
+  ];
+
+  const renderContent = () => {
+    switch (selectedSection) {
+      case 'eventInfo':
+        return (
+          <EventInfoManager 
+            formData={formData} 
+            handleChange={handleChange} 
+            handleFileUpload={handleFileUpload}
+          />
+        );
+      case 'activities':
+        return (
+          <ActivitiesManager
+            activities={formData.activities}
+            handleActivityChange={handleActivityChange}
+            handleAddActivity={handleAddActivity}
+            handleRemoveActivity={handleRemoveActivity}
+            handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
+          />
+        );
+      case 'competitions':
+        return (
+          <CompetitionsManager
+            competitions={formData.competitions}
+            handleCompetitionChange={handleCompetitionChange}
+            handleAddCompetition={handleAddCompetition}
+            handleRemoveCompetition={handleRemoveCompetition}
+            handleAddRule={handleAddRule}
+            handleRuleChange={handleRuleChange}
+            handleRemoveRule={handleRemoveRule}
+            handleIconUpload={handleIconUpload}
+          />
+        );
+      case 'gallery':
+        return (
+          <GalleryManager 
+            gallery={formData.gallery}
+            handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
+            handleRemoveGalleryImage={handleRemoveGalleryImage}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   if (!flashEvent) return (
     <div className="flex justify-center items-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
@@ -167,65 +220,30 @@ const ManageContent: React.FC = () => {
   return (
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Manage Content</h1>
+      
+      {/* Navigation Tabs */}
+      <div className="flex space-x-4 mb-8 overflow-x-auto">
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => setSelectedSection(section.id)}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 whitespace-nowrap ${
+              selectedSection === section.id
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
       <form onSubmit={handleOpenModal} className="space-y-8">
-        <Tab.Group>
-          <Tab.List className="flex p-1 space-x-1 bg-blue-900/20 rounded-xl mb-8">
-            {['Event Info', 'Activities', 'Competitions', 'Gallery'].map((category) => (
-              <Tab
-                key={category}
-                className={({ selected }) =>
-                  `w-full py-2.5 text-sm font-medium leading-5 text-blue-700 rounded-lg
-                  focus:outline-none focus:ring-2 ring-offset-2 ring-offset-blue-400 ring-white ring-opacity-60
-                  ${
-                    selected
-                      ? 'bg-white shadow'
-                      : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                  }`
-                }
-              >
-                {category}
-              </Tab>
-            ))}
-          </Tab.List>
-          <Tab.Panels className="mt-2">
-            <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-              <EventInfoManager 
-                formData={formData} 
-                handleChange={handleChange} 
-                handleFileUpload={handleFileUpload}
-              />
-            </Tab.Panel>
-            <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-            <ActivitiesManager
-  activities={formData.activities}
-  handleActivityChange={handleActivityChange}
-  handleAddActivity={handleAddActivity}
-  handleRemoveActivity={handleRemoveActivity}
-  handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
-/>
-            </Tab.Panel>
-            <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-              <CompetitionsManager
-                competitions={formData.competitions}
-                handleCompetitionChange={handleCompetitionChange}
-                handleAddCompetition={handleAddCompetition}
-                handleRemoveCompetition={handleRemoveCompetition}
-                handleAddRule={handleAddRule}
-                handleRuleChange={handleRuleChange}
-                handleRemoveRule={handleRemoveRule}
-                handleIconUpload={handleIconUpload}
-              />
-            </Tab.Panel>
-            <Tab.Panel className="bg-white rounded-xl p-6 shadow-md">
-            <GalleryManager 
-  gallery={formData.gallery}
-  handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
-  handleRemoveGalleryImage={handleRemoveGalleryImage}
-/>
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
-        <div className="flex justify-center mt-8">
+        <div className="bg-white rounded-xl p-6 shadow-md">
+          {renderContent()}
+        </div>
+        <div className="flex justify-center">
           <button
             type="submit"
             className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 text-lg font-semibold shadow-lg"
@@ -234,6 +252,7 @@ const ManageContent: React.FC = () => {
           </button>
         </div>
       </form>
+
       <ConfirmUpdateModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

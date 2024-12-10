@@ -4,14 +4,13 @@ import { getDatabase } from 'firebase/database';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const firebaseConfig = {
-  // Add your Firebase configuration here
-  apiKey: "AIzaSyBOoM3_PWxJuI8DdjmVSKcc2ds1Q4xkc3w",
-  authDomain: "flash-mosa.firebaseapp.com",
-  databaseURL: "https://flash-mosa-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "flash-mosa",
-  storageBucket: "flash-mosa.appspot.com",
-  messagingSenderId: "952545531680",
-  appId: "1:952545531680:web:b86790929f46affdb36945"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
