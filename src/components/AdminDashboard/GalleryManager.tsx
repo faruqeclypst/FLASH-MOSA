@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
-import { Upload, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { 
+  Upload, 
+  Image as ImageIcon, 
+  Trash2,
+  FileText,
+  LayoutList
+} from 'lucide-react';
 import DeleteModal from './DeleteModal';
+import classNames from 'classnames';
 
 interface GalleryManagerProps {
   gallery: string[];
@@ -34,64 +41,105 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">Galeri</h2>
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl p-6">
-        <div className="mb-6">
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-              id="gallery-upload"
-              multiple
-            />
-            <label
-              htmlFor="gallery-upload"
-              className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-300"
-            >
-              <Upload size={24} className="mr-2 text-gray-500" />
-              <span className="text-gray-500 font-medium">Unggah Gambar</span>
-            </label>
+    <div className="p-6 space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Galeri</h1>
+          <p className="text-gray-600 mt-1">Kelola galeri foto FLASH</p>
+        </div>
+        
+        {/* Stats Card */}
+        <div className="bg-indigo-50 px-4 py-2 rounded-lg flex items-center gap-3">
+          <div className="p-1.5 bg-indigo-100 rounded-md">
+            <LayoutList className="w-4 h-4 text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-xs text-indigo-600 font-medium">Total Foto</p>
+            <p className="text-lg font-semibold text-indigo-700 leading-none">
+              {gallery.length}
+            </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {gallery.map((image, index) => (
-            <div key={index} className="relative group aspect-w-1 aspect-h-1">
-              <div className="w-full h-full overflow-hidden rounded-lg bg-gray-200">
-                <img 
-                  src={image} 
-                  alt={`Galeri ${index + 1}`} 
-                  className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+      </div>
+
+      {/* Gallery Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Gallery Cards */}
+        {gallery.map((image, index) => (
+          <div 
+            key={index}
+            className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+          >
+            {/* Image Preview */}
+            <div className="relative h-48">
+              <img 
+                src={image} 
+                alt={`Galeri ${index + 1}`} 
+                className="w-full h-full object-cover"
+              />
+              {/* Quick Actions Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-end p-4">
+                <div className="flex gap-2">
                   <button
                     onClick={() => openDeleteModal(index)}
-                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors duration-300"
-                    aria-label="Hapus Gambar"
-                    type="button"
+                    className="p-2 bg-white/90 hover:bg-white text-red-500 rounded-lg backdrop-blur-sm transition-colors"
+                    title="Hapus"
                   >
-                    <Trash2 size={20} />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
             </div>
-          ))}
-          {gallery.length === 0 && (
-            <div className="col-span-full flex flex-col items-center justify-center text-gray-500 py-12">
-              <ImageIcon size={48} className="mb-2" />
-              <p>Belum ada gambar di galeri</p>
+          </div>
+        ))}
+
+        {/* Add Button Card */}
+        <label
+          htmlFor="gallery-upload"
+          className="group bg-white rounded-xl border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[280px] flex flex-col items-center justify-center gap-4 hover:bg-indigo-50/50 cursor-pointer"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="gallery-upload"
+            multiple
+          />
+          <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+            <Upload className="w-8 h-8 text-indigo-600" />
+          </div>
+          <div className="text-center">
+            <p className="text-gray-900 font-medium">Tambah Foto</p>
+            <p className="text-sm text-gray-500 mt-1">Klik untuk mengunggah foto</p>
+          </div>
+        </label>
+
+        {/* Empty State */}
+        {gallery.length === 0 && (
+          <div className="col-span-full">
+            <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
+              <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ImageIcon className="w-8 h-8 text-indigo-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Belum ada foto
+              </h3>
+              <p className="text-gray-500">
+                Mulai dengan mengunggah foto untuk galeri FLASH
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
+      {/* Delete Modal */}
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={closeDeleteModal}
         onConfirm={confirmDelete}
-        itemName="gambar ini"
+        itemName="foto ini"
       />
     </div>
   );

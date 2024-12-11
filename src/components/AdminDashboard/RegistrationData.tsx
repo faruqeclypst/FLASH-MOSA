@@ -30,13 +30,15 @@ import classNames from 'classnames';
 
 const RegistrationData: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
-  const [selectedRegistration, setSelectedRegistration] = useState<Registration | null>(null);
+  const [selectedRegistration, setSelectedRegistration] = useState<(Registration & { id: string }) | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   
   const itemsPerPage = 10;
 
@@ -63,9 +65,27 @@ const RegistrationData: React.FC = () => {
 
   const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
     try {
-      await updateData({ [id]: { ...registrations![id], status: newStatus } });
-      showAlert('success', `Status pendaftaran berhasil diubah menjadi ${newStatus}`);
+      if (!registrations || !registrations[id]) {
+        throw new Error('Data registrasi tidak ditemukan');
+      }
+
+      const updatedRegistration = {
+        ...registrations[id],
+        status: newStatus
+      };
+
+      await updateData({ [id]: updatedRegistration });
+
+      setSelectedRegistration({ ...updatedRegistration, id });
+
+      showAlert(
+        newStatus === 'approved' ? 'success' : 'error',
+        `Status pendaftaran berhasil diubah menjadi ${
+          newStatus === 'approved' ? 'diterima' : 'ditolak'
+        }`
+      );
     } catch (error) {
+      console.error('Error updating status:', error);
       showAlert('error', 'Gagal mengubah status pendaftaran');
     }
   };
@@ -74,11 +94,23 @@ const RegistrationData: React.FC = () => {
     if (!selectedRegistration) return;
     
     try {
+      setIsClosing(true);
+      
+      // Tunggu animasi closing selesai
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Deleting registration:', selectedRegistration.registrationCode);
       await deleteData(selectedRegistration.registrationCode);
-      showAlert('success', 'Pendaftaran berhasil dihapus');
+      
+      setSelectedRegistration(null);
       setIsDeleteModalOpen(false);
+      showAlert('success', 'Pendaftaran berhasil dihapus');
+      
     } catch (error) {
+      console.error('Error deleting registration:', error);
       showAlert('error', 'Gagal menghapus pendaftaran');
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -197,7 +229,7 @@ const RegistrationData: React.FC = () => {
             <PhoneIcon className="w-5 h-5 text-purple-600" />
             Informasi Kontak
           </h4>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3">
             <div className="bg-white p-3 rounded-lg">
               <p className="text-sm text-gray-500">Email</p>
               <div className="flex items-center gap-2">
@@ -212,7 +244,7 @@ const RegistrationData: React.FC = () => {
                 <p className="font-medium text-gray-900">{registration.whatsapp}</p>
               </div>
             </div>
-            <div className="bg-white p-3 rounded-lg col-span-2">
+            <div className="bg-white p-3 rounded-lg">
               <p className="text-sm text-gray-500">Kota</p>
               <div className="flex items-center gap-2">
                 <MapPinIcon className="w-4 h-4 text-purple-500" />
@@ -273,7 +305,7 @@ const RegistrationData: React.FC = () => {
     <div className="flex gap-2">
       <button 
         onClick={() => {
-          setSelectedRegistration(registration);
+          setSelectedRegistration({ ...registration, id });
           setShowDetailModal(true);
         }}
         className="p-1 text-blue-600 hover:bg-blue-50 rounded"
@@ -297,7 +329,7 @@ const RegistrationData: React.FC = () => {
       </button>
       <button 
         onClick={() => {
-          setSelectedRegistration(registration);
+          setSelectedRegistration({ ...registration, id });
           setIsDeleteModalOpen(true);
         }}
         className="p-1 text-gray-600 hover:bg-gray-50 rounded"
@@ -490,6 +522,65 @@ const RegistrationData: React.FC = () => {
     }
   };
 
+  const StatusModal = ({ isOpen, onClose, onConfirm, registration }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (status: 'approved' | 'rejected') => void;
+    registration: Registration | null;
+  }) => {
+    if (!registration) return null;
+
+    const handleClose = () => {
+      setIsClosing(true);
+      setTimeout(() => {
+        onClose();
+        setIsClosing(false);
+      }, 200);
+    };
+
+    const handleConfirm = (status: 'approved' | 'rejected') => {
+      onConfirm(status);
+      handleClose();
+    };
+
+    return (
+      <Modal 
+        isOpen={isOpen} 
+        onClose={handleClose}
+        size="sm"
+      >
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Update Status Pendaftaran</h3>
+          <p className="text-gray-600 mb-6">
+            Pilih status untuk pendaftaran {registration.teamName || registration.name}
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => handleConfirm('approved')}
+              className="w-full flex items-center justify-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+            >
+              <CheckCircleIcon className="w-5 h-5" />
+              <span>Terima Pendaftaran</span>
+            </button>
+            <button
+              onClick={() => handleConfirm('rejected')}
+              className="w-full flex items-center justify-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              <XCircleIcon className="w-5 h-5" />
+              <span>Tolak Pendaftaran</span>
+            </button>
+            <button
+              onClick={handleClose}
+              className="w-full flex items-center justify-center gap-2 p-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <span>Tutup</span>
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  };
+
   return (
     <div className="p-6 space-y-8">
       {/* Header Section */}
@@ -669,7 +760,10 @@ const RegistrationData: React.FC = () => {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedRegistration(registration);
+                        setSelectedRegistration({ 
+                          ...registration, 
+                          id: registration.id
+                        });
                         setShowDetailModal(true);
                       }}
                       className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium"
@@ -680,7 +774,7 @@ const RegistrationData: React.FC = () => {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleStatusChange(registration.registrationCode, 'approved');
+                        handleStatusChange(registration.id, 'approved');
                       }}
                       className="flex items-center justify-center gap-1.5 py-2 px-3 bg-green-50 text-green-600 rounded-lg text-xs font-medium"
                     >
@@ -690,7 +784,7 @@ const RegistrationData: React.FC = () => {
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleStatusChange(registration.registrationCode, 'rejected');
+                        handleStatusChange(registration.id, 'rejected');
                       }}
                       className="flex items-center justify-center gap-1.5 py-2 px-3 bg-red-50 text-red-600 rounded-lg text-xs font-medium"
                     >
@@ -887,7 +981,7 @@ const RegistrationData: React.FC = () => {
                       <PhoneIcon className="w-5 h-5 text-purple-600" />
                       Informasi Kontak
                     </h4>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-3">
                       <div className="bg-white p-3 rounded-lg">
                         <p className="text-sm text-gray-500">Email</p>
                         <div className="flex items-center gap-2">
@@ -902,7 +996,7 @@ const RegistrationData: React.FC = () => {
                           <p className="font-medium text-gray-900">{selectedRegistration.whatsapp}</p>
                         </div>
                       </div>
-                      <div className="bg-white p-3 rounded-lg col-span-2">
+                      <div className="bg-white p-3 rounded-lg">
                         <p className="text-sm text-gray-500">Kota</p>
                         <div className="flex items-center gap-2">
                           <MapPinIcon className="w-4 h-4 text-purple-500" />
@@ -925,7 +1019,7 @@ const RegistrationData: React.FC = () => {
               Tutup
             </button>
             <button
-              onClick={() => {/* Handle status change */}}
+              onClick={() => setShowStatusModal(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Update Status
@@ -936,12 +1030,31 @@ const RegistrationData: React.FC = () => {
 
       {/* Delete Modal tetap sama */}
       <DeleteModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        isOpen={isDeleteModalOpen && !isClosing}
+        onClose={() => {
+          setIsClosing(true);
+          setTimeout(() => {
+            setIsDeleteModalOpen(false);
+            setSelectedRegistration(null);
+            setIsClosing(false);
+          }, 200);
+        }}
         onConfirm={handleDelete}
         itemName="pendaftaran"
         registrationCode={selectedRegistration?.registrationCode}
         nameOrTeam={selectedRegistration?.teamName || selectedRegistration?.name}
+      />
+
+      <StatusModal
+        isOpen={showStatusModal && !isClosing}
+        onClose={() => setShowStatusModal(false)}
+        onConfirm={(status) => {
+          if (selectedRegistration) {
+            handleStatusChange(selectedRegistration.id, status);
+            setShowStatusModal(false);
+          }
+        }}
+        registration={selectedRegistration}
       />
     </div>
   );

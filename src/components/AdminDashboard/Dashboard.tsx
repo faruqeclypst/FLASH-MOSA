@@ -72,28 +72,28 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         <StatCard
           icon={<UserGroupIcon />}
-          title="Total Pendaftaran"
+          title="Pendaftar"
           value={stats.totalRegistrations}
           total={stats.totalRegistrations}
           color="blue"
         />
         <StatCard
           icon={<ClockIcon />}
-          title="Pendaftaran Tertunda"
+          title="Pending"
           value={stats.pendingRegistrations}
           total={stats.totalRegistrations}
           color="yellow"
         />
         <StatCard
           icon={<CheckCircleIcon />}
-          title="Pendaftaran Disetujui"
+          title="Disetujui"
           value={stats.approvedRegistrations}
           total={stats.totalRegistrations}
           color="green"
         />
         <StatCard
           icon={<XCircleIcon />}
-          title="Pendaftaran Ditolak"
+          title="Ditolak"
           value={stats.rejectedRegistrations}
           total={stats.totalRegistrations}
           color="red"

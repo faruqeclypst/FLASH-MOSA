@@ -10,6 +10,9 @@ import GalleryManager from './GalleryManager';
 import ConfirmUpdateModal from './ConfirmUpdateModal';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../../services/firebase';
+import classNames from 'classnames';
+import { showAlert } from '../ui/Alert';
+import { compressImage } from '../../utils/imageCompression';
 
 const ManageContent: React.FC = () => {
   const { data: flashEvent, updateData } = useFirebase<FlashEvent>('flashEvent');
@@ -46,18 +49,47 @@ const ManageContent: React.FC = () => {
     }
   };
   
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = async (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { name: string; value: any }
+  ) => {
+    // Jika parameter adalah event
+    if ('target' in e) {
+      const { name, value } = e.target;
+      setFormData(prev => ({ ...prev, [name]: value }));
+    } 
+    // Jika parameter adalah object langsung
+    else {
+      const { name, value } = e;
+      
+      if (name === 'saveBasicInfo') {
+        try {
+          await updateData(formData);
+          showAlert('success', 'Informasi dasar berhasil disimpan');
+        } catch (error) {
+          console.error('Error saving basic info:', error);
+          showAlert('error', 'Gagal menyimpan informasi dasar');
+        }
+        return;
+      }
+      
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string, index?: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const storageRef = ref(storage, `flashEvent/${field}/${Date.now()}_${file.name}`);
       
       try {
-        await uploadBytes(storageRef, file);
+        let fileToUpload = file;
+        
+        // Kompresi hanya untuk file gambar
+        if (file.type.startsWith('image/')) {
+          fileToUpload = await compressImage(file, 0.8); // 80% quality
+        }
+        
+        const storageRef = ref(storage, `flashEvent/${field}/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, fileToUpload);
         const downloadURL = await getDownloadURL(storageRef);
         
         if (field === 'activities' && index !== undefined) {
@@ -69,31 +101,62 @@ const ManageContent: React.FC = () => {
         } else {
           setFormData(prev => ({ ...prev, [field]: downloadURL }));
         }
+
+        showAlert('success', 'File berhasil diunggah');
       } catch (error) {
         console.error("Error uploading file: ", error);
+        showAlert('error', 'Gagal mengunggah file');
       }
     }
   };
 
-  const handleActivityChange = (index: number, field: keyof Activity, value: string) => {
+  const handleActivityChange = async (index: number, field: keyof Activity, value: string) => {
     const updatedActivities = [...formData.activities];
     updatedActivities[index] = { ...updatedActivities[index], [field]: value };
-    setFormData(prev => ({ ...prev, activities: updatedActivities }));
+    
+    try {
+      // Update state lokal
+      setFormData(prev => ({ ...prev, activities: updatedActivities }));
+      // Update ke Firebase
+      await updateData({ activities: updatedActivities });
+    } catch (error) {
+      console.error('Error updating activity:', error);
+      throw error; // Throw error untuk ditangani di komponen
+    }
   };
 
-  const handleAddActivity = () => {
-    setFormData(prev => ({
-      ...prev,
-      activities: [
-        ...prev.activities,
-        { name: '', description: '', image: '' }
-      ]
-    }));
+  const handleAddActivity = async () => {
+    const newActivity: Activity = {
+      name: '',
+      description: '',
+      image: ''
+    };
+    
+    try {
+      const updatedActivities = [...formData.activities, newActivity];
+      // Update state lokal
+      setFormData(prev => ({ ...prev, activities: updatedActivities }));
+      // Langsung update ke Firebase
+      await updateData({ activities: updatedActivities });
+      showAlert('success', 'Aktivitas baru berhasil ditambahkan');
+    } catch (error) {
+      console.error('Error adding activity:', error);
+      showAlert('error', 'Gagal menambahkan aktivitas');
+    }
   };
 
-  const handleRemoveActivity = (index: number) => {
-    const updatedActivities = formData.activities.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, activities: updatedActivities }));
+  const handleRemoveActivity = async (index: number) => {
+    try {
+      const updatedActivities = formData.activities.filter((_, i) => i !== index);
+      // Update state lokal
+      setFormData(prev => ({ ...prev, activities: updatedActivities }));
+      // Langsung update ke Firebase
+      await updateData({ activities: updatedActivities });
+      showAlert('success', 'Aktivitas berhasil dihapus');
+    } catch (error) {
+      console.error('Error removing activity:', error);
+      showAlert('error', 'Gagal menghapus aktivitas');
+    }
   };
 
   const handleCompetitionChange = (index: number, field: keyof Competition, value: any) => {
@@ -142,8 +205,10 @@ const ManageContent: React.FC = () => {
   };
 
   const handleOpenModal = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsModalOpen(true);
+    if (selectedSection === 'eventInfo' || selectedSection === 'webImageSetting') {
+      e.preventDefault();
+      setIsModalOpen(true);
+    }
   };
 
   const handleCloseModal = () => {
@@ -177,34 +242,40 @@ const ManageContent: React.FC = () => {
         );
       case 'activities':
         return (
-          <ActivitiesManager
-            activities={formData.activities}
-            handleActivityChange={handleActivityChange}
-            handleAddActivity={handleAddActivity}
-            handleRemoveActivity={handleRemoveActivity}
-            handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
-          />
+          <div>
+            <ActivitiesManager
+              activities={formData.activities}
+              handleActivityChange={handleActivityChange}
+              handleAddActivity={handleAddActivity}
+              handleRemoveActivity={handleRemoveActivity}
+              handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
+            />
+          </div>
         );
       case 'competitions':
         return (
-          <CompetitionsManager
-            competitions={formData.competitions}
-            handleCompetitionChange={handleCompetitionChange}
-            handleAddCompetition={handleAddCompetition}
-            handleRemoveCompetition={handleRemoveCompetition}
-            handleAddRule={handleAddRule}
-            handleRuleChange={handleRuleChange}
-            handleRemoveRule={handleRemoveRule}
-            handleIconUpload={handleIconUpload}
-          />
+          <div>
+            <CompetitionsManager
+              competitions={formData.competitions}
+              handleCompetitionChange={handleCompetitionChange}
+              handleAddCompetition={handleAddCompetition}
+              handleRemoveCompetition={handleRemoveCompetition}
+              handleAddRule={handleAddRule}
+              handleRuleChange={handleRuleChange}
+              handleRemoveRule={handleRemoveRule}
+              handleIconUpload={handleIconUpload}
+            />
+          </div>
         );
       case 'gallery':
         return (
-          <GalleryManager 
-            gallery={formData.gallery}
-            handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
-            handleRemoveGalleryImage={handleRemoveGalleryImage}
-          />
+          <div>
+            <GalleryManager 
+              gallery={formData.gallery}
+              handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
+              handleRemoveGalleryImage={handleRemoveGalleryImage}
+            />
+          </div>
         );
       default:
         return null;
@@ -218,46 +289,39 @@ const ManageContent: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-4xl font-bold mb-8 text-center text-blue-800">Kelola Konten</h1>
+    <div className="p-6 space-y-8">
+      {/* Header Section */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Kelola Konten</h1>
+        <p className="text-gray-600 mt-1">Update informasi dan konten FLASH</p>
+      </div>
       
       {/* Navigation Tabs */}
-      <div className="flex space-x-4 mb-8 overflow-x-auto">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            onClick={() => setSelectedSection(section.id)}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 whitespace-nowrap ${
-              selectedSection === section.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {section.label}
-          </button>
-        ))}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-nowrap overflow-x-auto -mx-4 px-4 pb-4 md:pb-0 md:mx-0 md:px-0 gap-2 md:gap-4 scrollbar-hide">
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => setSelectedSection(section.id)}
+              className={classNames(
+                'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm md:text-base',
+                selectedSection === section.id
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              )}
+            >
+              {section.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Content */}
-      <form onSubmit={handleOpenModal} className="space-y-8">
-        <div className="bg-white rounded-xl p-6 shadow-md">
+      {/* Content Section */}
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
           {renderContent()}
         </div>
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 text-lg font-semibold shadow-lg"
-          >
-            Update Content
-          </button>
-        </div>
-      </form>
-
-      <ConfirmUpdateModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleConfirmUpdate}
-      />
+      </div>
     </div>
   );
 };

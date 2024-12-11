@@ -30,17 +30,37 @@ export const useFirebase = <T>(path: string) => {
 
   const pushData = async (newData: Partial<T>) => {
     try {
-      await push(ref(db, path), newData);
+      const newRef = push(ref(db, path));
+      await set(newRef, newData);
     } catch (error) {
       setError(error as Error);
     }
   };
 
+  const getKeyFromRegistrationCode = async (registrationCode: string) => {
+    const dbRef = ref(db, path);
+    const snapshot = await get(dbRef);
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const key = Object.entries(data).find(
+        ([_, value]: [string, any]) => value.registrationCode === registrationCode
+      )?.[0];
+      return key;
+    }
+    return null;
+  };
+
   const deleteData = async (id: string) => {
     try {
-      await remove(ref(db, `${path}/${id}`));
+      const key = await getKeyFromRegistrationCode(id);
+      if (!key) {
+        throw new Error('Data not found');
+      }
+      await remove(ref(db, `${path}/${key}`));
+      return true;
     } catch (error) {
-      setError(error as Error);
+      console.error('Error deleting data:', error);
+      throw error;
     }
   };
 

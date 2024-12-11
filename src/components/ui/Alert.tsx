@@ -27,9 +27,11 @@ interface AlertItem {
 
 // Constants
 const ALERT_DURATION = 5000;
+const MAX_ALERTS = 2;
 const CONTAINER_CLASSES = classNames(
   'fixed z-50 flex flex-col',
-  'bottom-0 left-0 ml-4',
+  'top-0 left-0 right-0 mx-4 mt-4 md:mt-0',
+  'md:bottom-0 md:left-0 md:top-auto md:right-auto md:ml-4',
   'gap-1 md:gap-2'
 );
 
@@ -50,37 +52,56 @@ const ALERT_ICONS = {
 // State
 let alertContainer: HTMLDivElement | null = null;
 let alerts: AlertItem[] = [];
+let rootInstance: any = null;
 
 // Helper functions
 const createContainer = () => {
+  if (alertContainer) return alertContainer;
+  
   alertContainer = document.createElement('div');
   alertContainer.className = CONTAINER_CLASSES;
   document.body.appendChild(alertContainer);
   return alertContainer;
 };
 
-const getContainer = () => alertContainer || createContainer();
+const getOrCreateRoot = () => {
+  const container = createContainer();
+  
+  if (!rootInstance) {
+    rootInstance = createRoot(container);
+  }
+  
+  return rootInstance;
+};
 
-const removeAlert = (root: any, alertId: string) => {
+const removeAlert = (alertId: string) => {
   alerts = alerts.filter(a => a.id !== alertId);
+  
   if (alerts.length === 0) {
-    root.unmount();
-    alertContainer?.remove();
-    alertContainer = null;
+    if (rootInstance) {
+      rootInstance.unmount();
+      rootInstance = null;
+    }
+    if (alertContainer) {
+      alertContainer.remove();
+      alertContainer = null;
+    }
   } else {
-    renderAlerts(root);
+    renderAlerts();
   }
 };
 
-const renderAlerts = (root: any) => {
-  root.render(
+const renderAlerts = () => {
+  if (!rootInstance) return;
+  
+  rootInstance.render(
     <AnimatePresence>
       {alerts.map(alert => (
         <Alert
           key={alert.id}
           type={alert.type}
           message={alert.message}
-          onClose={() => removeAlert(root, alert.id)}
+          onClose={() => removeAlert(alert.id)}
         />
       ))}
     </AnimatePresence>
@@ -91,7 +112,14 @@ const Alert: React.FC<AlertProps> = ({ type, message, onClose, className }) => {
   const Icon = ALERT_ICONS[type];
 
   return (
-    <div className={`rounded-lg p-4 mb-4 w-full ${ALERT_STYLES[type]} ${className}`}>
+    <div 
+      className={`
+        rounded-lg p-4 mb-4 w-full shadow-lg
+        ${ALERT_STYLES[type]} 
+        ${className}
+        animate-slide-in-down md:animate-slide-in-right
+      `}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <Icon className="w-5 h-5" />
@@ -111,15 +139,30 @@ const Alert: React.FC<AlertProps> = ({ type, message, onClose, className }) => {
 };
 
 export const showAlert = (type: AlertType, message: string, duration: number = ALERT_DURATION) => {
-  const container = getContainer();
   const alertId = Math.random().toString(36).substr(2, 9);
-  const root = createRoot(container);
+  const root = getOrCreateRoot();
+  
+  alerts = [{ id: alertId, type, message }, ...alerts.slice(0, MAX_ALERTS - 1)];
+  
+  if (alerts.length > MAX_ALERTS) {
+    alerts = alerts.slice(0, MAX_ALERTS);
+  }
+  
+  renderAlerts();
 
-  alerts.push({ id: alertId, type, message });
-  renderAlerts(root);
-
-  setTimeout(() => removeAlert(root, alertId), duration);
+  setTimeout(() => removeAlert(alertId), duration);
   return alertId;
+};
+
+export const cleanupAlertSystem = () => {
+  if (alertContainer) {
+    if (rootInstance) {
+      rootInstance.unmount();
+      rootInstance = null;
+    }
+    alertContainer.remove();
+    alertContainer = null;
+  }
 };
 
 export default Alert; 

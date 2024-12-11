@@ -1,5 +1,6 @@
-import React from 'react';
-import { AnimatePresence } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import classNames from 'classnames';
 
 type ModalProps = {
@@ -10,35 +11,7 @@ type ModalProps = {
   className?: string;
 };
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, size = 'md', className = '' }) => {
-  // Handle escape key dan body scrolling
-  React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      // Simpan posisi scroll sebelum modal dibuka
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-    }
-    
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      if (isOpen) {
-        // Kembalikan posisi scroll saat modal ditutup
-        const scrollY = document.body.style.top;
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        window.scrollTo(0, parseInt(scrollY || '0') * -1);
-      }
-    };
-  }, [isOpen, onClose]);
-
+const ModalContent: React.FC<ModalProps> = ({ isOpen, onClose, children, size = 'md', className = '' }) => {
   const sizeClasses = {
     sm: 'max-w-md',
     md: 'max-w-lg',
@@ -51,17 +24,22 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, size = 'md', c
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50"
             onClick={onClose}
           />
-          
-          {/* Modal */}
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
-              <div 
+              <motion.div 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.2 }}
                 className={classNames(
                   'relative bg-white rounded-lg shadow-xl w-full',
                   sizeClasses[size],
@@ -70,12 +48,53 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, size = 'md', c
                 onClick={e => e.stopPropagation()}
               >
                 {children}
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </AnimatePresence>
+  );
+};
+
+const Modal: React.FC<ModalProps> = (props) => {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        props.onClose();
+      }
+    };
+
+    if (props.isOpen) {
+      document.addEventListener('keydown', handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [props.isOpen, props.onClose]);
+
+  // Cleanup function untuk modal root
+  useEffect(() => {
+    return () => {
+      const modalRoot = document.getElementById('modal-root')
+      if (modalRoot && !modalRoot.hasChildNodes()) {
+        modalRoot.remove()
+      }
+    }
+  }, [])
+
+  // Buat portal container jika belum ada
+  let portalContainer = document.getElementById('modal-root')
+  if (!portalContainer) {
+    portalContainer = document.createElement('div')
+    portalContainer.id = 'modal-root'
+    document.body.appendChild(portalContainer)
+  }
+
+  return createPortal(
+    <ModalContent {...props} />,
+    portalContainer
   );
 };
 
