@@ -159,10 +159,34 @@ const ManageContent: React.FC = () => {
     }
   };
 
-  const handleCompetitionChange = (index: number, field: keyof Competition, value: any) => {
-    const updatedCompetitions = [...formData.competitions];
-    updatedCompetitions[index] = { ...updatedCompetitions[index], [field]: value };
-    setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
+  const handleCompetitionChange = async (index: number, field: keyof Competition | 'competition', value: any) => {
+    try {
+      const updatedCompetitions = [...formData.competitions];
+      if (field === 'competition') {
+        // Jika menyimpan seluruh objek competition
+        updatedCompetitions[index] = value;
+      } else {
+        // Jika menyimpan field tertentu
+        updatedCompetitions[index] = {
+          ...updatedCompetitions[index],
+          [field]: value
+        };
+      }
+      
+      // Update di state lokal
+      setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
+      
+      // Update di Firebase
+      const updatedEvent = {
+        ...formData,
+        competitions: updatedCompetitions
+      };
+      
+      await updateData(updatedEvent);
+    } catch (error) {
+      console.error('Error updating competition:', error);
+      throw error;
+    }
   };
 
   const handleAddCompetition = () => {
@@ -170,7 +194,15 @@ const ManageContent: React.FC = () => {
       ...prev,
       competitions: [
         ...prev.competitions,
-        { name: '', description: '', rules: [], icon: '', type: 'single', categories: [] }
+        { 
+          name: '', 
+          description: '', 
+          rules: [], 
+          icon: '', 
+          type: 'single', 
+          categories: [],
+          isActive: true
+        }
       ]
     }));
   };

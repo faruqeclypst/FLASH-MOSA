@@ -23,6 +23,7 @@ const RegistrationForm: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationData, setRegistrationData] = useState<Registration | undefined>();
+  const [pasPhotoFile, setPasPhotoFile] = useState<File | null>(null);
 
   const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
   const acehCities = [
@@ -58,9 +59,18 @@ const RegistrationForm: React.FC = () => {
       toast.error('File terlalu besar! Maksimal 500KB');
       return false;
     }
-    if (file.type !== 'application/pdf') {
-      toast.error('File harus berformat PDF');
-      return false;
+    
+    // Check file type based on input name
+    if (file.name.endsWith('.pdf')) {
+      if (file.type !== 'application/pdf') {
+        toast.error('File harus berformat PDF');
+        return false;
+      }
+    } else {
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        toast.error('File harus berformat JPG atau PNG');
+        return false;
+      }
     }
     return true;
   };
@@ -73,6 +83,8 @@ const RegistrationForm: React.FC = () => {
           setKtsSuratAktifFile(file);
         } else if (e.target.name === 'buktiPembayaran') {
           setBuktiPembayaranFile(file);
+        } else if (e.target.name === 'pasPhoto') {
+          setPasPhotoFile(file);
         }
       } else {
         e.target.value = ''; // Reset input file jika validasi gagal
@@ -114,6 +126,7 @@ const RegistrationForm: React.FC = () => {
 
       let ktsSuratAktifUrl = '';
       let buktiPembayaranUrl = '';
+      let pasPhotoUrl = '';
 
       if (ktsSuratAktifFile) {
         ktsSuratAktifUrl = await uploadFile(ktsSuratAktifFile, `kts_surat_aktif/${Date.now()}_${ktsSuratAktifFile.name}`);
@@ -121,6 +134,10 @@ const RegistrationForm: React.FC = () => {
 
       if (buktiPembayaranFile) {
         buktiPembayaranUrl = await uploadFile(buktiPembayaranFile, `bukti_pembayaran/${Date.now()}_${buktiPembayaranFile.name}`);
+      }
+
+      if (pasPhotoFile && selectedCompetition?.requirePassportPhoto) {
+        pasPhotoUrl = await uploadFile(pasPhotoFile, `pas_foto/${Date.now()}_${pasPhotoFile.name}`);
       }
 
       const registrationCode = await generateRegistrationCode();
@@ -132,6 +149,7 @@ const RegistrationForm: React.FC = () => {
         status: 'pending',
         ktsSuratAktif: ktsSuratAktifUrl,
         buktiPembayaran: buktiPembayaranUrl,
+        pasPhoto: pasPhotoUrl,
         registrationCode,
         registrationDate,
         schoolCategory: selectedCategory || 'UMUM',
@@ -148,6 +166,7 @@ const RegistrationForm: React.FC = () => {
       setSelectedCategory(null);
       setKtsSuratAktifFile(null);
       setBuktiPembayaranFile(null);
+      setPasPhotoFile(null);
     } catch (error) {
       console.error('Error submitting registration:', error);
       toast.error('Error submitting registration. Please try again.');
@@ -182,6 +201,9 @@ const RegistrationForm: React.FC = () => {
 
   const isTeam = selectedCompetition?.type === 'team';
 
+  console.log('Selected Competition:', selectedCompetition);
+  console.log('Require Passport Photo:', selectedCompetition?.requirePassportPhoto);
+
   return (
     <section id="registration" className="py-16 md:py-20 bg-gradient-to-b from-gray-100 to-white overflow-hidden">
       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
@@ -198,11 +220,11 @@ const RegistrationForm: React.FC = () => {
         viewport={{ once: true, amount: 0.3 }}
       >
                 <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight">
+          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
             Pendaftaran <span className="text-blue-600">Lomba</span>
           </h2>
           <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
-          <p className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             FLASH {new Date().getFullYear()}
           </p>
         </motion.div>
@@ -213,7 +235,7 @@ const RegistrationForm: React.FC = () => {
           variants={itemVariants}
         >
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-            <label htmlFor="category" className="block text-gray-700 text-sm font-bold mb-2">
+            <label htmlFor="category" className="block text-gray-700 text-base font-bold mb-2">
               Pilih Kategori
             </label>
             <div className="relative">
@@ -226,7 +248,7 @@ const RegistrationForm: React.FC = () => {
                   setSelectedCompetition(null);
                 }}
                 required
-                className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
               >
                 <option value="">Select a category</option>
                 {schoolCategories.map((category) => (
@@ -255,7 +277,7 @@ const RegistrationForm: React.FC = () => {
               initial="hidden"
               animate="visible"
             >
-              <label htmlFor="competition" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="competition" className="block text-gray-700 text-base font-bold mb-2">
                 Pilih Lomba
               </label>
               <div className="relative">
@@ -270,7 +292,7 @@ const RegistrationForm: React.FC = () => {
                     setSelectedCompetition(selected || null);
                   }}
                   required
-                  className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+                  className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
                 >
                   <option value="">Select a competition</option>
                   {flashEvent.competitions
@@ -307,7 +329,7 @@ const RegistrationForm: React.FC = () => {
                 {isTeam ? (
                   <>
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="registrantName" className="block text-gray-700 text-sm font-bold mb-2">
+                      <label htmlFor="registrantName" className="block text-gray-700 text-base font-bold mb-2">
                         Nama Pendaftar
                       </label>
                       <div className="relative">
@@ -318,13 +340,13 @@ const RegistrationForm: React.FC = () => {
                           value={formData.registrantName || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="teamName" className="block text-gray-700 text-sm font-bold mb-2">
+                      <label htmlFor="teamName" className="block text-gray-700 text-base font-bold mb-2">
                         Nama Tim
                       </label>
                       <div className="relative">
@@ -335,7 +357,7 @@ const RegistrationForm: React.FC = () => {
                           value={formData.teamName || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -344,7 +366,7 @@ const RegistrationForm: React.FC = () => {
                   ) : (
                     <>
                       <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                        <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">
+                        <label htmlFor="name" className="block text-gray-700 text-base font-bold mb-2">
                           Nama Lengkap
                         </label>
                         <div className="relative">
@@ -355,13 +377,13 @@ const RegistrationForm: React.FC = () => {
                             value={formData.name || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
                       </motion.div>
                       <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                        <label htmlFor="gender" className="block text-gray-700 text-sm font-bold mb-2">
+                        <label htmlFor="gender" className="block text-gray-700 text-base font-bold mb-2">
                           Jenis Kelamin
                         </label>
                         <div className="relative">
@@ -371,7 +393,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.gender || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                           >
                             <option value="">Pilih Jenis Kelamin</option>
                             <option value="Laki-laki">Laki-laki</option>
@@ -390,7 +412,7 @@ const RegistrationForm: React.FC = () => {
                         </div>
                       </motion.div>
                       <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                        <label htmlFor="birthDate" className="block text-gray-700 text-sm font-bold mb-2">
+                        <label htmlFor="birthDate" className="block text-gray-700 text-base font-bold mb-2">
                           Tanggal Lahir
                         </label>
                         <div className="relative">
@@ -401,7 +423,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.birthDate || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
                           <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -413,7 +435,7 @@ const RegistrationForm: React.FC = () => {
                 {/* Column 2 */}
                 <div>
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="whatsapp" className="block text-gray-700 text-sm font-bold mb-2">
+                    <label htmlFor="whatsapp" className="block text-gray-700 text-base font-bold mb-2">
                       No. WhatsApp
                     </label>
                     <div className="relative">
@@ -424,14 +446,14 @@ const RegistrationForm: React.FC = () => {
                         value={formData.whatsapp || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
   
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">
+                    <label htmlFor="email" className="block text-gray-700 text-base font-bold mb-2">
                       Email
                     </label>
                     <div className="relative">
@@ -442,7 +464,7 @@ const RegistrationForm: React.FC = () => {
                         value={formData.email || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
@@ -450,7 +472,7 @@ const RegistrationForm: React.FC = () => {
   
                   {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="school" className="block text-gray-700 text-sm font-bold mb-2">
+                      <label htmlFor="school" className="block text-gray-700 text-base font-bold mb-2">
                         Nama Sekolah
                       </label>
                       <div className="relative">
@@ -461,7 +483,7 @@ const RegistrationForm: React.FC = () => {
                           value={formData.school || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
@@ -472,7 +494,7 @@ const RegistrationForm: React.FC = () => {
                 {/* Column 3 */}
                 <div>
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="city" className="block text-gray-700 text-sm font-bold mb-2">
+                    <label htmlFor="city" className="block text-gray-700 text-base font-bold mb-2">
                       Kota/Kabupaten
                     </label>
                     <div className="relative">
@@ -482,7 +504,7 @@ const RegistrationForm: React.FC = () => {
                         value={formData.city || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                       >
                         <option value="">Pilih Kota/Kabupaten</option>
                         {acehCities.map((city, index) => (
@@ -506,7 +528,7 @@ const RegistrationForm: React.FC = () => {
   
                   {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-sm font-bold mb-2">
+                      <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-base font-bold mb-2">
                         KTS / Surat Aktif (PDF)
                       </label>
                       <div className="relative">
@@ -517,7 +539,7 @@ const RegistrationForm: React.FC = () => {
                           onChange={handleFileChange}
                           accept=".pdf"
                           required
-                          className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
@@ -525,7 +547,7 @@ const RegistrationForm: React.FC = () => {
                   )}
   
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                    <label htmlFor="buktiPembayaran" className="block text-gray-700 text-sm font-bold mb-2">
+                    <label htmlFor="buktiPembayaran" className="block text-gray-700 text-base font-bold mb-2">
                       Bukti Pembayaran (PDF)
                     </label>
                     <div className="relative">
@@ -536,17 +558,37 @@ const RegistrationForm: React.FC = () => {
                         onChange={handleFileChange}
                         accept=".pdf"
                         required
-                        className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
+  
+                  {selectedCompetition?.requirePassportPhoto && (
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                      <label htmlFor="pasPhoto" className="block text-gray-700 text-base font-bold mb-2">
+                        Pas Foto (JPG/PNG, max 500KB)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="pasPhoto"
+                          name="pasPhoto"
+                          onChange={handleFileChange}
+                          accept="image/jpeg,image/png"
+                          required
+                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        />
+                        <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
   
                 {/* Team Members section (if applicable) */}
                 {isTeam && (
                   <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
-                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                    <label className="block text-gray-700 text-base font-bold mb-2">
                       Anggota Tim (Maksimum {teamSize} anggota)
                     </label>
                     {teamMembers.map((member, index) => (
@@ -556,7 +598,7 @@ const RegistrationForm: React.FC = () => {
                             type="text"
                             value={member}
                             onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                            className="w-full px-3 py-2 md:py-3 pl-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                             placeholder={`Nama Anggota ${index + 1}`}
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />

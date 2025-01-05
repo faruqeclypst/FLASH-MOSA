@@ -269,17 +269,17 @@ const Reviews: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-5xl font-extrabold mb-4 text-gray-800 leading-tight"
+            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight"
             variants={itemVariants}
           >
             Apa kata <span className="text-blue-600">Mereka</span>
           </motion.h2>
           <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
-            className="text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-             Mereka yang telah mengikuti event FLASH secara langsung
+            Mereka yang telah mengikuti event FLASH...
           </motion.p>
         </motion.div>
 

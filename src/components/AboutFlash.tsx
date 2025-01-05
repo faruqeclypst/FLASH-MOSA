@@ -71,7 +71,7 @@ const AboutFlash: React.FC = () => {
           </h2>
           <div className="bg-blue-600 w-24 h-2 mb-8 rounded-full"></div>
         </motion.div>
-              <p className="text-2xl leading-relaxed text-gray-700 mb-8">{flashEvent.aboutFlash}</p>
+              <p className="text-lg leading-relaxed text-gray-700 mb-8">{flashEvent.aboutFlash}</p>
               <ul className="text-xl text-gray-700 mb-8 space-y-4">
                 <li className="flex items-center">
                   <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>

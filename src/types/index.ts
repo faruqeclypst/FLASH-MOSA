@@ -26,6 +26,10 @@ export interface Competition {
   type: 'single' | 'team';
   teamSize?: number;
   categories?: SchoolCategory[];
+  requirePassportPhoto?: boolean;
+  documentUrl?: string;
+  isActive: boolean;
+  eventDate?: string;
 }
 
 export interface Registration {
@@ -39,6 +43,7 @@ export interface Registration {
   city: AcehCity;
   ktsSuratAktif?: string;
   buktiPembayaran: string;
+  pasPhoto?: string;
   
   // Fields for individual competition
   name?: string;

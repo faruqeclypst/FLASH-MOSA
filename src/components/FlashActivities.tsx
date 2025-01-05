@@ -104,14 +104,14 @@ const FlashActivities: React.FC = () => {
       >
         <motion.div className="text-center mb-8 md:mb-16" variants={itemVariants}>
           <motion.h2 
-            className="text-4xl md:text-4xl font-bold mb-4 md:mb-8 text-gray-800 leading-tight"
+            className="text-4xl font-bold mb-4 text-gray-800 leading-tight"
             variants={itemVariants}
           >
             FLASH Activities
           </motion.h2>
           <div className="bg-blue-600 w-16 md:w-24 h-1 md:h-2 mb-4 md:mb-8 mx-auto"></div>
-          <p className="text-lg md:text-2xl leading-relaxed text-gray-700 mb-4 md:mb-8 max-w-3xl mx-auto">
-            Immerse yourself in a world of innovation and creativity with our exciting FLASH activities
+          <p className="text-lg leading-relaxed text-gray-700 mb-4 max-w-3xl mx-auto">
+            Immerse yourself in a world of innovation...
           </p>
         </motion.div>
 
