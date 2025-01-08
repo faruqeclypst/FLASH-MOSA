@@ -19,7 +19,9 @@ import {
   PhoneIcon,
   MapPinIcon,
   DocumentTextIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  PhotoIcon,
+  ChatBubbleLeftIcon
 } from '@heroicons/react/24/outline';
 import DeleteModal from './DeleteModal';
 import { showAlert } from '../ui/Alert';
@@ -27,6 +29,59 @@ import Pagination from '../ui/Pagination';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import classNames from 'classnames';
+
+// First, define an interface for the base data type
+interface ExcelRowData {
+  no: number;
+  registrationCode: string;
+  name: string;
+  teamMembers: string;
+  email: string;
+  whatsapp: string;
+  gender: string;
+  birthDate: string;
+  city: string;
+  category: string;
+  status: string;
+  registrationDate: string;
+  ktsSuratAktif: string;
+  buktiPembayaran: string;
+  [key: string]: string | number; // Allow dynamic passport photo fields
+}
+
+const formatWhatsAppMessage = (registration: Registration) => {
+  const message = `Assalamualaikum!
+Pendaftaran lomba FLASH Celestiance kamu sudah admin terima ya!
+
+Kode Pendaftaran : ${registration.registrationCode}
+Nama / Tim : ${registration.teamName || registration.name}
+Kompetisi : ${registration.competition}
+Kategori : ${registration.schoolCategory}
+Tanggal Daftar : ${format(new Date(registration.registrationDate), 'dd/MM/yyyy HH:mm')}
+Status : Diterima
+
+Info lebih lanjut silahkan hubungi panitia FLASH Celestiance! :)`;
+
+  return encodeURIComponent(message);
+};
+
+const formatRejectionMessage = (registration: Registration, reason: string) => {
+  const message = `Assalamualaikum!
+Mohon maaf, pendaftaran lomba FLASH Celestiance kamu belum dapat kami terima.
+
+Kode Pendaftaran : ${registration.registrationCode}
+Nama / Tim : ${registration.teamName || registration.name}
+Kompetisi : ${registration.competition}
+Kategori : ${registration.schoolCategory}
+Tanggal Daftar : ${format(new Date(registration.registrationDate), 'dd/MM/yyyy HH:mm')}
+Status : Ditolak
+
+Alasan: ${reason}
+
+Info lebih lanjut silahkan hubungi panitia FLASH Celestiance! :)`;
+
+  return encodeURIComponent(message);
+};
 
 const RegistrationData: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
@@ -39,6 +94,8 @@ const RegistrationData: React.FC = () => {
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [showRejectionModal, setShowRejectionModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
   
   const itemsPerPage = 10;
 
@@ -337,6 +394,27 @@ const RegistrationData: React.FC = () => {
       >
         <TrashIcon className="w-5 h-5" />
       </button>
+      {(registration.status === 'approved' || registration.status === 'rejected') && (
+        <a 
+          href={registration.status === 'approved' 
+            ? `https://wa.me/${registration.whatsapp.replace(/\D/g, '')}?text=${formatWhatsAppMessage(registration)}`
+            : '#'
+          }
+          onClick={(e) => {
+            if (registration.status === 'rejected') {
+              e.preventDefault();
+              setSelectedRegistration({ ...registration, id });
+              setShowRejectionModal(true);
+            }
+          }}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-1 text-green-600 hover:bg-green-50 rounded"
+          title="Kirim WhatsApp"
+        >
+          <ChatBubbleLeftIcon className="w-5 h-5" />
+        </a>
+      )}
     </div>
   );
 
@@ -362,160 +440,207 @@ const RegistrationData: React.FC = () => {
   const exportToExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet('Data Pendaftar');
+      const allData = getFilteredData();
+      
+      // First, create "All Data" sheet
+      const allDataSheet = workbook.addWorksheet('Semua Data');
+      
+      // Calculate max photos for all data
+      const maxPhotos = allData.reduce((max, item) => {
+        const photoCount = item.pasPhoto ? item.pasPhoto.split(',').length : 0;
+        return Math.max(max, photoCount);
+      }, 0);
 
-      // Definisikan kolom
-      worksheet.columns = [
-        { header: 'No', key: 'no', width: 5 },
-        { header: 'Kode Pendaftaran', key: 'registrationCode', width: 20 },
-        { header: 'Nama/Tim', key: 'name', width: 30 },
-        { header: 'Anggota Tim', key: 'teamMembers', width: 40 },
-        { header: 'Email', key: 'email', width: 30 },
-        { header: 'WhatsApp', key: 'whatsapp', width: 15 },
-        { header: 'Jenis Kelamin', key: 'gender', width: 15 },
-        { header: 'Tanggal Lahir', key: 'birthDate', width: 15 },
-        { header: 'Kota', key: 'city', width: 20 },
-        { header: 'Kompetisi', key: 'competition', width: 20 },
-        { header: 'Kategori', key: 'category', width: 15 },
-        { header: 'Status', key: 'status', width: 15 },
-        { header: 'Tanggal Daftar', key: 'registrationDate', width: 20 },
-        { header: 'KTS/Surat Aktif', key: 'ktsSuratAktif', width: 50 },
-        { header: 'Bukti Pembayaran', key: 'buktiPembayaran', width: 50 }
-      ];
-
-      // Style untuk header
-      worksheet.getRow(1).eachCell((cell) => {
-        cell.fill = {
-          type: 'pattern',
-          pattern: 'solid',
-          fgColor: { argb: '4B5563' }
-        };
-        cell.font = {
-          bold: true,
-          color: { argb: 'FFFFFF' }
-        };
-        cell.alignment = { vertical: 'middle', horizontal: 'center' };
-      });
-
-      // Tambahkan data
-      const data = getFilteredData().map((item: Registration & { id: string }, index: number) => ({
-        no: index + 1,
-        registrationCode: item.registrationCode,
-        name: item.teamName || item.name,
-        teamMembers: item.teamMembers ? item.teamMembers.join(', ') : '-',
-        email: item.email,
-        whatsapp: item.whatsapp,
-        gender: item.gender === 'Laki-laki' ? 'Laki-laki' : 
-                item.gender === 'Perempuan' ? 'Perempuan' : '-',
-        birthDate: item.birthDate ? format(new Date(item.birthDate), 'dd/MM/yyyy') : '-',
-        city: item.city,
-        competition: item.competition,
-        category: item.schoolCategory,
-        status: item.status === 'approved' ? 'Diterima' : 
-                item.status === 'rejected' ? 'Ditolak' : 'Pending',
-        registrationDate: format(new Date(item.registrationDate), 'dd/MM/yyyy HH:mm'),
-        ktsSuratAktif: item.ktsSuratAktif ? {
-          text: 'Klik disini',
-          hyperlink: item.ktsSuratAktif,
-          tooltip: 'Klik untuk melihat dokumen'
-        } : '-',
-        buktiPembayaran: item.buktiPembayaran ? {
-          text: 'Klik disini',
-          hyperlink: item.buktiPembayaran,
-          tooltip: 'Klik untuk melihat dokumen'
-        } : '-'
-      }));
-
-      worksheet.addRows(data);
-
-      // Style untuk setiap cell
-      worksheet.eachRow((row, rowNumber) => {
-        if (rowNumber > 1) { // Skip header
-          row.eachCell((cell, colNumber) => {
-            // Border untuk semua cell
-            cell.border = {
-              top: { style: 'thin' },
-              left: { style: 'thin' },
-              bottom: { style: 'thin' },
-              right: { style: 'thin' }
-            };
-
-            // Alignment untuk kolom tertentu
-            if ([1, 6, 7, 8, 12].includes(colNumber)) { // No, WhatsApp, Gender, Birth Date, Status
-              cell.alignment = { horizontal: 'center' };
-            }
-            
-            // Style khusus untuk status
-            if (colNumber === 12) { // Kolom status
-              const status = cell.value as string;
-              if (status === 'Diterima') {
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'DCFCE7' }
-                };
-                cell.font = { color: { argb: '166534' } };
-              } else if (status === 'Ditolak') {
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'FEE2E2' }
-                };
-                cell.font = { color: { argb: 'B91C1C' } };
-              } else {
-                cell.fill = {
-                  type: 'pattern',
-                  pattern: 'solid',
-                  fgColor: { argb: 'FEF3C7' }
-                };
-                cell.font = { color: { argb: 'B45309' } };
-              }
-            }
-
-            // Style untuk link dokumen
-            if (colNumber === 14 || colNumber === 15) { // Kolom dokumen
-              if (cell.value !== '-') {
-                cell.font = {
-                  color: { argb: '2563EB' },
-                  underline: true
-                };
-                cell.alignment = { horizontal: 'center' };
-                // Tambahkan hyperlink
-                const value = cell.value as { text: string; hyperlink: string; tooltip: string };
-                cell.value = {
-                  text: value.text,
-                  hyperlink: value.hyperlink,
-                  tooltip: value.tooltip
-                };
-              } else {
-                cell.alignment = { horizontal: 'center' };
-              }
-            }
-          });
-        }
-      });
-
-      // Freeze pane
-      worksheet.views = [
-        { state: 'frozen', xSplit: 3, ySplit: 1 }
-      ];
-
-      // Auto filter
-      worksheet.autoFilter = {
-        from: { row: 1, column: 1 },
-        to: { row: 1, column: worksheet.columns.length }
+      // Define columns including dynamic photo columns
+      const defineColumns = (worksheet: ExcelJS.Worksheet) => {
+        worksheet.columns = [
+          { header: 'No', key: 'no', width: 5 },
+          { header: 'Kode Pendaftaran', key: 'registrationCode', width: 20 },
+          { header: 'Nama/Tim', key: 'name', width: 30 },
+          { header: 'Anggota Tim', key: 'teamMembers', width: 40 },
+          { header: 'Email', key: 'email', width: 30 },
+          { header: 'WhatsApp', key: 'whatsapp', width: 15 },
+          { header: 'Jenis Kelamin', key: 'gender', width: 15 },
+          { header: 'Tanggal Lahir', key: 'birthDate', width: 15 },
+          { header: 'Kota', key: 'city', width: 20 },
+          { header: 'Kompetisi', key: 'competition', width: 25 },
+          { header: 'Kategori', key: 'category', width: 15 },
+          { header: 'Status', key: 'status', width: 15 },
+          { header: 'Tanggal Daftar', key: 'registrationDate', width: 20 },
+          { header: 'KTS/Surat Aktif', key: 'ktsSuratAktif', width: 50 },
+          { header: 'Bukti Pembayaran', key: 'buktiPembayaran', width: 50 },
+          ...Array.from({ length: maxPhotos }, (_, i) => ({
+            header: `Pas Foto ${i + 1}`,
+            key: `pasPhoto${i}`,
+            width: 50
+          }))
+        ];
       };
 
-      // Generate file
+      // Define data preparation function
+      const prepareData = (registrations: (Registration & { id: string })[]) => {
+        return registrations.map((item, index) => {
+          const baseData: ExcelRowData = {
+            no: index + 1,
+            registrationCode: item.registrationCode,
+            name: item.teamName || item.name || '',
+            teamMembers: item.teamMembers ? item.teamMembers.join(', ') : '-',
+            email: item.email,
+            whatsapp: item.whatsapp,
+            gender: item.gender === 'Laki-laki' ? 'Laki-laki' : 
+                    item.gender === 'Perempuan' ? 'Perempuan' : '-',
+            birthDate: item.birthDate ? format(new Date(item.birthDate), 'dd/MM/yyyy') : '-',
+            city: item.city,
+            competition: item.competition,
+            category: item.schoolCategory,
+            status: item.status === 'approved' ? 'Diterima' : 
+                    item.status === 'rejected' ? 'Ditolak' : 'Pending',
+            registrationDate: format(new Date(item.registrationDate), 'dd/MM/yyyy HH:mm'),
+            ktsSuratAktif: item.ktsSuratAktif || '-',
+            buktiPembayaran: item.buktiPembayaran || '-'
+          };
+
+          // Add passport photo URLs
+          if (item.pasPhoto) {
+            const photoUrls = item.pasPhoto.split(',');
+            photoUrls.forEach((url, i) => {
+              baseData[`pasPhoto${i}`] = url;
+            });
+            // Fill remaining photo columns with '-'
+            for (let i = photoUrls.length; i < maxPhotos; i++) {
+              baseData[`pasPhoto${i}`] = '-';
+            }
+          } else {
+            // Fill all photo columns with '-' if no photos
+            for (let i = 0; i < maxPhotos; i++) {
+              baseData[`pasPhoto${i}`] = '-';
+            }
+          }
+
+          return baseData;
+        });
+      };
+
+      // Apply styling to worksheet
+      const applyWorksheetStyling = (worksheet: ExcelJS.Worksheet) => {
+        worksheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) {
+            // Header styling
+            row.eachCell((cell) => {
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: '4B5563' }
+              };
+              cell.font = {
+                bold: true,
+                color: { argb: 'FFFFFF' }
+              };
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            });
+          } else {
+            row.eachCell((cell, colNumber) => {
+              // Border untuk semua cell
+              cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' }
+              };
+
+              // Alignment untuk kolom tertentu
+              if ([1, 6, 7, 8, 11].includes(colNumber)) {
+                cell.alignment = { horizontal: 'center' };
+              }
+              
+              // Style untuk status
+              if (colNumber === 12) {
+                const status = cell.value as string;
+                if (status === 'Diterima') {
+                  cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'DCFCE7' }
+                  };
+                  cell.font = { color: { argb: '166534' } };
+                } else if (status === 'Ditolak') {
+                  cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FEE2E2' }
+                  };
+                  cell.font = { color: { argb: 'B91C1C' } };
+                } else {
+                  cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FEF3C7' }
+                  };
+                  cell.font = { color: { argb: 'B45309' } };
+                }
+              }
+
+              // Style untuk link
+              if (colNumber >= 14) {
+                if (cell.value !== '-') {
+                  cell.font = {
+                    color: { argb: '2563EB' },
+                    underline: true
+                  };
+                  cell.alignment = { horizontal: 'left' };
+                  const cellValue = cell.value?.toString() || '';
+                  cell.value = cellValue;
+                } else {
+                  cell.alignment = { horizontal: 'center' };
+                }
+              }
+            });
+          }
+        });
+
+        // Freeze pane
+        worksheet.views = [
+          { state: 'frozen', xSplit: 3, ySplit: 1 }
+        ];
+
+        // Auto filter
+        worksheet.autoFilter = {
+          from: { row: 1, column: 1 },
+          to: { row: 1, column: worksheet.columns.length }
+        };
+      };
+
+      // Setup and populate "All Data" sheet
+      defineColumns(allDataSheet);
+      allDataSheet.addRows(prepareData(allData));
+      applyWorksheetStyling(allDataSheet);
+
+      // Group registrations by competition and create individual sheets
+      const registrationsByCompetition = allData.reduce((acc, item) => {
+        if (!acc[item.competition]) {
+          acc[item.competition] = [];
+        }
+        acc[item.competition].push(item);
+        return acc;
+      }, {} as Record<string, (Registration & { id: string })[]>);
+
+      // Create individual competition sheets
+      Object.entries(registrationsByCompetition).forEach(([competition, registrations]) => {
+        const competitionSheet = workbook.addWorksheet(competition);
+        defineColumns(competitionSheet);
+        competitionSheet.addRows(prepareData(registrations));
+        applyWorksheetStyling(competitionSheet);
+      });
+
+      // Generate and save file
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
       
-      // Download file
       saveAs(blob, `Data_Pendaftar_FLASH_${format(new Date(), 'dd-MM-yyyy_HH-mm')}.xlsx`);
-      
       showAlert('success', 'Data berhasil diexport ke Excel');
+
     } catch (error) {
       console.error('Error exporting to Excel:', error);
       showAlert('error', 'Gagal mengexport data ke Excel');
@@ -575,6 +700,66 @@ const RegistrationData: React.FC = () => {
             >
               <span>Tutup</span>
             </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  };
+
+  const RejectionModal = ({ isOpen, onClose, registration }: {
+    isOpen: boolean;
+    onClose: () => void;
+    registration: Registration | null;
+  }) => {
+    const [reason, setReason] = useState('');
+
+    const handleSubmit = () => {
+      if (reason.trim() && registration) {
+        window.open(
+          `https://wa.me/${registration.whatsapp.replace(/\D/g, '')}?text=${formatRejectionMessage(registration, reason)}`,
+          '_blank'
+        );
+        onClose();
+      }
+    };
+
+    return (
+      <Modal 
+        isOpen={isOpen} 
+        onClose={onClose}
+        size="md"
+      >
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Kirim Pesan Penolakan</h3>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                Alasan Penolakan
+              </label>
+              <textarea
+                id="reason"
+                rows={4}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="Masukkan alasan penolakan..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={!reason.trim()}
+                className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Kirim WhatsApp
+              </button>
+            </div>
           </div>
         </div>
       </Modal>
@@ -756,7 +941,7 @@ const RegistrationData: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
@@ -791,6 +976,28 @@ const RegistrationData: React.FC = () => {
                       <XCircleIcon className="w-4 h-4" />
                       Tolak
                     </button>
+                    {(registration.status === 'approved' || registration.status === 'rejected') && (
+                      <a
+                        href={registration.status === 'approved' 
+                          ? `https://wa.me/${registration.whatsapp.replace(/\D/g, '')}?text=${formatWhatsAppMessage(registration)}`
+                          : '#'
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (registration.status === 'rejected') {
+                            e.preventDefault();
+                            setSelectedRegistration(registration);
+                            setShowRejectionModal(true);
+                          }
+                        }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-1.5 py-2 px-3 bg-green-50 text-green-600 rounded-lg text-xs font-medium"
+                      >
+                        <ChatBubbleLeftIcon className="w-4 h-4" />
+                        WA
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
@@ -1010,6 +1217,43 @@ const RegistrationData: React.FC = () => {
             )}
           </div>
 
+          {/* Passport Photo Section - Moved to bottom */}
+          {selectedRegistration?.pasPhoto && (
+            <div className="px-6 pb-6">
+              <div className="bg-pink-50 p-4 rounded-lg">
+                <h4 className="font-medium text-pink-900 mb-3 flex items-center gap-2">
+                  <PhotoIcon className="w-5 h-5 text-pink-600" />
+                  Pas Foto
+                </h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {selectedRegistration.pasPhoto.split(',').map((photoUrl, index) => (
+                    <div key={index} className="relative group aspect-[3/4]">
+                      <a
+                        href={photoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full h-full"
+                      >
+                        <img
+                          src={photoUrl}
+                          alt={`Pas Foto ${selectedRegistration.teamMembers ? `Anggota ${index + 1}` : selectedRegistration.name}`}
+                          className="w-full h-full object-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300 rounded-lg" />
+                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm rounded-b-lg">
+                          {selectedRegistration.teamMembers 
+                            ? `Pas Foto ${selectedRegistration.teamMembers[index] || `Anggota ${index + 1}`}`
+                            : `Pas Foto ${selectedRegistration.name}`
+                          }
+                        </div>
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Footer Modal */}
           <div className="px-6 py-4 border-t bg-gray-50 flex justify-end gap-3">
             <button
@@ -1054,6 +1298,12 @@ const RegistrationData: React.FC = () => {
             setShowStatusModal(false);
           }
         }}
+        registration={selectedRegistration}
+      />
+
+      <RejectionModal
+        isOpen={showRejectionModal}
+        onClose={() => setShowRejectionModal(false)}
         registration={selectedRegistration}
       />
     </div>

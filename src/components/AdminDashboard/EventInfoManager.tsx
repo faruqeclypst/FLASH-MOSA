@@ -13,10 +13,14 @@ import {
   LayoutList
 } from 'lucide-react';
 import classNames from 'classnames';
+import { uploadFile } from '../../services/firebase';
 
 interface EventInfoManagerProps {
   formData: FlashEvent;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { name: string; value: any }) => void;
+  handleChange: (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | 
+    { name: string; value: any; type?: string }
+  ) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>, field: string) => Promise<void>;
 }
 
@@ -28,10 +32,59 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
     const { name, value } = e.target;
     if (name === 'eventDate') {
       const newDateTime = `${value}T${timeValue || '00:00'}`;
-      handleChange({ target: { name: 'eventDate', value: newDateTime } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ 
+        name: 'eventDate', 
+        value: newDateTime,
+        type: 'datetime' 
+      });
     } else if (name === 'eventTime') {
       const newDateTime = `${eventDate || new Date().toISOString().split('T')[0]}T${value}`;
-      handleChange({ target: { name: 'eventDate', value: newDateTime } } as React.ChangeEvent<HTMLInputElement>);
+      handleChange({ 
+        name: 'eventDate', 
+        value: newDateTime,
+        type: 'datetime' 
+      });
+    }
+  };
+
+  const handleRegistrationPeriodChange = (field: 'startDate' | 'endDate', value: string) => {
+    handleChange({
+      name: 'registrationPeriod',
+      value: {
+        ...formData.registrationPeriod,
+        [field]: value
+      },
+      type: 'registrationPeriod'
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Khusus untuk aboutImage, pastikan formatnya PNG
+    if (field === 'aboutImage') {
+      if (file.type !== 'image/png') {
+        alert('Logo harus dalam format PNG!');
+        e.target.value = '';
+        return;
+      }
+
+      try {
+        const url = await uploadFile(file, `images/${field}/${Date.now()}_${file.name}`);
+        handleChange({ 
+          target: { 
+            name: field, 
+            value: url 
+          } 
+        } as React.ChangeEvent<HTMLInputElement>);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        alert('Gagal mengupload file. Silakan coba lagi.');
+      }
+    } else {
+      // Untuk file lain gunakan handleFileUpload yang ada
+      await handleFileUpload(e, field);
     }
   };
 
@@ -137,6 +190,43 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                 placeholder="Deskripsikan acara FLASH"
               />
             </div>
+
+            {/* Periode Pendaftaran */}
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-gray-900">Periode Pendaftaran</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tanggal Mulai Pendaftaran
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="date"
+                      name="registrationPeriod.startDate"
+                      value={formData.registrationPeriod?.startDate || ''}
+                      onChange={(e) => handleRegistrationPeriodChange('startDate', e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tanggal Akhir Pendaftaran
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                    <input
+                      type="date"
+                      name="registrationPeriod.endDate"
+                      value={formData.registrationPeriod?.endDate || ''}
+                      onChange={(e) => handleRegistrationPeriodChange('endDate', e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Media Section */}
@@ -148,17 +238,27 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
               {[
                 { id: 'heroImage', label: 'Gambar Utama', accept: 'image/*' },
                 { id: 'heroVideo', label: 'Video Utama', accept: 'video/*' },
-                { id: 'aboutImage', label: 'Gambar Tentang', accept: 'image/*' }
+                { 
+                  id: 'aboutImage', 
+                  label: 'Logo FLASH (PNG)', 
+                  accept: 'image/png',
+                  description: 'Format PNG dengan background transparan'
+                }
               ].map((upload) => (
                 <div key={upload.id} className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     {upload.label}
+                    {upload.id === 'aboutImage' && (
+                      <span className="text-xs text-gray-500 block mt-1">
+                        {upload.description}
+                      </span>
+                    )}
                   </label>
                   <div className="relative">
                     <input
                       type="file"
                       accept={upload.accept}
-                      onChange={(e) => handleFileUpload(e, upload.id)}
+                      onChange={(e) => handleImageUpload(e, upload.id)}
                       className="hidden"
                       id={upload.id}
                     />
@@ -171,11 +271,19 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                             controls
                           />
                         ) : (
-                          <img 
-                            src={formData[upload.id as keyof FlashEvent] as string} 
-                            alt={upload.label}
-                            className="w-full h-[200px] object-cover"
-                          />
+                          <div className={classNames(
+                            "w-full h-[200px]",
+                            upload.id === 'aboutImage' ? "bg-gray-100" : ""
+                          )}>
+                            <img 
+                              src={formData[upload.id as keyof FlashEvent] as string} 
+                              alt={upload.label}
+                              className={classNames(
+                                "w-full h-full",
+                                upload.id === 'aboutImage' ? "object-contain p-4" : "object-cover"
+                              )}
+                            />
+                          </div>
                         )}
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
                           <div className="flex gap-3">
@@ -209,7 +317,11 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                             Klik untuk mengunggah {upload.id === 'heroVideo' ? 'video' : 'gambar'}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
-                            {upload.id === 'heroVideo' ? 'MP4, WebM (maks. 100MB)' : 'PNG, JPG atau JPEG (maks. 10MB)'}
+                            {upload.id === 'aboutImage' 
+                              ? 'Format PNG dengan background transparan'
+                              : upload.id === 'heroVideo' 
+                                ? 'MP4, WebM (maks. 100MB)' 
+                                : 'PNG, JPG atau JPEG (maks. 10MB)'}
                           </p>
                         </div>
                       </label>

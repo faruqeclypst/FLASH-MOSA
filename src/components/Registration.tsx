@@ -3,10 +3,14 @@ import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Registration, Competition, SchoolCategory } from '../types';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload } from 'lucide-react';
+import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload, Plus } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RegistrationAlert from './RegistrationAlert';
+
+const isValidSchoolCategory = (category: string): category is SchoolCategory => {
+  return ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'].includes(category);
+};
 
 const RegistrationForm: React.FC = () => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
@@ -23,13 +27,34 @@ const RegistrationForm: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationData, setRegistrationData] = useState<Registration | undefined>();
-  const [pasPhotoFile, setPasPhotoFile] = useState<File | null>(null);
+  const [pasPhotoFiles, setPasPhotoFiles] = useState<(File | null)[]>([null]);
 
   const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
   const acehCities = [
-    'Banda Aceh', 'Sabang', 'Lhokseumawe', 'Langsa', 'Meulaboh',
-    'Bireuen', 'Takengon', 'Blangpidie', 'Calang', 'Jantho',
-    'Sigli', 'Singkil', 'Subulussalam', 'Suka Makmue', 'Tapaktuan'
+    'KOTA BANDA ACEH',
+    'KOTA SABANG',
+    'KOTA LHOKSEUMAWE',
+    'KOTA LANGSA',
+    'KOTA SUBULUSSALAM',
+    'KABUPATEN ACEH BESAR',
+    'KABUPATEN PIDIE',
+    'KABUPATEN PIDIE JAYA',
+    'KABUPATEN BIREUEN',
+    'KABUPATEN ACEH TENGAH',
+    'KABUPATEN BENER MERIAH',
+    'KABUPATEN ACEH UTARA',
+    'KABUPATEN ACEH TIMUR',
+    'KABUPATEN ACEH TAMIANG',
+    'KABUPATEN ACEH SINGKIL',
+    'KABUPATEN ACEH JAYA',
+    'KABUPATEN ACEH BARAT',
+    'KABUPATEN NAGAN RAYA',
+    'KABUPATEN SIMEULUE',
+    'KABUPATEN ACEH BARAT DAYA',
+    'KABUPATEN ACEH SELATAN',
+    'KABUPATEN ACEH TENGGARA',
+    'KABUPATEN GAYO LUES',
+    'LUAR DAERAH'
   ];
 
   useEffect(() => {
@@ -38,9 +63,58 @@ const RegistrationForm: React.FC = () => {
       setTeamMembers(['']);
       setKtsSuratAktifFile(null);
       setBuktiPembayaranFile(null);
+      
+      if (selectedCompetition.type === 'team' && selectedCompetition.requirePassportPhoto) {
+        setPasPhotoFiles(new Array(selectedCompetition.teamSize || 2).fill(null));
+      } else {
+        setPasPhotoFiles([null]);
+      }
+      
       setTeamSize(selectedCompetition.teamSize || 2);
     }
   }, [selectedCompetition]);
+
+  useEffect(() => {
+    const handleCompetitionSelect = (event: CustomEvent) => {
+      const { competition: competitionName, category, shouldScroll } = event.detail;
+      
+      if (competitionName && category && flashEvent?.competitions) {
+        if (isValidSchoolCategory(category)) {
+          setSelectedCategory(category);
+          
+          const competition = flashEvent.competitions.find(
+            c => c.name === competitionName && 
+                 c.categories?.includes(category) &&
+                 c.isActive
+          );
+          
+          if (competition) {
+            setSelectedCompetition(competition);
+            
+            if (shouldScroll) {
+              const registrationSection = document.getElementById('registration');
+              if (registrationSection) {
+                setTimeout(() => {
+                  registrationSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                  });
+                }, 100);
+              }
+            }
+          }
+        }
+      }
+    };
+
+    // Add event listener for custom event
+    window.addEventListener('competitionSelected', handleCompetitionSelect as EventListener);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('competitionSelected', handleCompetitionSelect as EventListener);
+    };
+  }, [flashEvent?.competitions]);
 
   const generateRegistrationCode = async () => {
     const latestCode = await getLatestRegistrationCode();
@@ -50,7 +124,27 @@ const RegistrationForm: React.FC = () => {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === 'whatsapp') {
+      // Remove any non-digit characters
+      let value = e.target.value.replace(/\D/g, '');
+      
+      // Remove leading zeros if any
+      if (value.startsWith('0')) {
+        value = value.substring(1);
+      }
+      
+      // Add +62 prefix if not already present
+      if (!value.startsWith('62')) {
+        value = '62' + value;
+      }
+      
+      // Add + symbol at the start
+      value = '+' + value;
+      
+      setFormData({ ...formData, whatsapp: value });
+    } else {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+    }
   };
 
   const validateFile = (file: File) => {
@@ -75,7 +169,7 @@ const RegistrationForm: React.FC = () => {
     return true;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, memberIndex?: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (validateFile(file)) {
@@ -84,10 +178,16 @@ const RegistrationForm: React.FC = () => {
         } else if (e.target.name === 'buktiPembayaran') {
           setBuktiPembayaranFile(file);
         } else if (e.target.name === 'pasPhoto') {
-          setPasPhotoFile(file);
+          if (typeof memberIndex === 'number') {
+            const newPasPhotoFiles = [...pasPhotoFiles];
+            newPasPhotoFiles[memberIndex] = file;
+            setPasPhotoFiles(newPasPhotoFiles);
+          } else {
+            setPasPhotoFiles([file]);
+          }
         }
       } else {
-        e.target.value = ''; // Reset input file jika validasi gagal
+        e.target.value = '';
       }
     }
   };
@@ -126,7 +226,7 @@ const RegistrationForm: React.FC = () => {
 
       let ktsSuratAktifUrl = '';
       let buktiPembayaranUrl = '';
-      let pasPhotoUrl = '';
+      let pasPhotoUrls: string[] = [];
 
       if (ktsSuratAktifFile) {
         ktsSuratAktifUrl = await uploadFile(ktsSuratAktifFile, `kts_surat_aktif/${Date.now()}_${ktsSuratAktifFile.name}`);
@@ -136,8 +236,14 @@ const RegistrationForm: React.FC = () => {
         buktiPembayaranUrl = await uploadFile(buktiPembayaranFile, `bukti_pembayaran/${Date.now()}_${buktiPembayaranFile.name}`);
       }
 
-      if (pasPhotoFile && selectedCompetition?.requirePassportPhoto) {
-        pasPhotoUrl = await uploadFile(pasPhotoFile, `pas_foto/${Date.now()}_${pasPhotoFile.name}`);
+      if (selectedCompetition?.requirePassportPhoto) {
+        for (let i = 0; i < pasPhotoFiles.length; i++) {
+          const file = pasPhotoFiles[i];
+          if (file) {
+            const url = await uploadFile(file, `pas_foto/${Date.now()}_${i + 1}_${file.name}`);
+            pasPhotoUrls.push(url);
+          }
+        }
       }
 
       const registrationCode = await generateRegistrationCode();
@@ -149,7 +255,9 @@ const RegistrationForm: React.FC = () => {
         status: 'pending',
         ktsSuratAktif: ktsSuratAktifUrl,
         buktiPembayaran: buktiPembayaranUrl,
-        pasPhoto: pasPhotoUrl,
+        ...(selectedCompetition?.requirePassportPhoto && {
+          pasPhoto: isTeam ? pasPhotoUrls.join(',') : pasPhotoUrls[0]
+        }),
         registrationCode,
         registrationDate,
         schoolCategory: selectedCategory || 'UMUM',
@@ -166,7 +274,7 @@ const RegistrationForm: React.FC = () => {
       setSelectedCategory(null);
       setKtsSuratAktifFile(null);
       setBuktiPembayaranFile(null);
-      setPasPhotoFile(null);
+      setPasPhotoFiles([null]);
     } catch (error) {
       console.error('Error submitting registration:', error);
       toast.error('Error submitting registration. Please try again.');
@@ -212,28 +320,22 @@ const RegistrationForm: React.FC = () => {
         onClose={() => setShowAlert(false)}
         registrationData={registrationData}
       />
-      <motion.div
+      
+      <motion.form
+        onSubmit={handleSubmit}
         className="container mx-auto px-4"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
       >
-                <motion.div className="text-center mb-16" variants={itemVariants}>
+        <motion.div className="text-center mb-16" variants={itemVariants}>
           <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
             Pendaftaran <span className="text-blue-600">Lomba</span>
           </h2>
           <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            FLASH {new Date().getFullYear()}
+            FLASH CELESTIANCE {new Date().getFullYear()}
           </p>
         </motion.div>
 
-        <motion.form
-          onSubmit={handleSubmit}
-          className="mx-auto bg-white shadow-2xl rounded-lg p-4 md:p-8"
-          variants={itemVariants}
-        >
+        <div className="mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
           <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
             <label htmlFor="category" className="block text-gray-700 text-base font-bold mb-2">
               Pilih Kategori
@@ -244,11 +346,12 @@ const RegistrationForm: React.FC = () => {
                 name="category"
                 value={selectedCategory || ''}
                 onChange={(e) => {
-                  setSelectedCategory(e.target.value as SchoolCategory);
+                  const newCategory = e.target.value as SchoolCategory;
+                  setSelectedCategory(newCategory);
                   setSelectedCompetition(null);
                 }}
                 required
-                className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
               >
                 <option value="">Select a category</option>
                 {schoolCategories.map((category) => (
@@ -286,17 +389,53 @@ const RegistrationForm: React.FC = () => {
                   name="competition"
                   value={selectedCompetition?.name || ''}
                   onChange={(e) => {
-                    const selected = flashEvent.competitions.find(
-                      (c) => c.name === e.target.value && c.categories?.includes(selectedCategory)
+                    const selected = flashEvent?.competitions.find(
+                      (c) => c.name === e.target.value && 
+                             c.categories?.includes(selectedCategory || '') &&
+                             c.isActive
                     );
-                    setSelectedCompetition(selected || null);
+                    
+                    // Reset form data when competition changes
+                    setFormData({});
+                    setTeamMembers(['']);
+                    setKtsSuratAktifFile(null);
+                    setBuktiPembayaranFile(null);
+                    
+                    if (selected) {
+                      setSelectedCompetition(selected); // Langsung set selected competition
+                      
+                      // Initialize team members if it's a team competition
+                      if (selected.type === 'team') {
+                        setTeamMembers(new Array(selected.teamSize || 2).fill(''));
+                      }
+                      
+                      // Initialize pas photo files if required
+                      if (selected.requirePassportPhoto) {
+                        if (selected.type === 'team') {
+                          setPasPhotoFiles(new Array(selected.teamSize || 2).fill(null));
+                        } else {
+                          setPasPhotoFiles([null]);
+                        }
+                      }
+                    } else {
+                      setSelectedCompetition(null);
+                    }
                   }}
                   required
-                  className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
                 >
                   <option value="">Select a competition</option>
-                  {flashEvent.competitions
-                    .filter((competition) => competition.categories?.includes(selectedCategory))
+                  {flashEvent?.competitions
+                    .filter((competition) => {
+                      const today = new Date();
+                      const endDate = new Date(flashEvent.registrationPeriod.endDate);
+                      const startDate = new Date(flashEvent.registrationPeriod.startDate);
+                      
+                      return competition.categories?.includes(selectedCategory || '') &&
+                             competition.isActive &&
+                             today >= startDate &&
+                             today <= endDate;
+                    })
                     .map((competition, index) => (
                       <option key={index} value={competition.name}>
                         {competition.name}
@@ -318,47 +457,123 @@ const RegistrationForm: React.FC = () => {
           )}
 
           {selectedCompetition && (
-            <motion.div 
-              variants={containerVariants} 
-              initial="hidden" 
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
-            >
-              {/* Column 1 */}
-              <div>
-                {isTeam ? (
+            <>
+              <motion.div 
+                className="mb-6 p-4 bg-gray-50 rounded-lg space-y-3"
+                variants={itemVariants}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Biaya Pendaftaran</h4>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      {selectedCompetition.type === 'team' ? 'Per Tim' : 'Per Orang'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xl font-bold text-gray-900">
+                      {selectedCompetition.registrationFee ? (
+                        `Rp ${selectedCompetition.registrationFee.toLocaleString('id-ID')}`
+                      ) : (
+                        'Gratis'
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {selectedCompetition.registrationFee > 0 && (
                   <>
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="registrantName" className="block text-gray-700 text-base font-bold mb-2">
-                        Nama Pendaftar
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="registrantName"
-                          name="registrantName"
-                          value={formData.registrantName || ''}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                        />
-                        <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                    <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
+                      <img 
+                        src="/src/assets/img/BSI.png" 
+                        alt="Bank BSI" 
+                        className="h-8 object-contain"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Bank Syariah Indonesia (BSI)</p>
+                        <p className="text-sm text-gray-600">Pembayaran hanya melalui BSI</p>
                       </div>
-                    </motion.div>
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="teamName" className="block text-gray-700 text-base font-bold mb-2">
-                        Nama Tim
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          id="teamName"
-                          name="teamName"
-                          value={formData.teamName || ''}
-                          onChange={handleChange}
-                          required
-                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                    </div>
+
+                    {selectedCompetition.bankAccount && (
+                      <div className="mt-2 pt-3 border-t border-gray-200">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <p className="text-sm text-gray-500">Nomor Rekening</p>
+                            <p className="text-base font-medium text-gray-900">
+                              {selectedCompetition.bankAccount.number}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Atas Nama</p>
+                            <p className="text-base font-medium text-gray-900">
+                              {selectedCompetition.bankAccount.holder}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </motion.div>
+
+              {selectedCompetition.registrationFee > 0 && (
+                <motion.div 
+                  className="mb-6 p-4 bg-yellow-50 rounded-lg"
+                  variants={itemVariants}
+                >
+                  <h5 className="font-medium text-yellow-800 mb-2">Catatan Pembayaran:</h5>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-yellow-700">
+                    <li>Mohon transfer sesuai nominal yang tertera</li>
+                    <li>Simpan bukti pembayaran</li>
+                    <li>Upload bukti pembayaran pada form di bawah</li>
+                    <li>Pembayaran hanya diterima melalui Bank BSI</li>
+                    <li>Pastikan melakukan pendaftaran dengan nomor WhatsApp dan email yang aktif</li>
+                    <li>Jika ada kendala, silahkan hubungi kami melalui nomor WhatsApp Panitia</li>
+                  </ul>
+                </motion.div>
+              )}
+
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {/* Column 1 */}
+                <div>
+                  {isTeam ? (
+                    <>
+                      <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                        <label htmlFor="registrantName" className="block text-gray-700 text-base font-bold mb-2">
+                          Nama Pendaftar
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="registrantName"
+                            name="registrantName"
+                            value={formData.registrantName || ''}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
+                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
+                      </motion.div>
+                      <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                        <label htmlFor="teamName" className="block text-gray-700 text-base font-bold mb-2">
+                          Nama Tim
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            id="teamName"
+                            name="teamName"
+                            value={formData.teamName || ''}
+                            onChange={handleChange}
+                            required
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
                       </motion.div>
@@ -377,7 +592,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.name || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -393,7 +608,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.gender || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                           >
                             <option value="">Pilih Jenis Kelamin</option>
                             <option value="Laki-laki">Laki-laki</option>
@@ -423,7 +638,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.birthDate || ''}
                             onChange={handleChange}
                             required
-                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                           />
                           <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -431,7 +646,7 @@ const RegistrationForm: React.FC = () => {
                     </>
                   )}
                 </div>
-  
+    
                 {/* Column 2 */}
                 <div>
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -445,13 +660,14 @@ const RegistrationForm: React.FC = () => {
                         name="whatsapp"
                         value={formData.whatsapp || ''}
                         onChange={handleChange}
+                        placeholder="+628xxxxxxxxxx"
                         required
-                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
-  
+    
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="email" className="block text-gray-700 text-base font-bold mb-2">
                       Email
@@ -464,12 +680,12 @@ const RegistrationForm: React.FC = () => {
                         value={formData.email || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
-  
+    
                   {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="school" className="block text-gray-700 text-base font-bold mb-2">
@@ -483,14 +699,14 @@ const RegistrationForm: React.FC = () => {
                           value={formData.school || ''}
                           onChange={handleChange}
                           required
-                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
                   )}
                 </div>
-  
+    
                 {/* Column 3 */}
                 <div>
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -504,9 +720,11 @@ const RegistrationForm: React.FC = () => {
                         value={formData.city || ''}
                         onChange={handleChange}
                         required
-                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
                       >
-                        <option value="">Pilih Kota/Kabupaten</option>
+                        <option value="" disabled>
+                          Pilih Kota/Kabupaten
+                        </option>
                         {acehCities.map((city, index) => (
                           <option key={index} value={city}>
                             {city}
@@ -525,7 +743,7 @@ const RegistrationForm: React.FC = () => {
                       </div>
                     </div>
                   </motion.div>
-  
+    
                   {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-base font-bold mb-2">
@@ -536,16 +754,16 @@ const RegistrationForm: React.FC = () => {
                           type="file"
                           id="ktsSuratAktif"
                           name="ktsSuratAktif"
-                          onChange={handleFileChange}
+                          onChange={(e) => handleFileChange(e)}
                           accept=".pdf"
                           required
-                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                         />
                         <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
                     </motion.div>
                   )}
-  
+    
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="buktiPembayaran" className="block text-gray-700 text-base font-bold mb-2">
                       Bukti Pembayaran (PDF)
@@ -555,36 +773,38 @@ const RegistrationForm: React.FC = () => {
                         type="file"
                         id="buktiPembayaran"
                         name="buktiPembayaran"
-                        onChange={handleFileChange}
+                        onChange={(e) => handleFileChange(e)}
                         accept=".pdf"
                         required
-                        className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
                       />
                       <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
                   </motion.div>
-  
-                  {selectedCompetition?.requirePassportPhoto && (
-                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
-                      <label htmlFor="pasPhoto" className="block text-gray-700 text-base font-bold mb-2">
-                        Pas Foto (JPG/PNG, max 500KB)
-                      </label>
+    
+                  {selectedCompetition?.requirePassportPhoto && !isTeam && (
+                    <motion.div className="col-span-1 md:col-span-3 space-y-4" variants={itemVariants}>
                       <div className="relative">
-                        <input
-                          type="file"
-                          id="pasPhoto"
-                          name="pasPhoto"
-                          onChange={handleFileChange}
-                          accept="image/jpeg,image/png"
-                          required
-                          className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                        />
-                        <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        <label htmlFor="pasPhoto" className="block text-gray-700 text-base font-bold mb-2">
+                          Pas Foto (JPG/PNG, max 500KB)
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            id="pasPhoto"
+                            name="pasPhoto"
+                            onChange={(e) => handleFileChange(e)}
+                            accept="image/jpeg,image/png"
+                            required
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          />
+                          <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        </div>
                       </div>
                     </motion.div>
                   )}
                 </div>
-  
+    
                 {/* Team Members section (if applicable) */}
                 {isTeam && (
                   <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
@@ -592,44 +812,100 @@ const RegistrationForm: React.FC = () => {
                       Anggota Tim (Maksimum {teamSize} anggota)
                     </label>
                     {teamMembers.map((member, index) => (
-                      <div key={index} className="flex mb-2">
-                        <div className="relative flex-grow">
-                          <input
-                            type="text"
-                            value={member}
-                            onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
-                            placeholder={`Nama Anggota ${index + 1}`}
-                          />
-                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-                        </div>
-                        {index > 0 && (
-                          <motion.button
-                            type="button"
-                            onClick={() => removeTeamMember(index)}
-                            className="bg-red-500 text-white px-3 py-1 rounded ml-2 hover:bg-red-600 transition duration-300"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Hapus
-                          </motion.button>
+                      <div key={index} className="mb-4">
+                        {selectedCompetition?.requirePassportPhoto ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <div className="relative flex-grow">
+                                  <input
+                                    type="text"
+                                    value={member}
+                                    onChange={(e) => handleTeamMemberChange(index, e.target.value)}
+                                    className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                    placeholder={`Nama Anggota ${index + 1}`}
+                                  />
+                                  <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                                </div>
+                                {index > 0 && (
+                                  <motion.button
+                                    type="button"
+                                    onClick={() => removeTeamMember(index)}
+                                    className="flex-shrink-0 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                  >
+                                    Hapus
+                                  </motion.button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="relative">
+                                <input
+                                  type="file"
+                                  id={`pasPhoto-${index}`}
+                                  name="pasPhoto"
+                                  onChange={(e) => handleFileChange(e, index)}
+                                  accept="image/jpeg,image/png"
+                                  required
+                                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                  placeholder="Upload Pas Foto"
+                                />
+                                <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                                <span className="text-sm text-gray-500 mt-1 block">
+                                  Pas Foto {member || `Anggota ${index + 1}`} (JPG/PNG, max 500KB)
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex-grow">
+                              <input
+                                type="text"
+                                value={member}
+                                onChange={(e) => handleTeamMemberChange(index, e.target.value)}
+                                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                placeholder={`Nama Anggota ${index + 1}`}
+                              />
+                              <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                            </div>
+                            {index > 0 && (
+                              <motion.button
+                                type="button"
+                                onClick={() => removeTeamMember(index)}
+                                className="flex-shrink-0 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                Hapus
+                              </motion.button>
+                            )}
+                          </div>
                         )}
                       </div>
                     ))}
+
+                    {/* Tombol Tambah Anggota */}
                     {teamMembers.length < teamSize && (
                       <motion.button
                         type="button"
                         onClick={addTeamMember}
-                        className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition duration-300 mt-2"
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 mt-4"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        Tambah Anggota
+                        <div className="flex items-center gap-2">
+                          <Plus size={20} />
+                          <span>Tambah Anggota</span>
+                        </div>
                       </motion.button>
                     )}
                   </motion.div>
                 )}
-  
+    
                 {/* Submit button */}
                 <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
                   <motion.button
@@ -645,11 +921,12 @@ const RegistrationForm: React.FC = () => {
                   </motion.button>
                 </motion.div>
               </motion.div>
-            )}
-          </motion.form>
-        </motion.div>
-      </section>
-    );
-  };
-  
-  export default RegistrationForm;
+            </>
+          )}
+        </div>
+      </motion.form>
+    </section>
+  );
+};
+
+export default RegistrationForm;

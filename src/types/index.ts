@@ -7,6 +7,10 @@ export interface FlashEvent {
   aboutFlash: string;
   aboutImage?: string;
   eventDate: string; // Format: "YYYY-MM-DDTHH:mm"
+  registrationPeriod: {
+    startDate: string; // Format: "YYYY-MM-DD"
+    endDate: string;   // Format: "YYYY-MM-DD"
+  };
   activities: Activity[];
   competitions: Competition[];
   gallery: string[];
@@ -30,6 +34,11 @@ export interface Competition {
   documentUrl?: string;
   isActive: boolean;
   eventDate?: string;
+  registrationFee: number;
+  bankAccount?: {
+    number: string;
+    holder: string;
+  };
 }
 
 export interface Registration {
@@ -85,6 +94,10 @@ export interface City {
 export type SchoolCategory = 'SD/MI' | 'SMP/MTs' | 'SMA/SMK/MA' | 'UMUM';
 
 export type AcehCity = 
-  | 'Banda Aceh' | 'Sabang' | 'Lhokseumawe' | 'Langsa' | 'Meulaboh'
-  | 'Bireuen' | 'Takengon' | 'Blangpidie' | 'Calang' | 'Jantho'
-  | 'Sigli' | 'Singkil' | 'Subulussalam' | 'Suka Makmue' | 'Tapaktuan';
+  | 'KOTA BANDA ACEH' | 'KOTA SABANG' | 'KOTA LHOKSEUMAWE' | 'KOTA LANGSA' | 'KOTA SUBULUSSALAM'
+  | 'KABUPATEN ACEH BESAR' | 'KABUPATEN PIDIE' | 'KABUPATEN PIDIE JAYA' | 'KABUPATEN BIREUEN'
+  | 'KABUPATEN ACEH TENGAH' | 'KABUPATEN BENER MERIAH' | 'KABUPATEN ACEH UTARA'
+  | 'KABUPATEN ACEH TIMUR' | 'KABUPATEN ACEH TAMIANG' | 'KABUPATEN ACEH SINGKIL'
+  | 'KABUPATEN ACEH JAYA' | 'KABUPATEN ACEH BARAT' | 'KABUPATEN NAGAN RAYA'
+  | 'KABUPATEN SIMEULUE' | 'KABUPATEN ACEH BARAT DAYA' | 'KABUPATEN ACEH SELATAN'
+  | 'KABUPATEN ACEH TENGGARA' | 'KABUPATEN GAYO LUES' | 'LUAR DAERAH';

@@ -2,8 +2,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Registration } from '../types';
-import { Download } from 'lucide-react';
+import { Download, MessageCircle, X } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { FlashEvent } from '../types';
+import { useFirebase } from '../hooks/useFirebase';
 
 interface RegistrationAlertProps {
   isOpen: boolean;
@@ -12,33 +14,99 @@ interface RegistrationAlertProps {
 }
 
 const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, registrationData }) => {
+  const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  
   if (!isOpen || !registrationData) return null;
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
     
-    // Header text dengan posisi yang disesuaikan karena tidak ada logo
+    if (flashEvent?.aboutImage) {
+      // Fungsi untuk menambahkan watermark
+      const addWatermark = async () => {
+        try {
+          // Pastikan aboutImage tidak undefined sebelum fetch
+          if (!flashEvent.aboutImage) return;
+
+          // Konversi URL gambar ke base64
+          const response = await fetch(flashEvent.aboutImage);
+          const blob = await response.blob();
+          
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Buat halaman pertama
+              doc.addPage();
+              const pageCount = doc.getNumberOfPages();
+              
+              for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                
+                // Tambahkan watermark dengan opacity rendah menggunakan setGState
+                const opacity = 0.1;
+                doc.saveGraphicsState();
+                // @ts-ignore - Abaikan error TypeScript untuk GState
+                doc.setGState(new doc.GState({ opacity }));
+                
+                // Hitung ukuran gambar agar mencakup seluruh halaman
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                
+                // Tambahkan gambar sebagai watermark
+                if (reader.result) {
+                  doc.addImage(
+                    reader.result as string,
+                    'PNG',
+                    0,
+                    0,
+                    pageWidth,
+                    pageHeight
+                  );
+                }
+                
+                doc.restoreGraphicsState();
+              }
+              resolve(true);
+            };
+            reader.readAsDataURL(blob);
+          });
+        } catch (error) {
+          console.error('Error adding watermark:', error);
+        }
+      };
+
+      // Tunggu watermark selesai ditambahkan
+      await addWatermark();
+    }
+    
+    // Hapus halaman kosong yang mungkin ditambahkan
+    if (doc.getNumberOfPages() > 1) {
+      doc.deletePage(1);
+    }
+
+    // Header - sedikit lebih ke atas
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('FLASH Competition 2024', 105, 20, { align: 'center' });
+    doc.text('FLASH CELESTIANCE 2025', 105, 15, { align: 'center' });
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('Festival of Technology, Art and Science', 105, 27, { align: 'center' });
+    doc.text('Future Language and Art for Smart Student of Highschool - SMAN Modal Bangsa', 105, 22, { align: 'center' });
     
-    // Garis pemisah
+    // Garis pemisah - sesuaikan dengan header
     doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
+    doc.line(20, 30, 190, 30);
     
-    // Judul bukti pendaftaran
+    // Judul bukti pendaftaran - lebih dekat dengan garis
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('BUKTI PENDAFTARAN', 105, 45, { align: 'center' });
+    doc.text('BUKTI PENDAFTARAN', 105, 38, { align: 'center' });
     
-    // Informasi pendaftaran
-    const startY = 60;
+    // Informasi pendaftaran - mulai lebih awal
+    const startY = 50;
     const colWidth = 60;
-    const lineHeight = 8;
+    const lineHeight = 7; // Kurangi line height
     
+    // Section 1: Informasi Pendaftaran
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.text('INFORMASI PENDAFTARAN', 20, startY);
@@ -51,17 +119,17 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
         month: 'long',
         year: 'numeric'
       })],
-      ['Status', ': Menunggu Verifikasi'],
     ];
 
     details.forEach((detail, index) => {
-      doc.text(detail[0], 20, startY + 10 + (index * lineHeight));
-      doc.text(detail[1], 20 + colWidth, startY + 10 + (index * lineHeight));
+      doc.text(detail[0], 20, startY + 8 + (index * lineHeight));
+      doc.text(detail[1], 20 + colWidth, startY + 8 + (index * lineHeight));
     });
     
-    // Informasi lomba
+    // Section 2: Informasi Lomba - jarak antar section 20pt
+    const section2Y = startY + 30;
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMASI LOMBA', 20, startY + 40);
+    doc.text('INFORMASI LOMBA', 20, section2Y);
     
     doc.setFont('helvetica', 'normal');
     const competitionDetails = [
@@ -70,13 +138,14 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     ];
 
     competitionDetails.forEach((detail, index) => {
-      doc.text(detail[0], 20, startY + 50 + (index * lineHeight));
-      doc.text(detail[1], 20 + colWidth, startY + 50 + (index * lineHeight));
+      doc.text(detail[0], 20, section2Y + 8 + (index * lineHeight));
+      doc.text(detail[1], 20 + colWidth, section2Y + 8 + (index * lineHeight));
     });
     
-    // Informasi peserta
+    // Section 3: Informasi Peserta
+    const section3Y = section2Y + 30;
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMASI PESERTA', 20, startY + 80);
+    doc.text('INFORMASI PESERTA', 20, section3Y);
     
     doc.setFont('helvetica', 'normal');
     const participantDetails = [
@@ -90,38 +159,40 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
 
     participantDetails.forEach((detail, index) => {
       if (detail) {
-        doc.text(detail[0], 20, startY + 90 + (index * lineHeight));
-        doc.text(detail[1], 20 + colWidth, startY + 90 + (index * lineHeight));
+        doc.text(detail[0], 20, section3Y + 8 + (index * lineHeight));
+        doc.text(detail[1], 20 + colWidth, section3Y + 8 + (index * lineHeight));
       }
     });
 
-    // Tambahkan anggota tim jika ada
+    // Section 4: Anggota Tim (jika ada)
     if (registrationData.teamMembers && registrationData.teamMembers.length > 0) {
+      const section4Y = section3Y + (participantDetails.length * lineHeight) + 15;
       doc.setFont('helvetica', 'bold');
-      doc.text('ANGGOTA TIM', 20, startY + 140);
+      doc.text('ANGGOTA TIM', 20, section4Y);
       
       doc.setFont('helvetica', 'normal');
       registrationData.teamMembers.forEach((member, index) => {
-        doc.text(`${index + 1}. ${member}`, 20, startY + 150 + (index * lineHeight));
+        doc.text(`${index + 1}. ${member}`, 20, section4Y + 8 + (index * lineHeight));
       });
     }
     
-    // Footer
+    // Footer - posisi tetap dari bawah
     const pageHeight = doc.internal.pageSize.height;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
-    doc.text('Catatan:', 20, pageHeight - 40);
-    doc.text('1. Bukti pendaftaran ini adalah dokumen resmi, harap disimpan dengan baik', 25, pageHeight - 35);
-    doc.text('2. Status pendaftaran akan diverifikasi oleh panitia dalam waktu 1x24 jam', 25, pageHeight - 30);
-    doc.text('3. Informasi lebih lanjut akan dikirimkan melalui email yang telah didaftarkan', 25, pageHeight - 25);
+    doc.text('Catatan:', 20, pageHeight - 45);
+    doc.text('1. Dokumen ini sebagai bukti pendaftaran FLASH Celestiance', 25, pageHeight - 40);
+    doc.text('2. Status pendaftaran akan diverifikasi oleh panitia dalam waktu periode pendaftaran FLASH Celestiance', 25, pageHeight - 35);
+    doc.text('3. Informasi lebih lanjut akan dikirimkan melalui WhatsApp / email yang telah didaftarkan', 25, pageHeight - 30);
     
     // Garis footer
     doc.setLineWidth(0.5);
-    doc.line(20, pageHeight - 15, 190, pageHeight - 15);
+    doc.line(20, pageHeight - 20, 190, pageHeight - 20);
     
+    // Footer text
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
-    doc.text('FLASH Competition 2024 - Festival of Technology, Art and Science', 105, pageHeight - 10, { align: 'center' });
+    doc.text('FLASH Celestiance 2025 - Future Language and Art for Smart Student of Highschool', 105, pageHeight - 15, { align: 'center' });
     
     // Simpan PDF
     doc.save(`Bukti_Pendaftaran_${registrationData.registrationCode}.pdf`);
@@ -134,41 +205,113 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
       exit={{ opacity: 0, y: -50 }}
       className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 p-4"
     >
-      <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-        <h2 className="text-2xl font-bold mb-4 text-blue-600">Pendaftaran Berhasil!</h2>
-        
-        <div className="mb-6 space-y-2 text-gray-700">
-          <p className="font-semibold">Detail Pendaftaran:</p>
-          <p>Kode Pendaftaran: {registrationData.registrationCode}</p>
-          <p>Kategori: {registrationData.schoolCategory}</p>
-          <p>Lomba: {registrationData.competition}</p>
-          {registrationData.teamName ? (
-            <>
-              <p>Nama Tim: {registrationData.teamName}</p>
-              <p>Pendaftar: {registrationData.registrantName}</p>
-            </>
-          ) : (
-            <p>Nama: {registrationData.name}</p>
-          )}
-          <p>Email: {registrationData.email}</p>
-          <p>WhatsApp: {registrationData.whatsapp}</p>
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+        {/* Header Section dengan Background */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+          <div className="flex items-center justify-center">
+            <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </motion.div>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold text-center mt-4">Pendaftaran Berhasil!</h2>
+          <p className="text-center text-white/80 mt-1">Selamat bergabung di FLASH Celestiance 2025</p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <button
-            onClick={generatePDF}
-            className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2"
-          >
-            <Download size={20} />
-            Unduh Bukti Pendaftaran
-          </button>
-          
-          <button
-            onClick={onClose}
-            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
-          >
-            Tutup
-          </button>
+        {/* Content Section */}
+        <div className="p-8">
+          {/* Registration Code Card */}
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <div className="text-center">
+              <p className="text-sm text-blue-600 font-medium">Kode Pendaftaran</p>
+              <p className="text-xl font-bold text-blue-700 mt-1">{registrationData.registrationCode}</p>
+            </div>
+          </div>
+
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Kategori</p>
+              <p className="font-medium text-gray-900">{registrationData.schoolCategory}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Lomba</p>
+              <p className="font-medium text-gray-900">{registrationData.competition}</p>
+            </div>
+            {registrationData.teamName ? (
+              <>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500">Nama Tim</p>
+                  <p className="font-medium text-gray-900">{registrationData.teamName}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500">Pendaftar</p>
+                  <p className="font-medium text-gray-900">{registrationData.registrantName}</p>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-1 col-span-2">
+                <p className="text-sm text-gray-500">Nama</p>
+                <p className="font-medium text-gray-900">{registrationData.name}</p>
+              </div>
+            )}
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">Email</p>
+              <p className="font-medium text-gray-900">{registrationData.email}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm text-gray-500">WhatsApp</p>
+              <p className="font-medium text-gray-900">{registrationData.whatsapp}</p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-4">
+              <button
+                onClick={generatePDF}
+                className="bg-indigo-600 text-white py-3 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
+              >
+                <Download size={20} />
+                <span>Unduh Bukti</span>
+              </button>
+              
+              <a
+                href="https://chat.whatsapp.com/Aw041w6OcwvCL5pbf0YTJa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-emerald-600 text-white py-3 px-6 rounded-xl hover:bg-emerald-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-100"
+              >
+                <MessageCircle size={20} />
+                <span>Group Flash</span>
+              </a>
+
+              <button
+                onClick={onClose}
+                className="bg-rose-600 text-white py-3 px-6 rounded-xl hover:bg-rose-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-rose-100"
+              >
+                <X size={20} />
+                <span>Tutup</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </motion.div>

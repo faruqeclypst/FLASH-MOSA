@@ -566,6 +566,88 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         Wajib Pas Foto
                       </span>
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Biaya Pendaftaran
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          Rp
+                        </span>
+                        <input
+                          type="number"
+                          value={competitions[selectedCompetition].registrationFee || ''}
+                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'registrationFee', parseInt(e.target.value))}
+                          className="w-full pl-12 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="0"
+                          min="0"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bank Account Settings */}
+                    {competitions[selectedCompetition].registrationFee > 0 && (
+                      <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <img 
+                            src="/src/assets/img/BSI.png" 
+                            alt="Bank BSI" 
+                            className="h-8 object-contain"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Bank Syariah Indonesia (BSI)</p>
+                            <p className="text-xs text-gray-600">Pengaturan rekening pembayaran</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Nomor Rekening
+                            </label>
+                            <input
+                              type="text"
+                              value={competitions[selectedCompetition].bankAccount?.number || ''}
+                              onChange={(e) => {
+                                const bankAccount = {
+                                  ...competitions[selectedCompetition].bankAccount,
+                                  number: e.target.value
+                                };
+                                handleCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
+                              }}
+                              className="w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                              placeholder="Masukkan nomor rekening BSI"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Nama Pemilik Rekening
+                            </label>
+                            <input
+                              type="text"
+                              value={competitions[selectedCompetition].bankAccount?.holder || ''}
+                              onChange={(e) => {
+                                const bankAccount = {
+                                  ...competitions[selectedCompetition].bankAccount,
+                                  holder: e.target.value
+                                };
+                                handleCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
+                              }}
+                              className="w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                              placeholder="Nama pemilik rekening"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-3 border-t border-gray-200">
+                          <p className="text-xs text-gray-500">
+                            Catatan: Pastikan nomor rekening dan nama pemilik rekening sudah benar sebelum disimpan
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

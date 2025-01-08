@@ -21,10 +21,15 @@ const ManageContent: React.FC = () => {
     heroImage: '',
     heroVideo: '',
     aboutFlash: '',
+    aboutImage: '',
     activities: [],
     competitions: [],
     gallery: [],
-    eventDate: '' 
+    eventDate: '',
+    registrationPeriod: {
+      startDate: '',
+      endDate: ''
+    }
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState('eventInfo');
@@ -194,14 +199,23 @@ const ManageContent: React.FC = () => {
       ...prev,
       competitions: [
         ...prev.competitions,
-        { 
-          name: '', 
-          description: '', 
-          rules: [], 
-          icon: '', 
-          type: 'single', 
+        {
+          name: '',
+          description: '',
+          rules: [],
+          icon: '',
+          type: 'single',
           categories: [],
-          isActive: true
+          isActive: true,
+          registrationFee: 0,
+          teamSize: 2,
+          requirePassportPhoto: false,
+          documentUrl: '',
+          eventDate: '',
+          bankAccount: {
+            number: '',
+            holder: ''
+          }
         }
       ]
     }));

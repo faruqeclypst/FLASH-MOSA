@@ -167,7 +167,7 @@ const SocialProof: React.FC = () => {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.h3
-            className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 text-center text-gray-800"
+            className="text-2xl font-bold mb-6 text-center text-gray-800"
             variants={itemVariants}
           >
             Our Bazaars

@@ -59,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ isLoading }) => {
           }`}
         >
           <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold text-white">FLASH 2024</Link>
+            <Link to="/" className="text-2xl font-bold text-white">FLASH 2025</Link>
             <div className="hidden md:flex space-x-4">
               <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white hover:text-blue-200">Home</button>
               <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>

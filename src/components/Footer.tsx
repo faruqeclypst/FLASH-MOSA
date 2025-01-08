@@ -70,7 +70,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="text-center text-gray-400 text-sm">
-          <p>&copy; {currentYear} FLASH - SMAN Modal Bangsa. Created with 🚀 Alfaruq Asri, S.Pd . All rights reserved.</p>
+          <p>&copy; {currentYear} FLASH CELESTIANCE. Created with 🚀 Alfaruq Asri, S.Pd . All rights reserved.</p>
           <p className="mt-2">
             <a href="#" className="hover:text-gray-300 transition-colors duration-300 mr-4">Kebijakan Privasi</a>
             <a href="#" className="hover:text-gray-300 transition-colors duration-300">Syarat dan Ketentuan</a>

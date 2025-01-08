@@ -111,10 +111,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
                 />
               )}
             </motion.div>
-            <div className="mt-16 sm:mt-20 md:mt-16 lg:mt-10 xl:mt-12"> {/* Adjusted for mobile and kept PC spacing */}
+            <div className="mt-16 sm:mt-20 md:mt-16 lg:mt-10 xl:mt-12">
               <a 
-                href="#registration" 
+                href="#competitions"
                 className="bg-white text-blue-600 px-6 py-3 rounded-full font-bold text-lg hover:bg-blue-100 transition duration-300"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const competitionsSection = document.getElementById('competitions');
+                  if (competitionsSection) {
+                    competitionsSection.scrollIntoView({ 
+                      behavior: 'smooth',
+                      block: 'start'
+                    });
+                  }
+                }}
               >
                 DAFTAR SEKARANG!
               </a>

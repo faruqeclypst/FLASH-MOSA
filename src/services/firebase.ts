@@ -14,6 +14,22 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+export const uploadFile = async (file: File, path: string) => {
+  const storage = getStorage();
+  const fileRef = storageRef(storage, path);
+  
+  // Tambahkan metadata untuk mempertahankan format PNG
+  const metadata = {
+    contentType: file.type,
+    // Pastikan tidak ada kompresi untuk PNG
+    cacheControl: 'no-transform'
+  };
+
+  await uploadBytes(fileRef, file, metadata);
+  return await getDownloadURL(fileRef);
+};
+
 export const auth = getAuth(app);
 export const db = getDatabase(app);
 export const storage = getStorage(app);

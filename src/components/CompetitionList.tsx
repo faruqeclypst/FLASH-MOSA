@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
-import { FlashEvent, Competition } from '../types';
+import { FlashEvent, Competition, SchoolCategory } from '../types';
 import { useInView } from 'react-intersection-observer';
 import { 
   FaUsers, 
@@ -12,168 +12,323 @@ import {
   FaRegCalendarAlt,
   FaFilePdf,
   FaExternalLinkAlt,
-  FaImage
+  FaImage,
+  FaUserPlus
 } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import CategorySelectionModal from './CategorySelectionModal';
 
 // Komponen untuk tampilan accordion
 const CompetitionAccordion: React.FC<{ 
   competition: Competition, 
   isOpen: boolean, 
   onClick: () => void,
-  registrationDate: string,
+  registrationPeriod: { startDate: string; endDate: string; },
   flashEvent: FlashEvent | null
 }> = ({ 
   competition, 
   isOpen, 
   onClick,
-  registrationDate,
+  registrationPeriod,
   flashEvent
 }) => {
+  const today = new Date();
+  const endDate = new Date(registrationPeriod.endDate);
+  const startDate = new Date(registrationPeriod.startDate);
+  
+  const isRegistrationOpen = today >= startDate && today <= endDate && competition.isActive;
+  const isRegistrationNotStarted = today < startDate;
+  const isRegistrationEnded = today > endDate;
+
+  const getRegistrationStatus = () => {
+    if (!competition.isActive) return { text: 'Pendaftaran Ditutup', color: 'orange' };
+    if (isRegistrationNotStarted) return { text: 'Pendaftaran Belum Dibuka', color: 'yellow' };
+    if (isRegistrationEnded) return { text: 'Periode Pendaftaran Berakhir', color: 'red' };
+    return { text: 'Pendaftaran Dibuka', color: 'green' };
+  };
+
+  const status = getRegistrationStatus();
+
   // Format tanggal
-  const formattedRegistrationDate = registrationDate ? format(new Date(registrationDate), 'd MMMM yyyy', { locale: id }) : '-';
+  const formattedRegistrationDate = registrationPeriod.startDate ? format(new Date(registrationPeriod.startDate), 'd MMMM yyyy', { locale: id }) : '-';
   const formattedEventDate = competition.eventDate ? format(new Date(competition.eventDate), 'd MMMM yyyy', { locale: id }) : '-';
   
+  // Add state for modal
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+
+  // Modify handleRegister
+  const handleRegister = (e: React.MouseEvent) => {
+    // Prevent default behavior and propagation
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Get current scroll position
+    const currentScrollPosition = window.scrollY;
+    
+    // Show category modal
+    setShowCategoryModal(true);
+    
+    // Maintain scroll position
+    setTimeout(() => {
+      window.scrollTo(0, currentScrollPosition);
+    }, 0);
+  };
+
+  // Add handleCategorySelect
+  const handleCategorySelect = (category: SchoolCategory) => {
+    setShowCategoryModal(false);
+    
+    // Dispatch custom event without updating URL
+    const event = new CustomEvent('competitionSelected', {
+      detail: { 
+        competition: competition.name, 
+        category,
+        shouldScroll: true
+      }
+    });
+    window.dispatchEvent(event);
+  };
+
   return (
-    <div className="bg-white rounded-xl overflow-hidden">
-      <div 
-        onClick={onClick}
-        className={`cursor-pointer transition-all duration-300 ${
-          isOpen ? 'bg-blue-50' : 'hover:bg-gray-50'
-        }`}
-      >
-        <div className="flex items-center p-4 sm:p-6">
-          {/* Icon/Image */}
-          <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0">
-            {competition.icon ? (
-              <img 
-                src={competition.icon} 
-                alt={competition.name} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <FaTrophy className="text-white text-2xl opacity-75" />
-              </div>
-            )}
-          </div>
-
-          {/* Title and Basic Info */}
-          <div className="ml-4 flex-grow">
-            <h3 className="text-base sm:text-xl font-bold text-gray-900">
-              {competition.name}
-            </h3>
-            <div className="flex flex-wrap gap-2 mt-1 sm:mt-2">
-              <span className={`inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium
-                ${competition.type === 'team' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                <FaUsers className="mr-1" />
-                {competition.type === 'team' ? `Team (${competition.teamSize})` : 'Individual'}
-              </span>
-              {competition.categories?.map((category, idx) => (
-                <span key={idx} className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  <FaGraduationCap className="mr-1" />
-                  {category}
-                </span>
-              ))}
+    <>
+      <div className="bg-white rounded-xl overflow-hidden">
+        <div 
+          onClick={onClick}
+          className={`cursor-pointer transition-all duration-300 ${
+            isOpen ? 'bg-blue-50' : 'hover:bg-gray-50'
+          }`}
+        >
+          <div className="flex items-center p-4 sm:p-6">
+            {/* Icon/Image */}
+            <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-200 to-purple-50 flex-shrink-0">
+              {competition.icon ? (
+                <img 
+                  src={competition.icon} 
+                  alt={competition.name} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <FaTrophy className="text-white text-2xl opacity-75" />
+                </div>
+              )}
             </div>
-          </div>
 
-          {/* Expand Icon */}
-          <FaChevronRight className={`text-gray-400 transform transition-transform duration-300 ${
-            isOpen ? 'rotate-90' : ''
-          }`} />
+            {/* Title and Basic Info */}
+            <div className="ml-4 flex-grow">
+              <h3 className="text-base sm:text-xl font-bold text-gray-900">
+                {competition.name}
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {/* Status badge */}
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  status.color === 'green' ? 'bg-green-50 text-green-700' :
+                  status.color === 'orange' ? 'bg-orange-50 text-orange-700' :
+                  status.color === 'yellow' ? 'bg-yellow-50 text-yellow-700' :
+                  'bg-red-50 text-red-700'
+                }`}>
+                  {status.text}
+                </span>
+                
+                {/* Existing badges */}
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  competition.type === 'team' 
+                    ? 'bg-purple-50 text-purple-700'
+                    : 'bg-blue-50 text-blue-700'
+                }`}>
+                  {competition.type === 'team' ? 'Tim' : 'Individu'}
+                </span>
+                {competition.categories?.map((category, idx) => (
+                  <span key={idx} className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                    <FaGraduationCap className="mr-1" />
+                    {category}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Expand Icon */}
+            <FaChevronRight className={`text-gray-400 transform transition-transform duration-300 ${
+              isOpen ? 'rotate-90' : ''
+            }`} />
+          </div>
         </div>
+
+        {/* Expanded Content */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="border-t border-gray-100"
+            >
+              <div className="p-4 sm:p-6 space-y-4">
+                {/* Description */}
+                <div>
+                  <p className="text-gray-600">{competition.description}</p>
+                </div>
+
+                {/* Registration Fee */}
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                  {/* Fee Information */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-900">Biaya Pendaftaran</h4>
+                      <p className="text-sm text-gray-600 mt-0.5">
+                        {competition.type === 'team' ? 'Per Tim' : 'Per Orang'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-gray-900">
+                        {competition.registrationFee ? (
+                          `Rp ${competition.registrationFee.toLocaleString('id-ID')}`
+                        ) : (
+                          'Gratis'
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bank Information */}
+                  {competition.registrationFee > 0 && (
+                    <>
+                      <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
+                        <img 
+                          src="/src/assets/img/BSI.png" 
+                          alt="Bank BSI" 
+                          className="h-8 object-contain"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Bank Syariah Indonesia (BSI)</p>
+                          <p className="text-sm text-gray-600">Pembayaran hanya melalui BSI</p>
+                        </div>
+                      </div>
+
+                      {competition.bankAccount && (
+                        <div className="mt-2 pt-3 border-t border-gray-200">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-sm text-gray-500">Nomor Rekening</p>
+                              <p className="text-base font-medium text-gray-900">
+                                {competition.bankAccount.number}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500">Atas Nama</p>
+                              <p className="text-base font-medium text-gray-900">
+                                {competition.bankAccount.holder}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Document and Logo Buttons */}
+                <div className="flex flex-wrap justify-center w-full gap-3">
+                  {competition.documentUrl && (
+                    <a
+                      href={competition.documentUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-300"
+                    >
+                      <FaFilePdf className="mr-2" />
+                      Juknis Lomba
+                    </a>
+                  )}
+                  
+                  {/* Modified Register Button */}
+                  {isRegistrationOpen && (
+                    <motion.button
+                      onClick={handleRegister}
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-300"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <FaUserPlus className="mr-2" />
+                      Daftar Sekarang
+                    </motion.button>
+                  )}
+                  
+                  {flashEvent?.aboutImage && (
+                    <a
+                      href={flashEvent.aboutImage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-300"
+                    >
+                      <FaImage className="mr-2" />
+                      Logo FLASH
+                    </a>
+                  )}
+                </div>
+
+                {/* Rules */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-900">Competition Rules</h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    {competition.rules?.map((rule, idx) => (
+                      <div key={idx} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-blue-600">{idx + 1}</span>
+                        </div>
+                        <p className="text-sm text-gray-600">{rule}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Timeline/Schedule */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <FaRegCalendarAlt className="text-green-700 mt-1 flex-shrink-0" />
+                      <div className="ml-2">
+                        <h4 className="font-medium text-green-700">Periode Pendaftaran</h4>
+                        <div className="mt-1 space-y-1">
+                          <p className="text-sm text-green-600">
+                            Mulai: {format(new Date(registrationPeriod.startDate), 'd MMMM yyyy', { locale: id })}
+                          </p>
+                          <p className="text-sm text-green-600">
+                            Berakhir: {format(new Date(registrationPeriod.endDate), 'd MMMM yyyy', { locale: id })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <FaClock className="text-blue-700 mt-1 flex-shrink-0" />
+                      <div className="ml-2">
+                        <h4 className="font-medium text-blue-700">Tanggal Pelaksanaan</h4>
+                        <p className="mt-1 text-sm text-blue-600">
+                          {formattedEventDate}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Expanded Content */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="border-t border-gray-100"
-          >
-            <div className="p-4 sm:p-6 space-y-4">
-              {/* Description */}
-              <div>
-                <p className="text-gray-600">{competition.description}</p>
-              </div>
-
-              {/* Document and Logo Buttons */}
-              <div className="flex flex-wrap justify-center w-full gap-3">
-                {competition.documentUrl && (
-                  <a
-                    href={competition.documentUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-300"
-                  >
-                    <FaFilePdf className="mr-2" />
-                    Juknis Lomba
-                  </a>
-                )}
-                
-                {flashEvent?.aboutImage && (
-                  <a
-                    href={flashEvent.aboutImage}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-300"
-                  >
-                    <FaImage className="mr-2" />
-                    Logo FLASH
-                  </a>
-                )}
-              </div>
-
-              {/* Rules */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-gray-900">Competition Rules</h4>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                  {competition.rules?.map((rule, idx) => (
-                    <div key={idx} className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-blue-600">{idx + 1}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{rule}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Timeline/Schedule */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <FaRegCalendarAlt className="text-green-700 mt-1 flex-shrink-0" />
-                    <div className="ml-2">
-                      <h4 className="font-medium text-green-700">Periode Pendaftaran</h4>
-                      <p className="mt-1 text-sm text-green-600">
-                        Dibuka hingga {formattedRegistrationDate}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="flex items-start">
-                    <FaClock className="text-blue-700 mt-1 flex-shrink-0" />
-                    <div className="ml-2">
-                      <h4 className="font-medium text-blue-700">Tanggal Pelaksanaan</h4>
-                      <p className="mt-1 text-sm text-blue-600">
-                        {formattedEventDate}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+      {/* Add CategorySelectionModal */}
+      <CategorySelectionModal
+        isOpen={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onSelect={handleCategorySelect}
+        availableCategories={competition.categories || []}
+        competition={competition}
+      />
+    </>
   );
 };
 
@@ -214,20 +369,29 @@ const CompetitionList: React.FC = () => {
     }
   };
 
-  // Get active competitions
-  const activeCompetitions = flashEvent.competitions.filter(comp => comp.isActive);
+  // Get competitions to display
+  const displayedCompetitions = flashEvent.competitions.slice(0, displayCount);
+  const hasMore = flashEvent.competitions.length > displayCount;
 
-  // Handle load more
-  const handleLoadMore = () => {
+  // Modify the handleLoadMore function
+  const handleLoadMore = (e: React.MouseEvent) => {
+    // Prevent default behavior
+    e.preventDefault();
+    
+    // Get current scroll position
+    const currentScrollPosition = window.scrollY;
+    
+    // Update display count
     setDisplayCount(prev => prev + 4);
+    
+    // Maintain scroll position
+    setTimeout(() => {
+      window.scrollTo(0, currentScrollPosition);
+    }, 0);
   };
 
-  // Get competitions to display
-  const displayedCompetitions = activeCompetitions.slice(0, displayCount);
-  const hasMore = activeCompetitions.length > displayCount;
-
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
+    <section id="competitions" className="py-16 md:py-24 bg-gradient-to-b from-gray-100 to-white">
       <motion.div
         ref={ref}
         className="container mx-auto px-4"
@@ -258,7 +422,7 @@ const CompetitionList: React.FC = () => {
                 competition={competition}
                 isOpen={openCompetition === index}
                 onClick={() => setOpenCompetition(openCompetition === index ? null : index)}
-                registrationDate={flashEvent?.eventDate || ''}
+                registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
                 flashEvent={flashEvent}
               />
             </motion.div>
@@ -276,7 +440,7 @@ const CompetitionList: React.FC = () => {
               className="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition-colors duration-300 group"
             >
               <span>
-                Tampilkan Lebih Banyak ({activeCompetitions.length - displayCount} lagi)
+                Tampilkan Lebih Banyak ({flashEvent.competitions.length - displayCount} lagi)
               </span>
               <FaChevronRight className="ml-2 transition-transform group-hover:translate-x-1" />
             </button>
@@ -284,7 +448,7 @@ const CompetitionList: React.FC = () => {
         )}
 
         {/* Completed Message */}
-        {!hasMore && activeCompetitions.length > 4 && (
+        {!hasMore && flashEvent.competitions.length > 4 && (
           <motion.div 
             className="text-center mt-8 text-gray-500"
             variants={itemVariants}
@@ -294,7 +458,7 @@ const CompetitionList: React.FC = () => {
         )}
 
         {/* No Competitions Message */}
-        {activeCompetitions.length === 0 && (
+        {flashEvent.competitions.length === 0 && (
           <motion.div 
             className="text-center mt-8 text-gray-500"
             variants={itemVariants}
