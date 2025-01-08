@@ -7,6 +7,7 @@ import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload, P
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RegistrationAlert from './RegistrationAlert';
+import BSILogo from '../assets/img/BSI.png';
 
 const isValidSchoolCategory = (category: string): category is SchoolCategory => {
   return ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'].includes(category);
@@ -484,7 +485,7 @@ const RegistrationForm: React.FC = () => {
                   <>
                     <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
                       <img 
-                        src="/src/assets/img/BSI.png" 
+                        src={BSILogo}
                         alt="Bank BSI" 
                         className="h-8 object-contain"
                       />

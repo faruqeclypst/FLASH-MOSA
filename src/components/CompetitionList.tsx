@@ -13,11 +13,12 @@ import {
   FaFilePdf,
   FaExternalLinkAlt,
   FaImage,
-  FaUserPlus
+  FaPenAlt
 } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import CategorySelectionModal from './CategorySelectionModal';
+import BSILogo from '../assets/img/BSI.png';
 
 // Komponen untuk tampilan accordion
 const CompetitionAccordion: React.FC<{ 
@@ -197,7 +198,7 @@ const CompetitionAccordion: React.FC<{
                     <>
                       <div className="flex items-center gap-3 pt-3 border-t border-gray-200">
                         <img 
-                          src="/src/assets/img/BSI.png" 
+                          src={BSILogo}
                           alt="Bank BSI" 
                           className="h-8 object-contain"
                         />
@@ -236,24 +237,11 @@ const CompetitionAccordion: React.FC<{
                       href={competition.documentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors duration-300"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 hover:text-red-800 transition-all duration-300"
                     >
                       <FaFilePdf className="mr-2" />
                       Juknis Lomba
                     </a>
-                  )}
-                  
-                  {/* Modified Register Button */}
-                  {isRegistrationOpen && (
-                    <motion.button
-                      onClick={handleRegister}
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-300"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <FaUserPlus className="mr-2" />
-                      Daftar Sekarang
-                    </motion.button>
                   )}
                   
                   {flashEvent?.aboutImage && (
@@ -269,9 +257,30 @@ const CompetitionAccordion: React.FC<{
                   )}
                 </div>
 
+                {/* Register Button */}
+                {isRegistrationOpen && (
+                  <div className="mt-4">
+                    <motion.button
+                      onClick={handleRegister}
+                      className="w-full inline-flex items-center justify-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-300"
+                      animate={{
+                        x: [0, -5, 5, -5, 5, 0],
+                        transition: {
+                          duration: 0.5,
+                          repeat: Infinity,
+                          repeatDelay: 3
+                        }
+                      }}
+                    >
+                      <FaPenAlt className="mr-2" />
+                      <span className="font-normal">Daftar Sekarang!</span>
+                    </motion.button>
+                  </div>
+                )}
+
                 {/* Rules */}
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900">Competition Rules</h4>
+                  <h4 className="font-semibold text-gray-900">Info & Persyaratan</h4>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     {competition.rules?.map((rule, idx) => (
                       <div key={idx} className="flex items-start space-x-3">
