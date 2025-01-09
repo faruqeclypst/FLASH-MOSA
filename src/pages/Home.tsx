@@ -48,24 +48,17 @@ const Home: React.FC = () => {
             <CompetitionList />
             <Gallery />
             <Reviews /> 
-            {/* <SocialProof />  */}
             <Registration />
             <MapLocation />
             <CTASection />
-        {/* <FlashActivities /> */}
-        {/* <ContactForm /> */}
-        </>
+          </>
         )}
       </main>
       {!isLoading && (
-      <>
-      {/* <MascotButton /> */}
-      <WhatsAppButton 
-      phoneNumber="+6285359907696" 
-      message="Assalamualaikum.. Flash Celestiance! kami tertarik untuk sponsor FLASH"
-      />
-      <Footer />
-     </>
+        <>
+          <WhatsAppButton />
+          <Footer />
+        </>
       )}
     </div>
   );
