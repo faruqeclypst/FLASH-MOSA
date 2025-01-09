@@ -54,7 +54,7 @@ const MapLocation: React.FC = () => {
           >
             Event <span className="text-green-800">Location</span>
           </motion.h2>
-          <motion.div className="bg-green-800 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
+          
           <motion.p 
             className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}

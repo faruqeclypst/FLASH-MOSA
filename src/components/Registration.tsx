@@ -330,7 +330,6 @@ const RegistrationForm: React.FC = () => {
           <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
             Pendaftaran <span className="text-emerald-800">Lomba</span>
           </h2>
-          <div className="bg-emerald-800 w-24 h-2 mb-8 mx-auto rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             FLASH CELESTIANCE {new Date().getFullYear()}
           </p>

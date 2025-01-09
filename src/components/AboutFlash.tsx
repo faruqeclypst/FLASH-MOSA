@@ -69,7 +69,6 @@ const AboutFlash: React.FC = () => {
           <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
             Discover The Power Of <span className="text-green-800">Flash</span>
           </h2>
-          <div className="bg-green-800 w-24 h-2 mb-8 rounded-full"></div>
         </motion.div>
               <p className="text-lg leading-relaxed text-gray-700 mb-8 font-inter">{flashEvent.aboutFlash}</p>
             </div>

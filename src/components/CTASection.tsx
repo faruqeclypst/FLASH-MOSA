@@ -51,7 +51,7 @@ const CTASection: React.FC = () => {
           <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
             Bergabung dengan <span className="text-emerald-800">Flash Celestiance</span>
           </h2>
-          <div className="bg-emerald-800 w-24 h-2 mb-8 mx-auto rounded-full"></div>
+          
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-inter">
             Jangan lewatkan kesempatan untuk menunjukkan bakat, mengembangkan kreativitas, dan berkolaborasi dengan siswa-siswi berbakat lainnya!
           </p>

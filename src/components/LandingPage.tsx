@@ -121,8 +121,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/30 to-purple-900/30 pointer-events-none"></div>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="z-10 text-center text-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-48 sm:pt-20">
-            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-bold mb-8 font-antistar relative inline-block overflow-visible mt-8 pt-4">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
+            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-bold mb-8 font-antistar relative inline-block overflow-visible">
               <span className="absolute -inset-4 overflow-hidden">
                 {[...Array(8)].map((_, i) => (
                   <div
@@ -140,8 +140,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
 
               <span className="absolute inset-0 blur-md bg-gradient-to-r from-emerald-500 via-purple-500 to-emerald-500 opacity-40 animate-pulse"></span>
 
-              <span className="relative bg-gradient-to-r from-emerald-200 via-purple-100 to-emerald-200 text-transparent bg-clip-text animate-glitch leading-relaxed">
-                {flashEvent?.title || 'FLASH CELESTIANCE'}
+              <span className="relative bg-gradient-to-r from-emerald-200 via-purple-100 to-emerald-200 text-transparent bg-clip-text block">
+                <span className="block leading-[1.4] tracking-wide">
+                  {flashEvent?.title || 'FLASH CELESTIANCE'}
+                </span>
               </span>
             </h1>
             {flashEvent?.eventDate && <Countdown eventDate={flashEvent.eventDate} />}
@@ -169,7 +171,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
                 />
               )}
             </motion.div>
-            <div className="mt-12">
+            <div className="mt-8">
               <a 
                 href="#competitions"
                 className="relative inline-flex items-center justify-center px-8 py-4 font-bold text-lg
