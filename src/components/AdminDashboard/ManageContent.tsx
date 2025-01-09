@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { FlashEvent, Activity, Competition } from '../../types';
 import EventInfoManager from './EventInfoManager';
-import ActivitiesManager from './ActivitiesManager';
 import CompetitionsManager from './CompetitionsManager';
 import GalleryManager from './GalleryManager';
 import ConfirmUpdateModal from './ConfirmUpdateModal';
@@ -97,70 +96,27 @@ const ManageContent: React.FC = () => {
         await uploadBytes(storageRef, fileToUpload);
         const downloadURL = await getDownloadURL(storageRef);
         
+        let updatedData = { ...formData };
+
         if (field === 'activities' && index !== undefined) {
           const updatedActivities = [...formData.activities];
           updatedActivities[index] = { ...updatedActivities[index], image: downloadURL };
-          setFormData(prev => ({ ...prev, activities: updatedActivities }));
+          updatedData = { ...updatedData, activities: updatedActivities };
         } else if (field === 'gallery') {
-          setFormData(prev => ({ ...prev, gallery: [...prev.gallery, downloadURL] }));
+          updatedData = { ...updatedData, gallery: [...updatedData.gallery, downloadURL] };
         } else {
-          setFormData(prev => ({ ...prev, [field]: downloadURL }));
+          updatedData = { ...updatedData, [field]: downloadURL };
         }
 
+        // Update local state
+        setFormData(updatedData);
+        // Save to Firebase
+        await updateData(updatedData);
         showAlert('success', 'File berhasil diunggah');
       } catch (error) {
         console.error("Error uploading file: ", error);
         showAlert('error', 'Gagal mengunggah file');
       }
-    }
-  };
-
-  const handleActivityChange = async (index: number, field: keyof Activity, value: string) => {
-    const updatedActivities = [...formData.activities];
-    updatedActivities[index] = { ...updatedActivities[index], [field]: value };
-    
-    try {
-      // Update state lokal
-      setFormData(prev => ({ ...prev, activities: updatedActivities }));
-      // Update ke Firebase
-      await updateData({ activities: updatedActivities });
-    } catch (error) {
-      console.error('Error updating activity:', error);
-      throw error; // Throw error untuk ditangani di komponen
-    }
-  };
-
-  const handleAddActivity = async () => {
-    const newActivity: Activity = {
-      name: '',
-      description: '',
-      image: ''
-    };
-    
-    try {
-      const updatedActivities = [...formData.activities, newActivity];
-      // Update state lokal
-      setFormData(prev => ({ ...prev, activities: updatedActivities }));
-      // Langsung update ke Firebase
-      await updateData({ activities: updatedActivities });
-      showAlert('success', 'Aktivitas baru berhasil ditambahkan');
-    } catch (error) {
-      console.error('Error adding activity:', error);
-      showAlert('error', 'Gagal menambahkan aktivitas');
-    }
-  };
-
-  const handleRemoveActivity = async (index: number) => {
-    try {
-      const updatedActivities = formData.activities.filter((_, i) => i !== index);
-      // Update state lokal
-      setFormData(prev => ({ ...prev, activities: updatedActivities }));
-      // Langsung update ke Firebase
-      await updateData({ activities: updatedActivities });
-      showAlert('success', 'Aktivitas berhasil dihapus');
-    } catch (error) {
-      console.error('Error removing activity:', error);
-      showAlert('error', 'Gagal menghapus aktivitas');
     }
   };
 
@@ -194,36 +150,51 @@ const ManageContent: React.FC = () => {
     }
   };
 
-  const handleAddCompetition = () => {
-    setFormData(prev => ({
-      ...prev,
-      competitions: [
-        ...prev.competitions,
-        {
-          name: '',
-          description: '',
-          rules: [],
-          icon: '',
-          type: 'single',
-          categories: [],
-          isActive: true,
-          registrationFee: 0,
-          teamSize: 2,
-          requirePassportPhoto: false,
-          documentUrl: '',
-          eventDate: '',
-          bankAccount: {
-            number: '',
-            holder: ''
-          }
-        }
-      ]
-    }));
+  const handleAddCompetition = async () => {
+    const newCompetition: Competition = {
+      name: '',
+      description: '',
+      rules: [],
+      icon: '',
+      type: 'single' as const,
+      categories: [],
+      isActive: true,
+      registrationFee: 0,
+      teamSize: 2,
+      requirePassportPhoto: false,
+      documentUrl: '',
+      eventDate: '',
+      bankAccount: {
+        number: '',
+        holder: ''
+      }
+    };
+
+    const newCompetitions = [...formData.competitions, newCompetition];
+    
+    try {
+      // Update local state
+      setFormData(prev => ({ ...prev, competitions: newCompetitions }));
+      // Save to Firebase
+      await updateData({ ...formData, competitions: newCompetitions });
+    } catch (error) {
+      console.error('Error adding competition:', error);
+      showAlert('error', 'Gagal menambahkan kompetisi');
+    }
   };
 
-  const handleRemoveCompetition = (index: number) => {
+  const handleRemoveCompetition = async (index: number) => {
     const updatedCompetitions = formData.competitions.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
+    try {
+      // Update local state
+      setFormData(prev => ({ ...prev, competitions: updatedCompetitions }));
+      // Save to Firebase
+      await updateData({ ...formData, competitions: updatedCompetitions });
+      showAlert('success', 'Kompetisi berhasil dihapus');
+    } catch (error) {
+      console.error('Error removing competition:', error);
+      showAlert('error', 'Gagal menghapus kompetisi');
+    }
   };
 
   const handleAddRule = (competitionIndex: number) => {
@@ -246,8 +217,16 @@ const ManageContent: React.FC = () => {
 
   const handleRemoveGalleryImage = async (index: number): Promise<void> => {
     const updatedGallery = formData.gallery.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, gallery: updatedGallery }));
-    return Promise.resolve(); // Mengembalikan Promise
+    try {
+      // Update local state
+      setFormData(prev => ({ ...prev, gallery: updatedGallery }));
+      // Save to Firebase
+      await updateData({ ...formData, gallery: updatedGallery });
+      showAlert('success', 'Foto berhasil dihapus');
+    } catch (error) {
+      console.error('Error removing gallery image:', error);
+      showAlert('error', 'Gagal menghapus foto');
+    }
   };
 
   const handleOpenModal = (e: React.FormEvent) => {
@@ -271,7 +250,6 @@ const ManageContent: React.FC = () => {
 
   const sections = [
     { id: 'eventInfo', label: 'Info Event' },
-    { id: 'activities', label: 'Aktivitas' },
     { id: 'competitions', label: 'Kompetisi' },
     { id: 'gallery', label: 'Galeri' }
   ];
@@ -285,18 +263,6 @@ const ManageContent: React.FC = () => {
             handleChange={handleChange} 
             handleFileUpload={handleFileUpload}
           />
-        );
-      case 'activities':
-        return (
-          <div>
-            <ActivitiesManager
-              activities={formData.activities}
-              handleActivityChange={handleActivityChange}
-              handleAddActivity={handleAddActivity}
-              handleRemoveActivity={handleRemoveActivity}
-              handleImageUpload={(e, index) => handleFileUpload(e, 'activities', index)}
-            />
-          </div>
         );
       case 'competitions':
         return (

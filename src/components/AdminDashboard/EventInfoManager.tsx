@@ -237,7 +237,8 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 { id: 'heroImage', label: 'Gambar Utama', accept: 'image/*' },
-                { id: 'heroVideo', label: 'Video Utama', accept: 'video/*' },
+                { id: 'heroVideo', label: 'Video Utama (Desktop)', accept: 'video/*' },
+                { id: 'heroVideoMobile', label: 'Video Utama (Mobile)', accept: 'video/*' },
                 { 
                   id: 'aboutImage', 
                   label: 'Logo FLASH (PNG)', 

@@ -14,6 +14,7 @@ import DeleteModal from './DeleteModal';
 import Modal from '../ui/Modal';
 import classNames from 'classnames';
 import { showAlert } from '../ui/Alert';
+import BSILogo from '../../assets/img/BSI.png';
 
 interface CompetitionsManagerProps {
   competitions: Competition[];
@@ -141,58 +142,80 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
       </div>
 
       {/* Competitions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Competition Cards */}
         {competitions.map((competition, index) => (
           <div 
             key={index}
-            className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+            className="group bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
           >
-            {/* Competition Image/Preview */}
-            <div className="relative h-48">
-              {competition.icon ? (
-                <img 
-                  src={competition.icon} 
-                  alt={competition.name} 
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-50 flex items-center justify-center">
-                  <Users className="w-12 h-12 text-gray-300" />
-                </div>
-              )}
-              {/* Quick Actions Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between p-4">
-                {/* Status Toggle */}
-                <div className="flex items-center gap-2">
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={competition.isActive}
-                      onChange={(e) => {
-                        e.stopPropagation(); // Prevent card click
-                        handleCompetitionChange(index, 'isActive', e.target.checked);
-                      }}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200/90 backdrop-blur-sm peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500/90"></div>
-                  </label>
-                  <span className="text-sm font-medium text-white drop-shadow">
-                    {competition.isActive ? 'Aktif' : 'Nonaktif'}
-                  </span>
-                </div>
+            <div className="flex items-center p-2">
+              {/* Competition Icon - kiri */}
+              <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-blue-200 to-purple-50 flex-shrink-0">
+                {competition.icon ? (
+                  <img 
+                    src={competition.icon} 
+                    alt={competition.name} 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-gray-400" />
+                  </div>
+                )}
+              </div>
 
-                {/* Quick Actions */}
-                <div className="flex gap-2">
+              {/* Competition Info - tengah */}
+              <div className="flex-1 px-2">
+                <h3 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600 transition-colors whitespace-normal mb-0.5">
+                  {competition.name || `Kompetisi ${index + 1}`}
+                </h3>
+                
+                <div className="flex flex-wrap gap-1">
+                  <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-medium ${
+                    competition.type === 'team' 
+                      ? 'bg-purple-50 text-purple-700'
+                      : 'bg-blue-50 text-blue-700'
+                  }`}>
+                    {competition.type === 'team' ? 'Tim' : 'Individu'}
+                  </span>
+                  {competition.categories?.slice(0, 2).map((category) => (
+                    <span key={category} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[11px]">
+                      {category}
+                    </span>
+                  ))}
+                  {(competition.categories?.length || 0) > 2 && (
+                    <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-[11px]">
+                      +{(competition.categories?.length || 0) - 2}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Actions - kanan */}
+              <div className="flex flex-col gap-1.5">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={competition.isActive}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleCompetitionChange(index, 'isActive', e.target.checked);
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-green-500"></div>
+                </label>
+                <div className="flex gap-1">
                   <button
                     onClick={() => {
                       setSelectedCompetition(index);
                       setShowDetailModal(true);
                     }}
-                    className="p-2 bg-white/90 hover:bg-white text-gray-700 rounded-lg backdrop-blur-sm transition-colors"
+                    className="p-1 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded transition-colors"
                     title="Edit"
                   >
-                    <FileText className="w-5 h-5" />
+                    <FileText className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => {
@@ -200,53 +223,28 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       setCompetitionToDelete(index);
                       setIsDeleteModalOpen(true);
                     }}
-                    className="p-2 bg-white/90 hover:bg-white text-red-500 rounded-lg backdrop-blur-sm transition-colors"
+                    className="p-1 bg-red-50 hover:bg-red-100 text-red-500 rounded transition-colors"
                     title="Hapus"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* Competition Info */}
-            <div className="p-4">
-              <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                {competition.name || `Kompetisi ${index + 1}`}
-              </h3>
-              
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                  competition.type === 'team' 
-                    ? 'bg-purple-50 text-purple-700'
-                    : 'bg-blue-50 text-blue-700'
-                }`}>
-                  {competition.type === 'team' ? 'Tim' : 'Individu'}
-                </span>
-                {competition.categories?.map((category) => (
-                  <span key={category} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs">
-                    {category}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2 text-sm text-gray-600 line-clamp-2">
-                {competition.description || 'Belum ada deskripsi'}
-              </p>
-            </div>
           </div>
         ))}
 
-        {/* Add Button Card */}
+        {/* Add Button Card - sesuaikan ukurannya */}
         <button
           onClick={handleAddClick}
-          className="group bg-white rounded-xl border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[280px] flex flex-col items-center justify-center gap-4 hover:bg-indigo-50/50"
+          className="group bg-white rounded-lg border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[84px] flex items-center justify-center gap-4 hover:bg-indigo-50/50"
         >
-          <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-            <PlusCircle className="w-8 h-8 text-indigo-600" />
+          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+            <PlusCircle className="w-5 h-5 text-indigo-600" />
           </div>
-          <div className="text-center">
+          <div className="text-left">
             <p className="text-gray-900 font-medium">Tambah Kompetisi</p>
-            <p className="text-sm text-gray-500 mt-1">Klik untuk menambah kompetisi baru</p>
+            <p className="text-sm text-gray-500">Klik untuk menambah baru</p>
           </div>
         </button>
 
@@ -357,6 +355,18 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         placeholder="Masukkan nama kompetisi"
                       />
                     </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Deskripsi
+                      </label>
+                      <textarea
+                        value={competitions[selectedCompetition].description}
+                        onChange={(e) => handleCompetitionChange(selectedCompetition, 'description', e.target.value)}
+                        className="w-full p-2.5 border rounded-lg h-32 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Deskripsikan kompetisi ini..."
+                      />
+                    </div>
                   </div>
 
                   {/* Competition Type and Team Size */}
@@ -442,18 +452,6 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
 
                 {/* Right Column */}
                 <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Deskripsi
-                    </label>
-                    <textarea
-                      value={competitions[selectedCompetition].description}
-                      onChange={(e) => handleCompetitionChange(selectedCompetition, 'description', e.target.value)}
-                      className="w-full p-2.5 border rounded-lg h-32 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="Deskripsikan kompetisi ini..."
-                    />
-                  </div>
-
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <label className="block text-sm font-medium text-gray-700">
@@ -591,7 +589,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       <div className="p-4 bg-gray-50 rounded-lg space-y-4">
                         <div className="flex items-center gap-3 mb-3">
                           <img 
-                            src="/src/assets/img/BSI.png" 
+                            src={BSILogo}
                             alt="Bank BSI" 
                             className="h-8 object-contain"
                           />

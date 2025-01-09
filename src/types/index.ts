@@ -4,12 +4,13 @@ export interface FlashEvent {
   title: string;
   heroImage: string;
   heroVideo?: string;
+  heroVideoMobile?: string;
   aboutFlash: string;
   aboutImage?: string;
-  eventDate: string; // Format: "YYYY-MM-DDTHH:mm"
+  eventDate: string;
   registrationPeriod: {
-    startDate: string; // Format: "YYYY-MM-DD"
-    endDate: string;   // Format: "YYYY-MM-DD"
+    startDate: string;
+    endDate: string;
   };
   activities: Activity[];
   competitions: Competition[];

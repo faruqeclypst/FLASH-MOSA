@@ -117,8 +117,8 @@ const CompetitionAccordion: React.FC<{
             </div>
 
             {/* Title and Basic Info */}
-            <div className="ml-4 flex-grow">
-              <h3 className="text-base sm:text-xl font-bold text-gray-900">
+            <div className="ml-4 flex-grow min-h-[80px]">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900">
                 {competition.name}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -132,7 +132,7 @@ const CompetitionAccordion: React.FC<{
                   {status.text}
                 </span>
                 
-                {/* Existing badges */}
+                {/* Other badges */}
                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                   competition.type === 'team' 
                     ? 'bg-purple-50 text-purple-700'
@@ -141,7 +141,7 @@ const CompetitionAccordion: React.FC<{
                   {competition.type === 'team' ? 'Tim' : 'Individu'}
                 </span>
                 {competition.categories?.map((category, idx) => (
-                  <span key={idx} className="inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                     <FaGraduationCap className="mr-1" />
                     {category}
                   </span>
@@ -350,6 +350,7 @@ const CompetitionList: React.FC = () => {
   const controls = useAnimation();
   const [openCompetition, setOpenCompetition] = useState<number | null>(null);
   const [displayCount, setDisplayCount] = useState(4);
+  const isMobile = window.innerWidth < 768; // Check if mobile
 
   useEffect(() => {
     if (inView) {
@@ -357,10 +358,8 @@ const CompetitionList: React.FC = () => {
     }
   }, [controls, inView]);
 
-  // Return early if no data
   if (!flashEvent?.competitions) return null;
 
-  // Add variants back
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -378,22 +377,26 @@ const CompetitionList: React.FC = () => {
     }
   };
 
-  // Get competitions to display
-  const displayedCompetitions = flashEvent.competitions.slice(0, displayCount);
-  const hasMore = flashEvent.competitions.length > displayCount;
+  // Get competitions to display for mobile
+  const displayedCompetitions = isMobile ? 
+    flashEvent.competitions.slice(0, displayCount) :
+    flashEvent.competitions;
 
-  // Modify the handleLoadMore function
+  const hasMore = isMobile && flashEvent.competitions.length > displayCount;
+
+  // Split competitions into columns
+  const leftCompetitions = isMobile ?
+    displayedCompetitions.filter((_, i) => i % 2 === 0) :
+    flashEvent.competitions.filter((_, i) => i % 2 === 0);
+
+  const rightCompetitions = isMobile ? 
+    displayedCompetitions.filter((_, i) => i % 2 === 1) :
+    flashEvent.competitions.filter((_, i) => i % 2 === 1);
+
   const handleLoadMore = (e: React.MouseEvent) => {
-    // Prevent default behavior
     e.preventDefault();
-    
-    // Get current scroll position
     const currentScrollPosition = window.scrollY;
-    
-    // Update display count
     setDisplayCount(prev => prev + 4);
-    
-    // Maintain scroll position
     setTimeout(() => {
       window.scrollTo(0, currentScrollPosition);
     }, 0);
@@ -410,56 +413,79 @@ const CompetitionList: React.FC = () => {
       >
         {/* Header */}
         <motion.div className="max-w-3xl mx-auto text-center mb-16" variants={itemVariants}>
-          <h2 className="text-4xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6">
             Choose Your <span className="text-blue-600">Challenge</span>
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-base text-gray-600">
             Explore our diverse range of competitions and find the perfect challenge to showcase your talents
           </p>
         </motion.div>
 
-        {/* Competition List */}
-        <motion.div className="max-w-4xl mx-auto space-y-4" variants={containerVariants}>
-          {displayedCompetitions.map((competition, index) => (
-            <motion.div 
-              key={`${competition.name}-${index}`} 
-              variants={itemVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <CompetitionAccordion
-                competition={competition}
-                isOpen={openCompetition === index}
-                onClick={() => setOpenCompetition(openCompetition === index ? null : index)}
-                registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
-                flashEvent={flashEvent}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        {/* Two Column Layout */}
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left Column */}
+          <div className="space-y-4">
+            {leftCompetitions.map((competition, index) => (
+              <motion.div 
+                key={`left-${competition.name}-${index}`} 
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <CompetitionAccordion
+                  competition={competition}
+                  isOpen={openCompetition === index * 2}
+                  onClick={() => setOpenCompetition(openCompetition === index * 2 ? null : index * 2)}
+                  registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
+                  flashEvent={flashEvent}
+                />
+              </motion.div>
+            ))}
+          </div>
 
-        {/* Load More Button */}
+          {/* Right Column */}
+          <div className="space-y-4">
+            {rightCompetitions.map((competition, index) => (
+              <motion.div 
+                key={`right-${competition.name}-${index}`} 
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                <CompetitionAccordion
+                  competition={competition}
+                  isOpen={openCompetition === index * 2 + 1}
+                  onClick={() => setOpenCompetition(openCompetition === index * 2 + 1 ? null : index * 2 + 1)}
+                  registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
+                  flashEvent={flashEvent}
+                />
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Load More Button - Mobile Only */}
         {hasMore && (
           <motion.div 
-            className="text-center mt-8"
+            className="text-center mt-8 md:hidden px-4"
             variants={itemVariants}
           >
             <button
               onClick={handleLoadMore}
-              className="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 rounded-full hover:bg-blue-50 transition-colors duration-300 group"
+              className="w-full max-w-sm mx-auto flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300 shadow-sm"
             >
-              <span>
-                Tampilkan Lebih Banyak ({flashEvent.competitions.length - displayCount} lagi)
+              <span className="text-sm font-medium">
+                Lihat {flashEvent.competitions.length - displayCount} Kompetisi Lainnya
               </span>
-              <FaChevronRight className="ml-2 transition-transform group-hover:translate-x-1" />
+              <FaChevronRight className="text-gray-400 text-xs" />
             </button>
           </motion.div>
         )}
 
-        {/* Completed Message */}
-        {!hasMore && flashEvent.competitions.length > 4 && (
+        {/* Completed Message - Mobile Only */}
+        {isMobile && !hasMore && flashEvent.competitions.length > 4 && (
           <motion.div 
-            className="text-center mt-8 text-gray-500"
+            className="text-center mt-6 text-sm text-gray-500 md:hidden"
             variants={itemVariants}
           >
             Semua kompetisi telah ditampilkan
