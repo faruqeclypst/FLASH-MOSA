@@ -6,11 +6,18 @@ import { Download, MessageCircle, X } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { FlashEvent } from '../types';
 import { useFirebase } from '../hooks/useFirebase';
+import LogoImage from '../assets/img/logo.png';
+import MosaLogo from '../assets/img/mosa.png';
 
 interface RegistrationAlertProps {
   isOpen: boolean;
   onClose: () => void;
   registrationData?: Registration;
+}
+
+// Add type definition for GState
+interface GState {
+  opacity: number;
 }
 
 const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, registrationData }) => {
@@ -22,54 +29,46 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     const doc = new jsPDF();
     
     if (flashEvent?.aboutImage) {
-      // Fungsi untuk menambahkan watermark
+      // Update the addWatermark function
       const addWatermark = async () => {
         try {
-          // Pastikan aboutImage tidak undefined sebelum fetch
-          if (!flashEvent.aboutImage) return;
-
-          // Konversi URL gambar ke base64
-          const response = await fetch(flashEvent.aboutImage);
-          const blob = await response.blob();
+          doc.addPage();
+          const pageCount = doc.getNumberOfPages();
           
-          return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              // Buat halaman pertama
-              doc.addPage();
-              const pageCount = doc.getNumberOfPages();
-              
-              for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                
-                // Tambahkan watermark dengan opacity rendah menggunakan setGState
-                const opacity = 0.1;
-                doc.saveGraphicsState();
-                // @ts-ignore - Abaikan error TypeScript untuk GState
-                doc.setGState(new doc.GState({ opacity }));
-                
-                // Hitung ukuran gambar agar mencakup seluruh halaman
-                const pageWidth = doc.internal.pageSize.getWidth();
-                const pageHeight = doc.internal.pageSize.getHeight();
-                
-                // Tambahkan gambar sebagai watermark
-                if (reader.result) {
-                  doc.addImage(
-                    reader.result as string,
-                    'PNG',
-                    0,
-                    0,
-                    pageWidth,
-                    pageHeight
-                  );
-                }
-                
-                doc.restoreGraphicsState();
-              }
-              resolve(true);
-            };
-            reader.readAsDataURL(blob);
-          });
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            
+            const opacity = 0.1;
+            doc.saveGraphicsState();
+            // Use type assertion to handle jsPDF's GState
+            const gState = new (doc as any).GState({ opacity }) as GState;
+            doc.setGState(gState);
+            
+            // Calculate dimensions while maintaining aspect ratio
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const aspectRatio = 1; // Assuming logo is square, adjust if needed
+            
+            // Calculate size to fit width while maintaining aspect ratio
+            const logoWidth = pageWidth * 0.8; // 80% of page width
+            const logoHeight = logoWidth * aspectRatio;
+            
+            // Center the logo
+            const x = (pageWidth - logoWidth) / 2;
+            const y = (pageHeight - logoHeight) / 2;
+            
+            doc.addImage(
+              LogoImage,
+              'PNG',
+              x,
+              y,
+              logoWidth,
+              logoHeight
+            );
+            
+            doc.restoreGraphicsState();
+          }
+          return true;
         } catch (error) {
           console.error('Error adding watermark:', error);
         }
@@ -84,22 +83,51 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
       doc.deletePage(1);
     }
 
-    // Header - sedikit lebih ke atas
+    // Add logos to header with different sizes and positions
+    const flashLogoSize = 25; // Bigger size for Flash logo
+    const mosaLogoSize = 20; // Keep original size for MOSA logo
+    const flashLogoY = 10;   // Y position for Flash logo
+    const mosaLogoY = 12;    // Lower Y position for MOSA logo
+
+    // Add Flash logo on the left (bigger)
+    doc.addImage(
+      LogoImage,
+      'PNG',
+      20,
+      flashLogoY,
+      flashLogoSize,
+      flashLogoSize
+    );
+
+    // Add MOSA logo on the right (original size)
+    doc.addImage(
+      MosaLogo,
+      'PNG',
+      170,
+      mosaLogoY,  // Using lower Y position for MOSA logo
+      mosaLogoSize,
+      mosaLogoSize
+    );
+
+    // Center title text
     doc.setFontSize(20);
     doc.setFont('helvetica', 'bold');
-    doc.text('FLASH CELESTIANCE 2025', 105, 15, { align: 'center' });
+    doc.text('FLASH CELESTIANCE 2025', 105, 20, { align: 'center' });
+
+    // Subtitle text in two lines
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text('Future Language and Art for Smart Student of Highschool - SMAN Modal Bangsa', 105, 22, { align: 'center' });
-    
-    // Garis pemisah - sesuaikan dengan header
+    doc.text('Future Language and Art for Smart Student of Highschool', 105, 27, { align: 'center' });
+    doc.text('SMAN Modal Bangsa', 105, 32, { align: 'center' });
+
+    // Adjust separator line position
     doc.setLineWidth(0.5);
-    doc.line(20, 30, 190, 30);
-    
-    // Judul bukti pendaftaran - lebih dekat dengan garis
+    doc.line(20, 40, 190, 40);
+
+    // Adjust registration proof title position
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('BUKTI PENDAFTARAN', 105, 38, { align: 'center' });
+    doc.text('BUKTI PENDAFTARAN', 105, 48, { align: 'center' });
     
     // Informasi pendaftaran - mulai lebih awal
     const startY = 50;
@@ -207,7 +235,7 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     >
       <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
         {/* Header Section dengan Background */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 p-6 text-white">
+        <div className="bg-gradient-to-r from-emerald-900 to-purple-900 p-6 text-white">
           <div className="flex items-center justify-center">
             <div className="bg-white/20 rounded-full p-3 backdrop-blur-sm">
               <motion.div
@@ -231,8 +259,8 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
               </motion.div>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-center mt-4">Pendaftaran Berhasil!</h2>
-          <p className="text-center text-white/80 mt-1">Selamat bergabung di FLASH Celestiance 2025</p>
+          <h2 className="text-2xl font-bold text-center text-white font-antistar">Pendaftaran Berhasil!</h2>
+          <p className="text-center text-white/80 mt-1 font-inter">Selamat bergabung di FLASH Celestiance 2025</p>
         </div>
 
         {/* Content Section */}
@@ -240,8 +268,8 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
           {/* Registration Code Card */}
           <div className="bg-blue-50 rounded-lg p-4 mb-6">
             <div className="text-center">
-              <p className="text-sm text-blue-600 font-medium">Kode Pendaftaran</p>
-              <p className="text-xl font-bold text-blue-700 mt-1">{registrationData.registrationCode}</p>
+              <p className="text-sm text-green-800 font-medium font-inter">Kode Pendaftaran</p>
+              <p className="text-xl font-bold text-blue-700 mt-1 font-inter">{registrationData.registrationCode}</p>
             </div>
           </div>
 

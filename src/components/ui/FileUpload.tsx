@@ -129,7 +129,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               <button
                 type="button"
                 onClick={() => handleFileClick(value)}
-                className="text-sm text-blue-600 hover:text-blue-800 truncate cursor-pointer text-left w-full"
+                className="text-sm text-green-800 hover:text-blue-800 truncate cursor-pointer text-left w-full"
               >
                 {typeof value === 'string' 
                   ? value.split('/').pop() 
@@ -140,7 +140,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               <button
                 type="button"
                 onClick={() => window.open(value, '_blank')}
-                className="ml-4 px-3 py-1 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm flex-shrink-0"
+                className="ml-4 px-3 py-1 bg-blue-50 text-green-800 rounded-md hover:bg-blue-100 transition-colors text-sm flex-shrink-0"
               >
                 Lihat File
               </button>

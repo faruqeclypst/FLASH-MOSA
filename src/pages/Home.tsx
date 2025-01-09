@@ -9,9 +9,10 @@ import Registration from '../components/Registration';
 import Gallery from '../components/Gallery';
 import MapLocation from '../components/MapLocation';
 import CTASection from '../components/CTASection';
-import SocialProof from '../components/SocialProof';
+// import SocialProof from '../components/SocialProof';
 import Reviews from '../components/Reviews';
 import WhatsAppButton from '../components/WhatsAppButton';
+// import MascotButton from '../components/MascotButton';
 // import ContactForm from '../components/ContactForm';
 
 const Home: React.FC = () => {
@@ -45,12 +46,12 @@ const Home: React.FC = () => {
           <>
             <AboutFlash />
             <CompetitionList />
-        <Gallery />
-        <Reviews /> 
-        <SocialProof /> 
-        <Registration />
-        <MapLocation />
-        <CTASection />
+            <Gallery />
+            <Reviews /> 
+            {/* <SocialProof />  */}
+            <Registration />
+            <MapLocation />
+            <CTASection />
         {/* <FlashActivities /> */}
         {/* <ContactForm /> */}
         </>
@@ -58,9 +59,10 @@ const Home: React.FC = () => {
       </main>
       {!isLoading && (
       <>
+      {/* <MascotButton /> */}
       <WhatsAppButton 
       phoneNumber="+6285359907696" 
-      message="Halo Flash MOSA! kami tertarik untuk sponsor FLASH"
+      message="Assalamualaikum.. Flash Celestiance! kami tertarik untuk sponsor FLASH"
       />
       <Footer />
      </>

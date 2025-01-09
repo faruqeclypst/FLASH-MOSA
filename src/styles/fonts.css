@@ -1,0 +1,17 @@
+@import url('https://fonts.cdnfonts.com/css/antistar');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+.font-antistar {
+  font-family: 'Antistar', sans-serif;
+}
+
+@font-face {
+  font-family: 'The Luiston';
+  src: url('../assets/font/The Luiston.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.font-luiston {
+  font-family: 'The Luiston', sans-serif;
+} 

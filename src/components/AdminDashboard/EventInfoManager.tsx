@@ -239,21 +239,11 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                 { id: 'heroImage', label: 'Gambar Utama', accept: 'image/*' },
                 { id: 'heroVideo', label: 'Video Utama (Desktop)', accept: 'video/*' },
                 { id: 'heroVideoMobile', label: 'Video Utama (Mobile)', accept: 'video/*' },
-                { 
-                  id: 'aboutImage', 
-                  label: 'Logo FLASH (PNG)', 
-                  accept: 'image/png',
-                  description: 'Format PNG dengan background transparan'
-                }
+                { id: 'aboutImage', label: 'Logo FLASH (PNG)', accept: 'image/png' }
               ].map((upload) => (
                 <div key={upload.id} className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
                     {upload.label}
-                    {upload.id === 'aboutImage' && (
-                      <span className="text-xs text-gray-500 block mt-1">
-                        {upload.description}
-                      </span>
-                    )}
                   </label>
                   <div className="relative">
                     <input
@@ -265,7 +255,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                     />
                     {formData[upload.id as keyof FlashEvent] ? (
                       <div className="relative group rounded-xl overflow-hidden">
-                        {upload.id === 'heroVideo' ? (
+                        {upload.id === 'heroVideo' || upload.id === 'heroVideoMobile' ? (
                           <video 
                             src={formData[upload.id]} 
                             className="w-full h-[200px] object-cover"
@@ -341,7 +331,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                 name: 'saveBasicInfo', 
                 value: true 
               })}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
+              className="px-6 py-2 bg-green-800 text-white rounded-lg hover:bg-blue-700 
                        transition-colors duration-200 flex items-center gap-2"
             >
               <svg 

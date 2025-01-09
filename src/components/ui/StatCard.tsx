@@ -13,7 +13,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, title, value, total, color })
   const percentage = total > 0 ? (value / total * 100) : 0;
   
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
+    blue: 'bg-blue-50 text-green-800',
     yellow: 'bg-yellow-50 text-yellow-600',
     green: 'bg-green-50 text-green-600',
     red: 'bg-red-50 text-red-600'

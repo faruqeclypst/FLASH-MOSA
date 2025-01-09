@@ -48,12 +48,12 @@ const CTASection: React.FC = () => {
     transition={{ duration: 0.3, delay: 0.1 }} // Tambahkan transisi yang lebih cepat
   >
         <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
-            Join The <span className="text-blue-600">FLASH</span> Experience
+          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
+            Bergabung dengan <span className="text-emerald-800">Flash Celestiance</span>
           </h2>
-          <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Don't miss out on this incredible opportunity to showcase your talents, learn from experts, and connect with like-minded individuals!
+          <div className="bg-emerald-800 w-24 h-2 mb-8 mx-auto rounded-full"></div>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-inter">
+            Jangan lewatkan kesempatan untuk menunjukkan bakat, mengembangkan kreativitas, dan berkolaborasi dengan siswa-siswi berbakat lainnya!
           </p>
         </motion.div>
 
@@ -62,50 +62,62 @@ const CTASection: React.FC = () => {
           variants={containerVariants}
         >
           <motion.div 
-            className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 transition-all duration-300"
+            className="bg-gradient-to-br from-white to-yellow-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-yellow-100/50 transition-all duration-300 relative overflow-hidden group"
             variants={cardVariants}
             whileHover="hover"
           >
-            <div className="bg-yellow-100 w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto">
-              <Star className="w-10 h-10 text-yellow-500" />
+            {/* Decorative elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-yellow-100/20 rounded-full blur-3xl group-hover:bg-yellow-100/30 transition-colors duration-300" />
+            
+            <div className="relative">
+              <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-yellow-100/50 group-hover:scale-110 transition-transform duration-300">
+                <Star className="w-10 h-10 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Kompetisi Menarik</h3>
+              <p className="text-gray-600 leading-relaxed text-center">
+                Ikuti berbagai lomba menarik dalam bidang bahasa dan seni untuk mengembangkan potensimu.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">Exciting Competitions</h3>
-            <p className="text-gray-600 leading-relaxed">Participate in cutting-edge tech challenges and showcase your skills on a global stage.</p>
           </motion.div>
           <motion.div 
-            className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 transition-all duration-300"
+            className="bg-gradient-to-br from-white to-emerald-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-emerald-100/50 transition-all duration-300 relative overflow-hidden group"
             variants={cardVariants}
             whileHover="hover"
           >
-            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto">
-              <Calendar className="w-10 h-10 text-green-500" />
+            {/* Decorative elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-100/20 rounded-full blur-3xl group-hover:bg-emerald-100/30 transition-colors duration-300" />
+            
+            <div className="relative">
+              <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-emerald-100/50 group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-10 h-10 text-emerald-500 group-hover:rotate-12 transition-transform duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Golden Ticket</h3>
+              <p className="text-gray-600 leading-relaxed text-center">
+                Dapatkan kesempatan Golden Ticket untuk menjadi siswa-siswi SMAN Modal Bangsa.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">Engaging Workshops</h3>
-            <p className="text-gray-600 leading-relaxed">Learn from industry experts and enhance your knowledge in various cutting-edge tech domains.</p>
           </motion.div>
           <motion.div 
-            className="bg-white rounded-xl shadow-lg p-8 border border-gray-200 transition-all duration-300"
+            className="bg-gradient-to-br from-white to-purple-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-purple-100/50 transition-all duration-300 relative overflow-hidden group"
             variants={cardVariants}
             whileHover="hover"
           >
-            <div className="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mb-6 mx-auto">
-              <Users className="w-10 h-10 text-blue-500" />
+            {/* Decorative elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-100/20 rounded-full blur-3xl group-hover:bg-purple-100/30 transition-colors duration-300" />
+            
+            <div className="relative">
+              <div className="bg-gradient-to-br from-purple-100 to-purple-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-purple-100/50 group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-10 h-10 text-purple-500 group-hover:rotate-12 transition-transform duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Pengalaman Berharga</h3>
+              <p className="text-gray-600 leading-relaxed text-center">
+                Bertemu dengan peserta berbakat dari seluruh Aceh dan mengembangkan jaringan pertemanan.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">Networking Opportunities</h3>
-            <p className="text-gray-600 leading-relaxed">Connect with peers, mentors, and potential employers in the rapidly evolving tech industry.</p>
           </motion.div>
-        </motion.div>
-
-        <motion.div className="text-center" variants={itemVariants}>
-          <motion.a
-            href="#registration"
-            className="inline-flex items-center px-8 py-4 bg-blue-600 text-white text-xl font-bold rounded-full hover:bg-blue-700 transition duration-300 shadow-lg hover:shadow-xl"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Register Now
-            <ArrowRight className="ml-2" />
-          </motion.a>
         </motion.div>
       </motion.div>
     </section>

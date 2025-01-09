@@ -318,7 +318,7 @@ const ManageContent: React.FC = () => {
               className={classNames(
                 'flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap text-sm md:text-base',
                 selectedSection === section.id
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-800 text-white'
                   : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
               )}
             >

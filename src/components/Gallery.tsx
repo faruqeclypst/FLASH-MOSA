@@ -66,14 +66,14 @@ const Gallery: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight"
+            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar"
             variants={itemVariants}
           >
-            Galeri <span className="text-blue-600">FLASH</span>
+            Galeri <span className="text-green-800">Flash</span>
           </motion.h2>
-          <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
+          <motion.div className="bg-green-800 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
-            className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-inter"
             variants={itemVariants}
           >
             Immerse yourself in the vibrant moments...

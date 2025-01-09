@@ -49,17 +49,17 @@ const MapLocation: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight"
+            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar"
             variants={itemVariants}
           >
-            Event <span className="text-blue-600">Location</span> & <span className="text-blue-600">Highlights</span>
+            Event <span className="text-green-800">Location</span>
           </motion.h2>
-          <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
+          <motion.div className="bg-green-800 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
             className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-            Join us at this amazing venue for an unforgettable experience
+           Yuk ikut FLASH Celestiance dan dapatkan Golden Ticket untuk menjadi siswa-siswi SMAN Modal Bangsa!
           </motion.p>
         </motion.div>
 
@@ -87,15 +87,14 @@ const MapLocation: React.FC = () => {
             className="w-full lg:w-1/3 bg-white p-8 rounded-lg shadow-lg"
             variants={itemVariants}
           >
-            <h3 className="text-3xl font-bold mb-6 text-gray-800">Event Highlights</h3>
             <div className="space-y-6">
               <motion.div className="flex items-center" variants={itemVariants}>
                 <div className="bg-yellow-100 p-3 rounded-full mr-4">
                   <Trophy className="text-yellow-500" size={24} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-800">10+</p>
-                  <p className="text-base text-gray-600">Awards Won</p>
+                  <p className="text-xl font-bold text-gray-800">15</p>
+                  <p className="text-base text-gray-600">Golden Ticket SMAN Modal Bangsa</p>
                 </div>
               </motion.div>
               <motion.div className="flex items-center" variants={itemVariants}>
@@ -104,7 +103,7 @@ const MapLocation: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-xl font-bold text-gray-800">1000+</p>
-                  <p className="text-base text-gray-600">Participants</p>
+                  <p className="text-base text-gray-600">Peserta</p>
                 </div>
               </motion.div>
               <motion.div className="flex items-center" variants={itemVariants}>
@@ -112,13 +111,12 @@ const MapLocation: React.FC = () => {
                   <Calendar className="text-green-500" size={24} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-800">August 15-17, 2023</p>
+                  <p className="text-xl font-bold text-gray-800">8-14 Februari 2025</p>
                   <p className="text-base text-gray-600">Event Date</p>
                 </div>
               </motion.div>
             </div>
             <motion.div className="mt-8" variants={itemVariants}>
-              <h4 className="text-2xl font-bold mb-3 text-gray-800">Address</h4>
               <div className="flex items-start">
                 <MapPin className="text-red-500 mr-2 mt-1 flex-shrink-0" size={20} />
                 <p className="text-base text-gray-600">

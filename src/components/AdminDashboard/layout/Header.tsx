@@ -168,7 +168,7 @@ const Header: React.FC = () => {
         <div className="p-6">
           <div className="text-center mb-6">
             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <UserCircleIcon className="w-6 h-6 text-blue-600" />
+              <UserCircleIcon className="w-6 h-6 text-green-800" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               Edit Profil
@@ -195,7 +195,7 @@ const Header: React.FC = () => {
               </Button>
               <Button
                 onClick={handleUpdateName}
-                className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+                className="flex-1 bg-green-800 text-white hover:bg-blue-700"
                 disabled={loading}
               >
                 {loading ? 'Menyimpan...' : 'Simpan'}

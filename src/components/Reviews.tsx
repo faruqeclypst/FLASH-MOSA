@@ -164,7 +164,7 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
     <div className="flex items-start mb-4">
       <img src={review.avatar} alt={review.name} className="w-16 h-16 rounded-full mr-4 object-cover" />
       <div className="flex-grow">
-        <h3 className="font-bold text-xl text-gray-800 mb-1">{review.name}</h3>
+        <h3 className="font-bold text-xl text-gray-800 mb-1 font-antistar">{review.name}</h3>
         <div className="flex mb-2">
           {[...Array(5)].map((_, i) => (
             <Star 
@@ -269,12 +269,12 @@ const Reviews: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight"
+            className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar"
             variants={itemVariants}
           >
-            Apa kata <span className="text-blue-600">Mereka</span>
+            Apa kata <span className="text-green-800">Mereka</span>
           </motion.h2>
-          <motion.div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
+          <motion.div className="bg-green-800 w-24 h-2 mb-8 mx-auto rounded-full" variants={itemVariants}></motion.div>
           <motion.p 
             className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}

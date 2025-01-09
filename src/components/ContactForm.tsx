@@ -72,7 +72,7 @@ const ContactForm: React.FC = () => {
               className="w-full px-3 py-2 border rounded-lg"
             ></textarea>
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
+          <button type="submit" className="w-full bg-green-800 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
             Send Message
           </button>
         </form>

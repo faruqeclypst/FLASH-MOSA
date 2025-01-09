@@ -55,17 +55,47 @@ const Header: React.FC<HeaderProps> = ({ isLoading }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
           className={`fixed w-full font-bold z-50 transition-all duration-300 ${
-            isScrolled ? 'bg-gray-900' : 'bg-transparent'
+            isScrolled ? 'bg-emerald-900' : 'bg-transparent'
           }`}
         >
           <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold text-white">FLASH 2025</Link>
+            <Link 
+              to="/" 
+              className="text-2xl font-bold text-white hover:text-purple-200 font-antistar transition-colors duration-300"
+            >
+              Flash Celestiance
+            </Link>
             <div className="hidden md:flex space-x-4">
-              <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-white hover:text-blue-200">Home</button>
-              <button onClick={() => scrollToSection('about')} className="text-white hover:text-blue-200">About</button>
-              <button onClick={() => scrollToSection('competitions')} className="text-white hover:text-blue-200">Competitions</button>
-              <button onClick={() => scrollToSection('gallery')} className="text-white hover:text-blue-200">Gallery</button>
-              <button onClick={() => scrollToSection('registration')} className="text-white hover:text-blue-200">Daftar</button>
+              <button 
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+                className="text-white hover:text-purple-200 font-antistar"
+              >
+                BERANDA
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')} 
+                className="text-white hover:text-purple-200 font-antistar"
+              >
+                TENTANG
+              </button>
+              <button 
+                onClick={() => scrollToSection('competitions')} 
+                className="text-white hover:text-purple-200 font-antistar"
+              >
+                LOMBA
+              </button>
+              <button 
+                onClick={() => scrollToSection('gallery')} 
+                className="text-white hover:text-purple-200 font-antistar"
+              >
+                GALERI
+              </button>
+              <button 
+                onClick={() => scrollToSection('registration')} 
+                className="text-white hover:text-purple-200 font-antistar"
+              >
+                DAFTAR
+              </button>
             </div>
             <div className="md:hidden">
               <button onClick={() => setIsOpen(!isOpen)} className="text-white focus:outline-none">
@@ -80,12 +110,37 @@ const Header: React.FC<HeaderProps> = ({ isLoading }) => {
             </div>
           </nav>
           {isOpen && (
-            <div className="md:hidden bg-gray-900">
-              <button onClick={() => scrollToSection('home')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Home</button>
-              <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">About</button>
-              <button onClick={() => scrollToSection('competitions')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Competitions</button>
-              <button onClick={() => scrollToSection('gallery')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Gallery</button>
-              <button onClick={() => scrollToSection('registration')} className="block w-full text-left py-2 px-4 text-white hover:bg-blue-700">Daftar</button>
+            <div className="md:hidden bg-emerald-900">
+              <button 
+                onClick={() => scrollToSection('home')} 
+                className="block w-full text-left py-2 px-4 text-white hover:bg-emerald-900 font-antistar"
+              >
+                Beranda
+              </button>
+              <button 
+                onClick={() => scrollToSection('about')} 
+                className="block w-full text-left py-2 px-4 text-white hover:bg-emerald-900 font-antistar"
+              >
+                About
+              </button>
+              <button 
+                onClick={() => scrollToSection('competitions')} 
+                className="block w-full text-left py-2 px-4 text-white hover:bg-emerald-900 font-antistar"
+              >
+                Lomba
+              </button>
+              <button 
+                onClick={() => scrollToSection('gallery')} 
+                className="block w-full text-left py-2 px-4 text-white hover:bg-emerald-900 font-antistar"
+              >
+                Galeri
+              </button>
+              <button 
+                onClick={() => scrollToSection('registration')} 
+                className="block w-full text-left py-2 px-4 text-white hover:bg-emerald-900 font-antistar"
+              >
+                Daftar
+              </button>
             </div>
           )}
         </motion.header>

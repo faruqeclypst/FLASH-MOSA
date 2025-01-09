@@ -249,3 +249,9 @@ iframe {
   background-size: 200% 200%;
   animation: gradientBG 5s ease infinite;
 }
+
+/* Add this to fix text clipping */
+.font-antistar {
+  padding-top: 0.25em; /* Add some padding at the top */
+  line-height: 1.2; /* Adjust line height */
+}

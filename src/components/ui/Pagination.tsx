@@ -45,7 +45,7 @@ const NavigationButton: React.FC<{
       direction === 'prev' ? "rounded-l-lg" : "rounded-r-lg -ml-px",
       disabled
         ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-        : "bg-white text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+        : "bg-white text-gray-700 hover:bg-blue-50 hover:text-green-800"
     )}
   >
     <svg

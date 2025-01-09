@@ -5,6 +5,7 @@ import { auth } from '../services/firebase';
 import { EyeIcon, EyeSlashIcon, EnvelopeIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../assets/img/logo.png';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -74,13 +75,13 @@ const Login: React.FC = () => {
               transition={{ duration: 0.5 }}
             >
               <img
-                src="/vite.svg"
-                alt="Logo"
-                className="h-20 mx-auto mb-4"
+                src={Logo}
+                alt="Logo FLASH"
+                className="h-32 mx-auto mb-8"
               />
             </motion.div>
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
-              Masuk ke Akun
+              Login Admin
             </h2>
           </div>
 

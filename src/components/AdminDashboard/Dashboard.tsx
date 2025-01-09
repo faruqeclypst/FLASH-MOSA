@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
             </div>
             <Link 
               to="/admin/manage-registrations"
-              className="text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-xs md:text-sm text-green-800 hover:text-blue-700 font-medium"
             >
               Lihat Semua
             </Link>
@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
               >
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 md:p-2 bg-white rounded-lg">
-                    <div className="p-1.5 md:p-2 bg-blue-100 text-blue-600 rounded-lg">
+                    <div className="p-1.5 md:p-2 bg-blue-100 text-green-800 rounded-lg">
                       <UserGroupIcon className="w-4 h-4 md:w-5 md:h-5" />
                     </div>
                   </div>
@@ -217,7 +217,7 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ icon, title, value, total, color }) => {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
+    blue: 'bg-blue-50 text-green-800',
     yellow: 'bg-yellow-50 text-yellow-600',
     green: 'bg-green-50 text-green-600',
     red: 'bg-red-50 text-red-600'

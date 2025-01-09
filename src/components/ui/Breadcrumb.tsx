@@ -10,7 +10,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
     <nav className="text-sm">
       {items.map((item, index) => (
         <span key={index}>
-          <Link to={item.to} className="text-blue-600 hover:underline">
+          <Link to={item.to} className="text-green-800 hover:underline">
             {item.label}
           </Link>
           {index < items.length - 1 && ' / '}

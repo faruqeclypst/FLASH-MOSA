@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { cleanupAlertSystem } from './components/ui/Alert';
 
+
 // Lazy load components untuk optimasi
 const Home = React.lazy(() => import('./pages/Home'));
 const Admin = React.lazy(() => import('./pages/Admin'));
@@ -11,9 +12,7 @@ const CreateAdmin = React.lazy(() => import('./pages/CreateAdmin'));
 
 // Loading component
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-center">Loading...</div>
-  </div>
+  <div className="hidden">Loading...</div>
 );
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {

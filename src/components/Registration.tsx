@@ -306,7 +306,7 @@ const RegistrationForm: React.FC = () => {
     },
   };
 
-  if (!flashEvent) return <div className="text-center py-8">Loading...</div>;
+  if (!flashEvent) return <div className="text-center py-8">Load Flash!</div>;
 
   const isTeam = selectedCompetition?.type === 'team';
 
@@ -327,10 +327,10 @@ const RegistrationForm: React.FC = () => {
         className="container mx-auto px-4"
       >
         <motion.div className="text-center mb-16" variants={itemVariants}>
-          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
-            Pendaftaran <span className="text-blue-600">Lomba</span>
+          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
+            Pendaftaran <span className="text-emerald-800">Lomba</span>
           </h2>
-          <div className="bg-blue-600 w-24 h-2 mb-8 mx-auto rounded-full"></div>
+          <div className="bg-emerald-800 w-24 h-2 mb-8 mx-auto rounded-full"></div>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
             FLASH CELESTIANCE {new Date().getFullYear()}
           </p>
@@ -352,7 +352,7 @@ const RegistrationForm: React.FC = () => {
                   setSelectedCompetition(null);
                 }}
                 required
-                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none"
               >
                 <option value="">Select a category</option>
                 {schoolCategories.map((category) => (
@@ -423,7 +423,7 @@ const RegistrationForm: React.FC = () => {
                     }
                   }}
                   required
-                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none bg-white"
                 >
                   <option value="">Select a competition</option>
                   {flashEvent?.competitions
@@ -556,7 +556,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.registrantName || ''}
                             onChange={handleChange}
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -573,7 +573,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.teamName || ''}
                             onChange={handleChange}
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                             />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -593,7 +593,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.name || ''}
                             onChange={handleChange}
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
                           <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -609,7 +609,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.gender || ''}
                             onChange={handleChange}
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none"
                           >
                             <option value="">Pilih Jenis Kelamin</option>
                             <option value="Laki-laki">Laki-laki</option>
@@ -639,7 +639,7 @@ const RegistrationForm: React.FC = () => {
                             value={formData.birthDate || ''}
                             onChange={handleChange}
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
                           <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -663,7 +663,7 @@ const RegistrationForm: React.FC = () => {
                         onChange={handleChange}
                         placeholder="+628xxxxxxxxxx"
                         required
-                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                       />
                       <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
@@ -681,7 +681,7 @@ const RegistrationForm: React.FC = () => {
                         value={formData.email || ''}
                         onChange={handleChange}
                         required
-                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                       />
                       <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
@@ -700,7 +700,7 @@ const RegistrationForm: React.FC = () => {
                           value={formData.school || ''}
                           onChange={handleChange}
                           required
-                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                         />
                         <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
@@ -721,7 +721,7 @@ const RegistrationForm: React.FC = () => {
                         value={formData.city || ''}
                         onChange={handleChange}
                         required
-                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 appearance-none"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none"
                       >
                         <option value="" disabled>
                           Pilih Kota/Kabupaten
@@ -758,7 +758,7 @@ const RegistrationForm: React.FC = () => {
                           onChange={(e) => handleFileChange(e)}
                           accept=".pdf"
                           required
-                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                         />
                         <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                       </div>
@@ -777,7 +777,7 @@ const RegistrationForm: React.FC = () => {
                         onChange={(e) => handleFileChange(e)}
                         accept=".pdf"
                         required
-                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                       />
                       <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                     </div>
@@ -797,7 +797,7 @@ const RegistrationForm: React.FC = () => {
                             onChange={(e) => handleFileChange(e)}
                             accept="image/jpeg,image/png"
                             required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
                           <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
                         </div>
@@ -823,7 +823,7 @@ const RegistrationForm: React.FC = () => {
                                     type="text"
                                     value={member}
                                     onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                                    className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                    className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                     placeholder={`Nama Anggota ${index + 1}`}
                                   />
                                   <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
@@ -851,7 +851,7 @@ const RegistrationForm: React.FC = () => {
                                   onChange={(e) => handleFileChange(e, index)}
                                   accept="image/jpeg,image/png"
                                   required
-                                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                   placeholder="Upload Pas Foto"
                                 />
                                 <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
@@ -868,7 +868,7 @@ const RegistrationForm: React.FC = () => {
                                 type="text"
                                 value={member}
                                 onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300"
+                                className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                 placeholder={`Nama Anggota ${index + 1}`}
                               />
                               <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
@@ -894,7 +894,7 @@ const RegistrationForm: React.FC = () => {
                       <motion.button
                         type="button"
                         onClick={addTeamMember}
-                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 mt-4"
+                        className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition duration-300 mt-4"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -913,7 +913,7 @@ const RegistrationForm: React.FC = () => {
                     type="submit"
                     disabled={isSubmitting}
                     className={`w-full ${
-                      isSubmitting ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'
+                      isSubmitting ? 'bg-emerald-400' : 'bg-emerald-800 hover:bg-emerald-700'
                     } text-white py-2 md:py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105`}
                     whileHover={{ scale: isSubmitting ? 1 : 1.01 }}
                     whileTap={{ scale: isSubmitting ? 1 : 0.80 }}

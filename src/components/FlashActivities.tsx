@@ -35,9 +35,9 @@ const FlashActivities: React.FC = () => {
       }`}
     >
       {isNext ? (
-        <ChevronRight size={24} className="text-blue-600" />
+        <ChevronRight size={24} className="text-green-800" />
       ) : (
-        <ChevronLeft size={24} className="text-blue-600" />
+        <ChevronLeft size={24} className="text-green-800" />
       )}
     </button>
   );
@@ -109,7 +109,7 @@ const FlashActivities: React.FC = () => {
           >
             FLASH Activities
           </motion.h2>
-          <div className="bg-blue-600 w-16 md:w-24 h-1 md:h-2 mb-4 md:mb-8 mx-auto"></div>
+          <div className="bg-green-800 w-16 md:w-24 h-1 md:h-2 mb-4 md:mb-8 mx-auto"></div>
           <p className="text-lg leading-relaxed text-gray-700 mb-4 max-w-3xl mx-auto">
             Immerse yourself in a world of innovation...
           </p>

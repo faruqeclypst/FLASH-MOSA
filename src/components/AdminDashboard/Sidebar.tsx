@@ -51,7 +51,7 @@ const SidebarItem: React.FC<{
         'w-full flex items-center transition-colors duration-200',
         'px-4 py-2.5',
         isActive
-          ? 'text-blue-600 bg-blue-50/50 font-medium'
+          ? 'text-green-800 bg-blue-50/50 font-medium'
           : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900',
         'rounded-lg relative group'
       )}
@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mobile, onClose }) => {
     >
       <div className="flex items-center flex-shrink-0 px-4 h-16">
         <span className={classNames(
-          "text-xl font-bold text-blue-600 transition-all duration-300",
+          "text-xl font-bold text-green-800 transition-all duration-300",
           isCollapsed ? "opacity-0" : "opacity-100"
         )}>
           FLASH 2024

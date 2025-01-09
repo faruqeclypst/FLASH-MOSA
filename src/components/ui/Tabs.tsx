@@ -28,7 +28,7 @@ const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, className }) => 
                 'transition-colors duration-200',
                 'flex-1 md:flex-none',
                 activeTab === index
-                  ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+                  ? 'border-blue-500 text-green-800 bg-blue-50/50'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               )}
             >

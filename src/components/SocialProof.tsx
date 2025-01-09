@@ -98,17 +98,17 @@ const SocialProof: React.FC = () => {
           variants={containerVariants}
         >
           <motion.h2 
-            className="text-4xl font-bold mb-4 text-gray-800 leading-tight"
+            className="text-4xl font-bold mb-4 text-gray-800 leading-tight font-antistar"
             variants={itemVariants}
           >
-            Trusted by the <span className="text-blue-600">BEST</span>
+            Trusted by the <span className="text-green-800">BEST</span>
           </motion.h2>
           <motion.div 
-            className="bg-blue-600 w-16 sm:w-20 md:w-24 h-1 sm:h-2 mb-6 sm:mb-8 mx-auto"
+            className="bg-green-800 w-16 sm:w-20 md:w-24 h-1 sm:h-2 mb-6 sm:mb-8 mx-auto"
             variants={itemVariants}
           ></motion.div>
           <motion.p 
-            className="text-lg text-gray-600 max-w-4xl mx-auto"
+            className="text-lg text-gray-600 max-w-4xl mx-auto font-inter"
             variants={itemVariants}
           >
             Our partners and achievements that make FLASH a standout event
@@ -124,7 +124,7 @@ const SocialProof: React.FC = () => {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.h3
-            className="text-2xl font-bold mb-6 text-center text-gray-800"
+            className="text-2xl font-bold mb-6 text-center text-gray-800 font-antistar"
             variants={itemVariants}
           >
             Our Partners
@@ -167,7 +167,7 @@ const SocialProof: React.FC = () => {
           viewport={{ once: true, amount: 0.3 }}
         >
           <motion.h3
-            className="text-2xl font-bold mb-6 text-center text-gray-800"
+            className="text-2xl font-bold mb-6 text-center text-gray-800 font-antistar"
             variants={itemVariants}
           >
             Our Bazaars

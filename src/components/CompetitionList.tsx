@@ -102,7 +102,7 @@ const CompetitionAccordion: React.FC<{
         >
           <div className="flex items-center p-4 sm:p-6">
             {/* Icon/Image */}
-            <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-blue-200 to-purple-50 flex-shrink-0">
+            <div className="w-20 h-20 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-gradient-to-br from-green-200 to-purple-200 flex-shrink-0">
               {competition.icon ? (
                 <img 
                   src={competition.icon} 
@@ -118,7 +118,7 @@ const CompetitionAccordion: React.FC<{
 
             {/* Title and Basic Info */}
             <div className="ml-4 flex-grow min-h-[80px]">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900">
+              <h3 className="font-bold text-xl text-gray-800 mb-1 font-antistar">
                 {competition.name}
               </h3>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -169,7 +169,7 @@ const CompetitionAccordion: React.FC<{
               <div className="p-4 sm:p-6 space-y-4">
                 {/* Description */}
                 <div>
-                  <p className="text-gray-600">{competition.description}</p>
+                  <p className="text-gray-600 font-inter">{competition.description}</p>
                 </div>
 
                 {/* Registration Fee */}
@@ -285,7 +285,7 @@ const CompetitionAccordion: React.FC<{
                     {competition.rules?.map((rule, idx) => (
                       <div key={idx} className="flex items-start space-x-3">
                         <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-blue-600">{idx + 1}</span>
+                          <span className="text-sm font-medium text-green-800">{idx + 1}</span>
                         </div>
                         <p className="text-sm text-gray-600">{rule}</p>
                       </div>
@@ -316,7 +316,7 @@ const CompetitionAccordion: React.FC<{
                       <FaClock className="text-blue-700 mt-1 flex-shrink-0" />
                       <div className="ml-2">
                         <h4 className="font-medium text-blue-700">Tanggal Pelaksanaan</h4>
-                        <p className="mt-1 text-sm text-blue-600">
+                        <p className="mt-1 text-sm text-green-800">
                           {formattedEventDate}
                         </p>
                       </div>
@@ -413,9 +413,9 @@ const CompetitionList: React.FC = () => {
       >
         {/* Header */}
         <motion.div className="max-w-3xl mx-auto text-center mb-16" variants={itemVariants}>
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Choose Your <span className="text-blue-600">Challenge</span>
-          </h2>
+          <motion.h2 className="text-3xl font-bold text-gray-900 mb-6 font-antistar">
+            Choose Your <span className="text-green-800">Challenge</span>
+          </motion.h2>
           <p className="text-base text-gray-600">
             Explore our diverse range of competitions and find the perfect challenge to showcase your talents
           </p>

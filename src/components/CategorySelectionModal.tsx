@@ -124,7 +124,7 @@ const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                        <FaGraduationCap className="text-blue-600" />
+                        <FaGraduationCap className="text-green-800" />
                       </div>
                       <div>
                         <span className="font-medium text-gray-900 block">

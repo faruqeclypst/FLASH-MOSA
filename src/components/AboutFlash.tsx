@@ -66,26 +66,12 @@ const AboutFlash: React.FC = () => {
           <motion.div className="lg:w-3/5" variants={itemVariants}>
             <div className="max-w-2xl mx-auto lg:mx-0">
             <motion.div className="mb-12" variants={itemVariants}>
-          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight">
-            DISCOVER THE POWER OF <span className="text-blue-600">FLASH</span>
+          <h2 className="text-4xl font-extrabold mb-4 text-gray-800 leading-tight font-antistar">
+            Discover The Power Of <span className="text-green-800">Flash</span>
           </h2>
-          <div className="bg-blue-600 w-24 h-2 mb-8 rounded-full"></div>
+          <div className="bg-green-800 w-24 h-2 mb-8 rounded-full"></div>
         </motion.div>
-              <p className="text-lg leading-relaxed text-gray-700 mb-8">{flashEvent.aboutFlash}</p>
-              <ul className="text-xl text-gray-700 mb-8 space-y-4">
-                <li className="flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  Innovative Technology
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  Cutting-edge Solutions
-                </li>
-                <li className="flex items-center">
-                  <svg className="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  Unparalleled Performance
-                </li>
-              </ul>
+              <p className="text-lg leading-relaxed text-gray-700 mb-8 font-inter">{flashEvent.aboutFlash}</p>
             </div>
           </motion.div>
           <motion.div 
@@ -102,9 +88,26 @@ const AboutFlash: React.FC = () => {
             <div className="flex justify-center items-center h-full">
               <motion.img 
                 src={flashEvent.aboutImage || "/api/placeholder/600/400"}
-                alt="About FLASH" 
-                className="w-auto h-auto max-w-full max-h-[1000px] object-contain filter drop-shadow-2xl"
+                alt="About Flash Celestiance" 
+                className="w-auto h-auto max-w-full max-h-[1000px] object-contain relative"
+                style={{
+                  filter: `
+                    drop-shadow(-20px -20px 30px rgba(16, 185, 129, 0.2))
+                    drop-shadow(20px 20px 30px rgba(147, 51, 234, 0.2))
+                    drop-shadow(0 0 20px rgba(16, 185, 129, 0.15))
+                    drop-shadow(0 0 40px rgba(147, 51, 234, 0.15))
+                  `
+                }}
                 variants={itemVariants}
+                whileHover={{
+                  filter: `
+                    drop-shadow(-20px -20px 30px rgba(16, 185, 129, 0.3))
+                    drop-shadow(20px 20px 30px rgba(147, 51, 234, 0.3))
+                    drop-shadow(0 0 30px rgba(16, 185, 129, 0.25))
+                    drop-shadow(0 0 50px rgba(147, 51, 234, 0.25))
+                  `,
+                  transition: { duration: 0.3 }
+                }}
               />
             </div>
           </motion.div>

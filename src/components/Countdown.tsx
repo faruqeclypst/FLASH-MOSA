@@ -13,14 +13,21 @@ interface TimeLeft {
   seconds: number;
 }
 
+const unitLabels: { [key: string]: string } = {
+  days: 'HARI',
+  hours: 'JAM',
+  minutes: 'MENIT',
+  seconds: 'DETIK'
+};
+
 const CountdownUnit: React.FC<{ value: number; unit: string }> = ({ value, unit }) => {
   return (
     <div className="countdown-unit flex flex-col items-center">
-      <div className="countdown-value text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
+      <div className="countdown-value text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-antistar">
         {value.toString().padStart(2, '0')}
       </div>
-      <div className="countdown-label text-[10px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold">
-        {unit}
+      <div className="countdown-label text-[10px] sm:text-xs md:text-sm lg:text-base xl:text-lg font-bold font-antistar">
+        {unitLabels[unit]}
       </div>
     </div>
   );

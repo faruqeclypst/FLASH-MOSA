@@ -57,7 +57,7 @@ const ConfirmUpdateModal: React.FC<ConfirmUpdateModalProps> = ({ isOpen, onClose
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                className="px-4 py-2 bg-green-800 text-white rounded hover:bg-blue-700 transition duration-300"
                 disabled={isUpdating}
               >
                 {isUpdating ? 'Updating...' : 'Update'}
@@ -71,7 +71,7 @@ const ConfirmUpdateModal: React.FC<ConfirmUpdateModalProps> = ({ isOpen, onClose
             <div className="flex justify-end">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition duration-300"
+                className="px-4 py-2 bg-green-800 text-white rounded hover:bg-blue-700 transition duration-300"
               >
                 Tutup
               </button>

@@ -221,7 +221,7 @@ const RegistrationData: React.FC = () => {
         {/* Informasi Kompetisi - Diperbarui */}
         <div className="bg-blue-50 p-4 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
-            <TrophyIcon className="w-5 h-5 text-blue-600" />
+            <TrophyIcon className="w-5 h-5 text-green-800" />
             Informasi Kompetisi
           </h4>
           <div className="grid grid-cols-2 gap-4">
@@ -365,7 +365,7 @@ const RegistrationData: React.FC = () => {
           setSelectedRegistration({ ...registration, id });
           setShowDetailModal(true);
         }}
-        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+        className="p-1 text-green-800 hover:bg-blue-50 rounded"
         title="Lihat Detail"
       >
         <EyeIcon className="w-5 h-5" />
@@ -780,7 +780,7 @@ const RegistrationData: React.FC = () => {
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-50 rounded-lg">
-                <UserGroupIcon className="w-5 h-5 text-blue-600" />
+                <UserGroupIcon className="w-5 h-5 text-green-800" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Total</p>
@@ -951,7 +951,7 @@ const RegistrationData: React.FC = () => {
                         });
                         setShowDetailModal(true);
                       }}
-                      className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium"
+                      className="flex items-center justify-center gap-1.5 py-2 px-3 bg-blue-50 text-green-800 rounded-lg text-xs font-medium"
                     >
                       <EyeIcon className="w-4 h-4" />
                       Detail
@@ -1071,7 +1071,7 @@ const RegistrationData: React.FC = () => {
                   {/* Informasi Kompetisi */}
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <h4 className="font-medium text-blue-900 mb-3 flex items-center gap-2">
-                      <TrophyIcon className="w-5 h-5 text-blue-600" />
+                      <TrophyIcon className="w-5 h-5 text-green-800" />
                       Informasi Kompetisi
                     </h4>
                     <div className="space-y-3">
@@ -1264,7 +1264,7 @@ const RegistrationData: React.FC = () => {
             </button>
             <button
               onClick={() => setShowStatusModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-green-800 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Update Status
             </button>

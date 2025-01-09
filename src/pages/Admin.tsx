@@ -63,7 +63,7 @@ const Admin: React.FC = () => {
                 className={({ isActive }) => classNames(
                   'flex flex-col items-center py-2 px-3 rounded-lg',
                   isActive 
-                    ? 'text-blue-600' 
+                    ? 'text-green-800' 
                     : 'text-gray-500 hover:text-gray-700'
                 )}
               >

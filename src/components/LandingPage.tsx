@@ -95,15 +95,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-gradient-to-br from-blue-500 to-purple-600"
+            className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-gradient-to-br from-emerald-900 to-purple-900"
           >
             <motion.h1
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="text-white text-4xl md:text-4xl font-bold mb-8"
+              className="text-white text-4x1 md:text-3xl font-bold mb-8 font-antistar"
             >
-              FLASH CELESTIANCE
+              Flash Celestiance
             </motion.h1>
             <PulseLoader color="#ffffff" size={20} margin={10} />
           </motion.div>
@@ -117,38 +117,65 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
         className="relative min-h-screen flex items-center justify-center"
       >
         {renderBackground()}
-        <div className="absolute inset-0  pointer-events-none"></div>
-        {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 to-purple-600/30 pointer-events-none"></div> */}
+        <div className="absolute inset-0 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/30 to-purple-900/30 pointer-events-none"></div>
         <div className="absolute inset-0 bg-black/50"></div>
         <div className="z-10 text-center text-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-bold mb-4">{flashEvent?.title || 'FLASH'}</h1>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-48 sm:pt-20">
+            <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-bold mb-8 font-antistar relative inline-block overflow-visible mt-8 pt-4">
+              <span className="absolute -inset-4 overflow-hidden">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute w-1 h-1 bg-purple-400/50 rounded-full animate-magic-particle"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: '100%',
+                      animationDelay: `${i * 0.3}s`,
+                      animationDuration: '2s'
+                    }}
+                  />
+                ))}
+              </span>
+
+              <span className="absolute inset-0 blur-md bg-gradient-to-r from-emerald-500 via-purple-500 to-emerald-500 opacity-40 animate-pulse"></span>
+
+              <span className="relative bg-gradient-to-r from-emerald-200 via-purple-100 to-emerald-200 text-transparent bg-clip-text animate-glitch leading-relaxed">
+                {flashEvent?.title || 'FLASH CELESTIANCE'}
+              </span>
+            </h1>
             {flashEvent?.eventDate && <Countdown eventDate={flashEvent.eventDate} />}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: isLoaded ? 1 : 0 }}
               transition={{ duration: 0.5 }}
-              className="text-lg sm:text-xl md:text-1xl lg:text-3xl mb-8 max-w-4xl mx-auto h-[1.5em]"
+              className="text-lg sm:text-xl md:text-1xl lg:text-3xl mt-8 mb-12 max-w-4xl mx-auto h-[1.5em] font-antistar"
             >
               {isLoaded && (
                 <TypeAnimation
                   sequence={[
+                    'An event from SMAN Modal Bangsa',
+                    2000,
                     'Future Language and Art for Smart Student of Highschool',
+                    2000,
+                    'Open Registration From 9 January 2025',
                     2000,
                   ]}
                   wrapper="span"
-                  speed={50}
+                  speed={65}
                   repeat={Infinity}
+                  cursor={false}
+                  deletionSpeed={95}
                 />
               )}
             </motion.div>
-            <div className="mt-16 sm:mt-20 md:mt-16 lg:mt-10 xl:mt-12">
+            <div className="mt-12">
               <a 
                 href="#competitions"
                 className="relative inline-flex items-center justify-center px-8 py-4 font-bold text-lg
-                         text-white bg-gradient-to-r from-rose-500 to-pink-500
+                         text-white bg-gradient-to-r from-emerald-900 to-emerald-800
                          rounded-full overflow-hidden shadow-lg
-                         hover:from-rose-600 hover:to-pink-600
+                         hover:from-emerald-800 hover:to-emerald-700
                          transform hover:scale-105 
                          transition-all duration-300 ease-out
                          group
@@ -164,25 +191,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
                   }
                 }}
               >
-                {/* Animated background effect */}
                 <span className="absolute w-0 h-0 transition-all duration-300 ease-out bg-white rounded-full 
                                group-hover:w-full group-hover:h-full opacity-10" />
                                
-                {/* Button content with icon */}
-                <span className="relative flex items-center gap-2 text-white">
-                  <svg 
-                    className="w-5 h-5 animate-bounce text-white" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M19 14l-7 7m0 0l-7-7m7 7V3" 
-                    />
-                  </svg>
+                <span className="relative flex items-center gap-2 text-white font-antistar">
                   Daftar Lomba
                 </span>
               </a>
