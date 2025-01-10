@@ -11,7 +11,7 @@ interface Contact {
 
 const contacts: Contact[] = [
   {
-    name: "Nadif (Sponsor)", 
+    name: "Nadif (Media Partner)", 
     phoneNumber: "6282261045659"
   },
   {

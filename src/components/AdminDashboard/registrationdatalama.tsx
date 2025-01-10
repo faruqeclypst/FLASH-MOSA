@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
 import { Registration } from '../../types';
 import Table from '../ui/Table';
@@ -99,21 +99,19 @@ const RegistrationData: React.FC = () => {
   
   const itemsPerPage = 10;
 
-  const filteredRegistrations = useMemo(() => {
-    return Object.entries(registrations || {}).filter(([_, registration]) => {
-      const matchesSearch = 
-        registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.competition.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredRegistrations = Object.entries(registrations || {}).filter(([_, registration]) => {
+    const matchesSearch = 
+      registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      registration.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      registration.competition.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = 
-        statusFilter === 'all' ? true :
-        statusFilter === registration.status;
+    const matchesStatus = 
+      statusFilter === 'all' ? true :
+      statusFilter === registration.status;
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [registrations, searchTerm, statusFilter]);
+    return matchesSearch && matchesStatus;
+  });
 
   const paginatedRegistrations = filteredRegistrations.slice(
     (currentPage - 1) * itemsPerPage,
@@ -122,33 +120,32 @@ const RegistrationData: React.FC = () => {
 
   const totalPages = Math.ceil(filteredRegistrations.length / itemsPerPage);
 
-  const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected') => {
+  const handleStatusChange = async (id: string, newStatus: 'approved' | 'rejected') => {
     try {
-      if (!id || typeof id !== 'string') {
-        throw new Error('ID tidak valid');
-      }
-
       if (!registrations || !registrations[id]) {
         throw new Error('Data registrasi tidak ditemukan');
       }
 
       const updatedRegistration = {
         ...registrations[id],
-        status: newStatus,
-        updatedAt: new Date().toISOString()
+        status: newStatus
       };
 
       await updateData({ [id]: updatedRegistration });
+
       setSelectedRegistration({ ...updatedRegistration, id });
+
       showAlert(
         newStatus === 'approved' ? 'success' : 'error',
-        `Status pendaftaran berhasil diubah menjadi ${newStatus === 'approved' ? 'diterima' : 'ditolak'}`
+        `Status pendaftaran berhasil diubah menjadi ${
+          newStatus === 'approved' ? 'diterima' : 'ditolak'
+        }`
       );
     } catch (error) {
       console.error('Error updating status:', error);
       showAlert('error', 'Gagal mengubah status pendaftaran');
     }
-  }, [registrations, updateData]);
+  };
 
   const handleDelete = async () => {
     if (!selectedRegistration) return;
@@ -175,7 +172,6 @@ const RegistrationData: React.FC = () => {
   };
 
   const columns = [
-    { header: 'No', width: '60px' },
     { header: 'Kode Pendaftaran', width: '150px' },
     { header: 'Nama/Tim', width: '200px' },
     { header: 'Kompetisi', width: '150px' },
@@ -875,8 +871,7 @@ const RegistrationData: React.FC = () => {
         <div className="hidden md:block">
           <Table
             columns={columns}
-            data={paginatedRegistrations.map(([id, registration], index) => [
-              (currentPage - 1) * itemsPerPage + index + 1,
+            data={paginatedRegistrations.map(([id, registration]) => [
               registration.registrationCode,
               registration.teamName || registration.name,
               registration.competition,
@@ -896,22 +891,17 @@ const RegistrationData: React.FC = () => {
 
         {/* Mobile Dropdown View */}
         <div className="md:hidden">
-          {paginatedRegistrations.map(([id, registration], index) => (
+          {paginatedRegistrations.map(([id, registration]) => (
             <div key={registration.registrationCode} className="border-b last:border-b-0">
               <div 
                 onClick={() => setExpandedRow(expandedRow === registration.registrationCode ? null : registration.registrationCode)}
                 className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
               >
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                        {(currentPage - 1) * itemsPerPage + index + 1}
-                      </span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {registration.teamName || registration.name}
-                      </span>
-                    </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium text-gray-900">
+                      {registration.teamName || registration.name}
+                    </span>
                     <span className={classNames(
                       'px-2 py-0.5 rounded-full text-xs',
                       registration.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -930,7 +920,7 @@ const RegistrationData: React.FC = () => {
                 </div>
                 <ChevronDownIcon 
                   className={classNames(
-                    'w-5 h-5 text-gray-400 transition-transform duration-200 ml-2',
+                    'w-5 h-5 text-gray-400 transition-transform duration-200',
                     expandedRow === registration.registrationCode ? 'rotate-180' : ''
                   )}
                 />
@@ -1050,7 +1040,7 @@ const RegistrationData: React.FC = () => {
         <div className="relative">
           {/* Header Modal */}
           <div className="px-6 py-4 border-b">
-            <div className="flex justify-between items-center mt-2">
+            <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-gray-900">Detail Pendaftaran</h3>
               <div className="text-right">
                 <p className="text-xs text-gray-500">Kode Pendaftaran</p>
