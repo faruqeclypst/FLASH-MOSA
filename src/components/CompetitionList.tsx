@@ -13,7 +13,8 @@ import {
   FaFilePdf,
   FaExternalLinkAlt,
   FaImage,
-  FaPenAlt
+  FaPenAlt,
+  FaWhatsapp
 } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -24,7 +25,7 @@ import BSILogo from '../assets/img/BSI.png';
 const CompetitionAccordion: React.FC<{ 
   competition: Competition, 
   isOpen: boolean, 
-  onClick: () => void,
+  onClick: (e: React.MouseEvent) => void,
   registrationPeriod: { startDate: string; endDate: string; },
   flashEvent: FlashEvent | null
 }> = ({ 
@@ -244,15 +245,16 @@ const CompetitionAccordion: React.FC<{
                     </a>
                   )}
                   
-                  {flashEvent?.aboutImage && (
+                  {/* WhatsApp Button */}
+                  {competition.whatsappUrl && (
                     <a
-                      href={flashEvent.aboutImage}
+                      href={competition.whatsappUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors duration-300"
+                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-colors duration-300"
                     >
-                      <FaImage className="mr-2" />
-                      Logo FLASH
+                      <FaWhatsapp className="mr-2" />
+                      Grup WhatsApp
                     </a>
                   )}
                 </div>
@@ -311,12 +313,12 @@ const CompetitionAccordion: React.FC<{
                       </div>
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="bg-purple-50 rounded-lg p-4">
                     <div className="flex items-start">
-                      <FaClock className="text-blue-700 mt-1 flex-shrink-0" />
+                      <FaClock className="text-purple-700 mt-1 flex-shrink-0" />
                       <div className="ml-2">
-                        <h4 className="font-medium text-blue-700">Tanggal Pelaksanaan</h4>
-                        <p className="mt-1 text-sm text-green-800">
+                        <h4 className="font-medium text-purple-700">Tanggal Pelaksanaan</h4>
+                        <p className="mt-1 text-sm text-purple-600">
                           {formattedEventDate}
                         </p>
                       </div>
@@ -360,6 +362,11 @@ const CompetitionList: React.FC = () => {
 
   if (!flashEvent?.competitions) return null;
 
+  // Sort competitions alphabetically
+  const sortedCompetitions = [...flashEvent.competitions].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -377,21 +384,21 @@ const CompetitionList: React.FC = () => {
     }
   };
 
-  // Get competitions to display for mobile
+  // Update the displayedCompetitions to use sortedCompetitions
   const displayedCompetitions = isMobile ? 
-    flashEvent.competitions.slice(0, displayCount) :
-    flashEvent.competitions;
+    sortedCompetitions.slice(0, displayCount) :
+    sortedCompetitions;
 
   const hasMore = isMobile && flashEvent.competitions.length > displayCount;
 
-  // Split competitions into columns
+  // Update the column splits to use sortedCompetitions
   const leftCompetitions = isMobile ?
     displayedCompetitions.filter((_, i) => i % 2 === 0) :
-    flashEvent.competitions.filter((_, i) => i % 2 === 0);
+    sortedCompetitions.filter((_, i) => i % 2 === 0);
 
   const rightCompetitions = isMobile ? 
     displayedCompetitions.filter((_, i) => i % 2 === 1) :
-    flashEvent.competitions.filter((_, i) => i % 2 === 1);
+    sortedCompetitions.filter((_, i) => i % 2 === 1);
 
   const handleLoadMore = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -435,7 +442,18 @@ const CompetitionList: React.FC = () => {
                 <CompetitionAccordion
                   competition={competition}
                   isOpen={openCompetition === index * 2}
-                  onClick={() => setOpenCompetition(openCompetition === index * 2 ? null : index * 2)}
+                  onClick={(e) => {
+                    // Prevent default behavior
+                    e.preventDefault();
+                    // Store current scroll position
+                    const currentPosition = window.scrollY;
+                    // Toggle accordion
+                    setOpenCompetition(openCompetition === index * 2 ? null : index * 2);
+                    // Restore scroll position after state update
+                    setTimeout(() => {
+                      window.scrollTo(0, currentPosition);
+                    }, 0);
+                  }}
                   registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
                   flashEvent={flashEvent}
                 />
@@ -455,7 +473,14 @@ const CompetitionList: React.FC = () => {
                 <CompetitionAccordion
                   competition={competition}
                   isOpen={openCompetition === index * 2 + 1}
-                  onClick={() => setOpenCompetition(openCompetition === index * 2 + 1 ? null : index * 2 + 1)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const currentPosition = window.scrollY;
+                    setOpenCompetition(openCompetition === index * 2 + 1 ? null : index * 2 + 1);
+                    setTimeout(() => {
+                      window.scrollTo(0, currentPosition);
+                    }, 0);
+                  }}
                   registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
                   flashEvent={flashEvent}
                 />

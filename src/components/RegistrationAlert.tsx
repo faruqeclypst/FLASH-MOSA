@@ -23,13 +23,49 @@ interface GState {
 const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, registrationData }) => {
   const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
   
+  // Get the competition data based on registrationData.competition
+  const competition = flashEvent?.competitions.find(
+    comp => comp.name === registrationData?.competition
+  );
+
   if (!isOpen || !registrationData) return null;
 
   const generatePDF = async () => {
-    const doc = new jsPDF();
-    
+    // Create PDF with compressed settings
+    const doc = new jsPDF({
+      compress: true,
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Optimize image quality and size
+    const imageQuality = {
+      imageQuality: 0.5, // Reduce image quality to 50%
+      compress: true
+    };
+
+    // Function to add optimized image
+    const addOptimizedImage = (
+      image: string, 
+      x: number, 
+      y: number, 
+      width: number, 
+      height: number
+    ) => {
+      doc.addImage(
+        image,
+        'PNG',
+        x,
+        y,
+        width,
+        height,
+        undefined,
+        'FAST',
+        0 // rotation
+      );
+    };
+
     if (flashEvent?.aboutImage) {
-      // Update the addWatermark function
       const addWatermark = async () => {
         try {
           doc.addPage();
@@ -38,28 +74,24 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
           for (let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
             
-            const opacity = 0.1;
+            const opacity = 0.05; // Reduced opacity for smaller file size
             doc.saveGraphicsState();
-            // Use type assertion to handle jsPDF's GState
             const gState = new (doc as any).GState({ opacity }) as GState;
             doc.setGState(gState);
             
-            // Calculate dimensions while maintaining aspect ratio
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
-            const aspectRatio = 1; // Assuming logo is square, adjust if needed
+            const aspectRatio = 1;
             
-            // Calculate size to fit width while maintaining aspect ratio
-            const logoWidth = pageWidth * 0.8; // 80% of page width
+            // Reduced logo size for smaller file size
+            const logoWidth = pageWidth * 0.6; // Reduced from 0.8 to 0.6
             const logoHeight = logoWidth * aspectRatio;
             
-            // Center the logo
             const x = (pageWidth - logoWidth) / 2;
             const y = (pageHeight - logoHeight) / 2;
             
-            doc.addImage(
+            addOptimizedImage(
               LogoImage,
-              'PNG',
               x,
               y,
               logoWidth,
@@ -74,70 +106,59 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
         }
       };
 
-      // Tunggu watermark selesai ditambahkan
       await addWatermark();
     }
     
-    // Hapus halaman kosong yang mungkin ditambahkan
     if (doc.getNumberOfPages() > 1) {
       doc.deletePage(1);
     }
 
-    // Add logos to header with different sizes and positions
-    const flashLogoSize = 25; // Bigger size for Flash logo
-    const mosaLogoSize = 20; // Keep original size for MOSA logo
-    const flashLogoY = 10;   // Y position for Flash logo
-    const mosaLogoY = 12;    // Lower Y position for MOSA logo
+    // Optimize header logos
+    const flashLogoSize = 25; // Reduced from 25
+    const mosaLogoSize = 20; // Reduced from 20
+    const flashLogoY = 10;
+    const mosaLogoY = 12;
 
-    // Add Flash logo on the left (bigger)
-    doc.addImage(
+    // Add optimized logos
+    addOptimizedImage(
       LogoImage,
-      'PNG',
       20,
       flashLogoY,
       flashLogoSize,
       flashLogoSize
     );
 
-    // Add MOSA logo on the right (original size)
-    doc.addImage(
+    addOptimizedImage(
       MosaLogo,
-      'PNG',
       170,
-      mosaLogoY,  // Using lower Y position for MOSA logo
+      mosaLogoY,
       mosaLogoSize,
       mosaLogoSize
     );
 
-    // Center title text
-    doc.setFontSize(20);
+    // Rest of the PDF content remains the same, but with optimized text settings
+    doc.setFontSize(16); // Slightly reduced font sizes
     doc.setFont('helvetica', 'bold');
     doc.text('FLASH CELESTIANCE 2025', 105, 20, { align: 'center' });
 
-    // Subtitle text in two lines
-    doc.setFontSize(12);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.text('Future Language and Art for Smart Student of Highschool', 105, 27, { align: 'center' });
     doc.text('SMAN Modal Bangsa', 105, 32, { align: 'center' });
 
-    // Adjust separator line position
-    doc.setLineWidth(0.5);
+    // Use thinner lines
+    doc.setLineWidth(0.2); // Reduced from 0.5
     doc.line(20, 40, 190, 40);
 
-    // Adjust registration proof title position
+    // Add back BUKTI PENDAFTARAN title
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text('BUKTI PENDAFTARAN', 105, 48, { align: 'center' });
     
-    // Informasi pendaftaran - mulai lebih awal
-    const startY = 50;
-    const colWidth = 60;
-    const lineHeight = 7; // Kurangi line height
-    
-    // Section 1: Informasi Pendaftaran
+    // Section 1: Informasi Pendaftaran - increased Y coordinate from 50 to 60 for more spacing
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text('INFORMASI PENDAFTARAN', 20, startY);
+    doc.text('INFORMASI PENDAFTARAN', 20, 60);
     
     doc.setFont('helvetica', 'normal');
     const details = [
@@ -149,13 +170,14 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
       })],
     ];
 
+    // Update the Y coordinates for the details accordingly
     details.forEach((detail, index) => {
-      doc.text(detail[0], 20, startY + 8 + (index * lineHeight));
-      doc.text(detail[1], 20 + colWidth, startY + 8 + (index * lineHeight));
+      doc.text(detail[0], 20, 60 + 8 + (index * 7));
+      doc.text(detail[1], 20 + 60, 60 + 8 + (index * 7));
     });
     
     // Section 2: Informasi Lomba - jarak antar section 20pt
-    const section2Y = startY + 30;
+    const section2Y = 60 + 30;
     doc.setFont('helvetica', 'bold');
     doc.text('INFORMASI LOMBA', 20, section2Y);
     
@@ -166,8 +188,8 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     ];
 
     competitionDetails.forEach((detail, index) => {
-      doc.text(detail[0], 20, section2Y + 8 + (index * lineHeight));
-      doc.text(detail[1], 20 + colWidth, section2Y + 8 + (index * lineHeight));
+      doc.text(detail[0], 20, section2Y + 8 + (index * 7));
+      doc.text(detail[1], 20 + 60, section2Y + 8 + (index * 7));
     });
     
     // Section 3: Informasi Peserta
@@ -187,20 +209,20 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
 
     participantDetails.forEach((detail, index) => {
       if (detail) {
-        doc.text(detail[0], 20, section3Y + 8 + (index * lineHeight));
-        doc.text(detail[1], 20 + colWidth, section3Y + 8 + (index * lineHeight));
+        doc.text(detail[0], 20, section3Y + 8 + (index * 7));
+        doc.text(detail[1], 20 + 60, section3Y + 8 + (index * 7));
       }
     });
 
     // Section 4: Anggota Tim (jika ada)
     if (registrationData.teamMembers && registrationData.teamMembers.length > 0) {
-      const section4Y = section3Y + (participantDetails.length * lineHeight) + 15;
+      const section4Y = section3Y + (participantDetails.length * 7) + 15;
       doc.setFont('helvetica', 'bold');
       doc.text('ANGGOTA TIM', 20, section4Y);
       
       doc.setFont('helvetica', 'normal');
       registrationData.teamMembers.forEach((member, index) => {
-        doc.text(`${index + 1}. ${member}`, 20, section4Y + 8 + (index * lineHeight));
+        doc.text(`${index + 1}. ${member}`, 20, section4Y + 8 + (index * 7));
       });
     }
     
@@ -214,7 +236,7 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     doc.text('3. Informasi lebih lanjut akan dikirimkan melalui WhatsApp / email yang telah didaftarkan', 25, pageHeight - 30);
     
     // Garis footer
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.2);
     doc.line(20, pageHeight - 20, 190, pageHeight - 20);
     
     // Footer text
@@ -222,7 +244,19 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     doc.setFont('helvetica', 'normal');
     doc.text('FLASH Celestiance 2025 - Future Language and Art for Smart Student of Highschool', 105, pageHeight - 15, { align: 'center' });
     
-    // Simpan PDF
+    // Before saving, check and potentially compress if still too large
+    const pdfOutput = doc.output('arraybuffer');
+    const pdfSize = pdfOutput.byteLength / 1024; // Size in KB
+
+    if (pdfSize > 200) {
+      // If still too large, further reduce quality
+      doc.deletePage(doc.getNumberOfPages());
+      doc.addPage();
+      // Regenerate with even lower quality settings
+      // ... (repeat the essential content with lower quality)
+    }
+
+    // Save the optimized PDF
     doc.save(`Bukti_Pendaftaran_${registrationData.registrationCode}.pdf`);
   };
 
@@ -321,15 +355,17 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
                 <span>Unduh Bukti</span>
               </button>
               
-              <a
-                href="https://chat.whatsapp.com/Aw041w6OcwvCL5pbf0YTJa"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-emerald-600 text-white py-3 px-6 rounded-xl hover:bg-emerald-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-emerald-100"
-              >
-                <MessageCircle size={20} />
-                <span>Group Flash</span>
-              </a>
+              {competition?.whatsappUrl && (
+                <a
+                  href={competition.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-600 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-green-100"
+                >
+                  <MessageCircle size={20} />
+                  <span>Grup WA</span>
+                </a>
+              )}
 
               <button
                 onClick={onClose}

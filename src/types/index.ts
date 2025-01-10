@@ -15,6 +15,8 @@ export interface FlashEvent {
   activities: Activity[];
   competitions: Competition[];
   gallery: string[];
+  titleType?: 'text' | 'image';
+  titleImage?: string;
 }
 
 export interface Activity {
@@ -40,6 +42,7 @@ export interface Competition {
     number: string;
     holder: string;
   };
+  whatsappUrl?: string;
 }
 
 export interface Registration {

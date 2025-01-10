@@ -95,7 +95,7 @@ const CTASection: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Golden Ticket</h3>
               <p className="text-gray-600 leading-relaxed text-center">
-                Dapatkan kesempatan Golden Ticket untuk menjadi siswa-siswi SMAN Modal Bangsa.
+                Dapatkan Golden Ticket kesempatan untuk menjadi siswa-siswi SMAN Modal Bangsa.
               </p>
             </div>
           </motion.div>

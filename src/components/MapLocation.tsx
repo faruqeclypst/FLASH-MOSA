@@ -93,7 +93,7 @@ const MapLocation: React.FC = () => {
                   <Trophy className="text-yellow-500" size={24} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-800">15</p>
+                  <p className="text-xl font-bold text-gray-800">9</p>
                   <p className="text-base text-gray-600">Golden Ticket SMAN Modal Bangsa</p>
                 </div>
               </motion.div>
@@ -111,7 +111,7 @@ const MapLocation: React.FC = () => {
                   <Calendar className="text-green-500" size={24} />
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-gray-800">8-14 Februari 2025</p>
+                  <p className="text-xl font-bold text-gray-800">13-17 Februari 2025</p>
                   <p className="text-base text-gray-600">Event Date</p>
                 </div>
               </motion.div>

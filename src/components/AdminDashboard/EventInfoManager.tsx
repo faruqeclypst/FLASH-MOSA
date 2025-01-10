@@ -62,10 +62,10 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Khusus untuk aboutImage, pastikan formatnya PNG
-    if (field === 'aboutImage') {
+    // Khusus untuk aboutImage dan titleImage, pastikan formatnya PNG
+    if (field === 'aboutImage' || field === 'titleImage') {
       if (file.type !== 'image/png') {
-        alert('Logo harus dalam format PNG!');
+        alert(`${field === 'titleImage' ? 'Gambar judul' : 'Logo'} harus dalam format PNG!`);
         e.target.value = '';
         return;
       }
@@ -86,6 +86,13 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
       // Untuk file lain gunakan handleFileUpload yang ada
       await handleFileUpload(e, field);
     }
+  };
+
+  const handleTitleTypeChange = (type: 'text' | 'image') => {
+    handleChange({ 
+      name: 'titleType', 
+      value: type 
+    });
   };
 
   return (
@@ -128,18 +135,104 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
             <h2 className="text-lg font-semibold text-gray-900">Informasi Dasar</h2>
             
             {/* Title Input */}
-            <div>
+            <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Judul Acara
               </label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Masukkan judul acara"
-              />
+              
+              {/* Title Type Selector */}
+              <div className="flex gap-3 mb-4">
+                <button
+                  type="button"
+                  onClick={() => handleTitleTypeChange('text')}
+                  className={classNames(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                    formData.titleType === 'text' 
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  )}
+                >
+                  Teks
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleTitleTypeChange('image')}
+                  className={classNames(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                    formData.titleType === 'image' 
+                      ? 'bg-indigo-500 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  )}
+                >
+                  Gambar
+                </button>
+              </div>
+
+              {/* Text Title Input */}
+              {formData.titleType === 'text' && (
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="Masukkan judul acara"
+                />
+              )}
+
+              {/* Image Title Upload */}
+              {formData.titleType === 'image' && (
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, 'titleImage')}
+                    className="hidden"
+                    id="titleImage"
+                  />
+                  {formData.titleImage ? (
+                    <div className="relative group rounded-xl overflow-hidden">
+                      <div className="w-full h-[100px] bg-gray-100">
+                        <img 
+                          src={formData.titleImage} 
+                          alt="Title"
+                          className="w-full h-full object-contain p-4"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="flex gap-3">
+                          <label
+                            htmlFor="titleImage"
+                            className="px-4 py-2 bg-white text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                          >
+                            Ubah Gambar
+                          </label>
+                          <button
+                            onClick={() => handleChange({ 
+                              target: { name: 'titleImage', value: '' }
+                            } as React.ChangeEvent<HTMLInputElement>)}
+                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor="titleImage"
+                      className="flex flex-col items-center justify-center w-full h-[100px] border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all"
+                    >
+                      <div className="flex flex-col items-center justify-center p-4 text-center">
+                        <Upload className="w-6 h-6 text-gray-400 mb-2" />
+                        <p className="text-sm text-gray-500">
+                          Upload gambar judul (PNG dengan background transparan)
+                        </p>
+                      </div>
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Date & Time */}

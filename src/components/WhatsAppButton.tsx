@@ -8,12 +8,12 @@ interface Contact {
 
 const contacts: Contact[] = [
   {
-    name: "Khalisa",
-    phoneNumber: "6282298347570"
+    name: "Nadif (Sponsor)", 
+    phoneNumber: "6282261045659"
   },
   {
-    name: "Teuku Nadif", 
-    phoneNumber: "6282261045659"
+    name: "Jauza (Sponsor)", 
+    phoneNumber: "6282377543024"
   }
 ];
 

@@ -12,7 +12,7 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Kolom 1: Tentang */}
           <div>
-            <h3 className="text-2xl font-bold mb-4 font-antistar">FLASH SMAN Modal Bangsa</h3>
+            <h3 className="text-2xl font-bold mb-4 font-antistar">Flash Sman Modal Bangsa</h3>
             <p className="text-white-400 mb-4 font-inter">
               Menyalakan semangat kreativitas dan inovasi melalui acara yang menginspirasi generasi muda.
             </p>
@@ -47,14 +47,20 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 font-inter">
               <li className="flex items-center">
                 <Mail size={16} className="mr-2" />
-                <a href="mailto:info@flashsmanmodalbangsa.com" className="text-white hover:text-emerald-400 transition-colors duration-300">
-                  info@flashsmanmodalbangsa.com
+                <a href="mailto:flashsman-modalbangsa@gmail.com" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                  flashsman-modalbangsa@gmail.com
                 </a>
               </li>
               <li className="flex items-center">
                 <Phone size={16} className="mr-2" />
-                <a href="tel:+6285123456789" className="text-white hover:text-emerald-400 transition-colors duration-300">
-                  +62 851-2345-6789
+                <a href="tel:+6282298347570" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                  Khalisa (Info Lomba)
+                </a>
+              </li>
+              <li className="flex items-center">
+                <Phone size={16} className="mr-2" />
+                <a href="tel:+6285337057355" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                  Nawal (Info Lomba)
                 </a>
               </li>
               <li className="flex items-start">
@@ -70,7 +76,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="text-center text-white-400 text-sm font-inter">
-          <p>&copy; {currentYear} FLASH CELESTIANCE. Created with 🚀 Alfaruq Asri, S.Pd. All rights reserved.</p>
+          <p>&copy; {currentYear} Flash Celestiance. Created with 🚀 Alfaruq Asri, S.Pd. All rights reserved.</p>
           <p className="mt-2">
             <a href="#" className="text-white hover:text-emerald-400 transition-colors duration-300 mr-4">Kebijakan Privasi</a>
             <a href="#" className="text-white hover:text-emerald-400 transition-colors duration-300">Syarat dan Ketentuan</a>

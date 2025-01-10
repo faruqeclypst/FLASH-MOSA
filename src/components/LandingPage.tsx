@@ -123,28 +123,86 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
         <div className="z-10 text-center text-white">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-screen">
             <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-bold mb-8 font-antistar relative inline-block overflow-visible">
-              <span className="absolute -inset-4 overflow-hidden">
-                {[...Array(8)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="absolute w-1 h-1 bg-purple-400/50 rounded-full animate-magic-particle"
+              {flashEvent?.titleType === 'image' && flashEvent?.titleImage ? (
+                <motion.div 
+                  className="relative z-10"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                  <motion.img 
+                    src={flashEvent.titleImage} 
+                    alt={flashEvent.title || 'FLASH CELESTIANCE'}
+                    className="relative w-auto h-24 md:h-32 lg:h-48 xl:h-56 mx-auto"
                     style={{
-                      left: `${Math.random() * 100}%`,
-                      top: '100%',
-                      animationDelay: `${i * 0.3}s`,
-                      animationDuration: '2s'
+                      filter: `
+                        drop-shadow(0 -8px 10px rgba(16, 185, 129, 0.4))
+                        drop-shadow(0 8px 10px rgba(147, 51, 234, 0.4))
+                        drop-shadow(0 0 3px rgba(255, 255, 255, 0.3))
+                      `
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{
+                      opacity: 1,
+                      filter: [
+                        `
+                          drop-shadow(0 -8px 10px rgba(16, 185, 129, 0.4))
+                          drop-shadow(0 8px 10px rgba(147, 51, 234, 0.4))
+                          drop-shadow(0 0 3px rgba(255, 255, 255, 0.3))
+                        `,
+                        `
+                          drop-shadow(0 -8px 10px rgba(16, 185, 129, 0.2))
+                          drop-shadow(0 8px 10px rgba(147, 51, 234, 0.2))
+                          drop-shadow(0 0 3px rgba(255, 255, 255, 0.2))
+                        `,
+                        `
+                          drop-shadow(0 -8px 10px rgba(16, 185, 129, 0.4))
+                          drop-shadow(0 8px 10px rgba(147, 51, 234, 0.4))
+                          drop-shadow(0 0 3px rgba(255, 255, 255, 0.3))
+                        `
+                      ],
+                      transition: {
+                        opacity: { duration: 0.5 },
+                        filter: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }
+                      }
+                    }}
+                    whileHover={{
+                      filter: `
+                        drop-shadow(0 -12px 12px rgba(16, 185, 129, 0.5))
+                        drop-shadow(0 12px 12px rgba(147, 51, 234, 0.5))
+                        drop-shadow(0 0 4px rgba(255, 255, 255, 0.4))
+                      `,
+                      transition: { duration: 0.3 }
                     }}
                   />
-                ))}
-              </span>
-
-              <span className="absolute inset-0 blur-md bg-gradient-to-r from-emerald-500 via-purple-500 to-emerald-500 opacity-40 animate-pulse"></span>
-
-              <span className="relative bg-gradient-to-r from-emerald-200 via-purple-100 to-emerald-200 text-transparent bg-clip-text block">
-                <span className="block leading-[1.4] tracking-wide">
-                  {flashEvent?.title || 'FLASH CELESTIANCE'}
-                </span>
-              </span>
+                </motion.div>
+              ) : (
+                <>
+                  <span className="absolute -inset-4 overflow-hidden">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute w-1 h-1 bg-purple-400/50 rounded-full animate-magic-particle"
+                        style={{
+                          left: `${Math.random() * 100}%`,
+                          top: '100%',
+                          animationDelay: `${i * 0.3}s`,
+                          animationDuration: '2s'
+                        }}
+                      />
+                    ))}
+                  </span>
+                  <span className="absolute inset-0 blur-md bg-gradient-to-r from-emerald-500 via-purple-500 to-emerald-500 opacity-40 animate-pulse"></span>
+                  <span className="relative bg-gradient-to-r from-emerald-200 via-purple-100 to-emerald-200 text-transparent bg-clip-text block">
+                    <span className="block leading-[1.4] tracking-wide">
+                      {flashEvent?.title || 'FLASH CELESTIANCE'}
+                    </span>
+                  </span>
+                </>
+              )}
             </h1>
             {flashEvent?.eventDate && <Countdown eventDate={flashEvent.eventDate} />}
             <motion.div
