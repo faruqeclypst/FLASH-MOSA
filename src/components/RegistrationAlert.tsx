@@ -1,13 +1,13 @@
 //src/components/RegistrationAlert.tsx
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Registration } from '../types';
+import { Registration, FlashEvent, Competition, SchoolCategory } from '../types';
 import { Download, MessageCircle, X } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { FlashEvent } from '../types';
 import { useFirebase } from '../hooks/useFirebase';
 import LogoImage from '../assets/img/logo.png';
 import MosaLogo from '../assets/img/mosa.png';
+import { FaWhatsapp } from 'react-icons/fa';
 
 interface RegistrationAlertProps {
   isOpen: boolean;
@@ -260,6 +260,11 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
     doc.save(`Bukti_Pendaftaran_${registrationData.registrationCode}.pdf`);
   };
 
+  const getWhatsAppUrl = (competition: Competition, category: SchoolCategory) => {
+    const group = competition.whatsappGroups?.find((g: { category: SchoolCategory; url: string }) => g.category === category);
+    return group?.url || '';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -50 }}
@@ -346,34 +351,45 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <div className="grid grid-cols-3 gap-4">
+            {/* Buttons Row */}
+            <div className="grid grid-cols-3 gap-3">
+              {/* Download Button */}
               <button
                 onClick={generatePDF}
-                className="bg-indigo-600 text-white py-3 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
+                className="inline-flex items-center justify-center px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-lg shadow-blue-100 font-medium text-sm group"
               >
-                <Download size={20} />
+                <Download className="w-4 h-4 mr-1.5 transition-transform group-hover:scale-110" />
                 <span>Unduh Bukti</span>
               </button>
-              
-              {competition?.whatsappUrl && (
+
+              {/* WhatsApp Button */}
+              {competition && competition.whatsappGroups && competition.whatsappGroups.length > 0 && (
                 <a
-                  href={competition.whatsappUrl}
+                  href={getWhatsAppUrl(competition, registrationData.schoolCategory)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-green-600 text-white py-3 px-6 rounded-xl hover:bg-green-600 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-green-100"
+                  className="inline-flex items-center justify-center px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all duration-300 shadow-lg shadow-emerald-100 font-medium text-sm group"
                 >
-                  <MessageCircle size={20} />
-                  <span>Grup WA</span>
+                  <FaWhatsapp className="w-4 h-4 mr-1.5 transition-transform group-hover:scale-110" />
+                  <span>Join WA</span>
                 </a>
               )}
 
+              {/* Close Button */}
               <button
                 onClick={onClose}
-                className="bg-rose-600 text-white py-3 px-6 rounded-xl hover:bg-rose-700 transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-rose-100"
+                className="inline-flex items-center justify-center px-4 py-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-300 shadow-lg shadow-rose-100 font-medium text-sm group"
               >
-                <X size={20} />
+                <X className="w-4 h-4 mr-1.5 transition-transform group-hover:scale-110" />
                 <span>Tutup</span>
               </button>
+            </div>
+
+            {/* Tips */}
+            <div className="text-center">
+              <p className="text-xs text-gray-500">
+                Simpan bukti pendaftaran dan bergabung ke grup WhatsApp untuk informasi selanjutnya
+              </p>
             </div>
           </div>
         </div>

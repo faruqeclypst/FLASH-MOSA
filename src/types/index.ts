@@ -42,7 +42,10 @@ export interface Competition {
     number: string;
     holder: string;
   };
-  whatsappUrl?: string;
+  whatsappGroups?: {
+    category: SchoolCategory;
+    url: string;
+  }[];
 }
 
 export interface Registration {

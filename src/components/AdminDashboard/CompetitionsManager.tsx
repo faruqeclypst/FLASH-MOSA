@@ -43,6 +43,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [competitionToDelete, setCompetitionToDelete] = useState<number | null>(null);
+  const [tempCompetitions, setTempCompetitions] = useState<Competition[]>([]);
 
   const schoolCategories: SchoolCategory[] = ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'];
 
@@ -58,9 +59,26 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
     };
   }, [showDetailModal, isDeleteModalOpen]);
 
+  useEffect(() => {
+    setTempCompetitions(competitions);
+  }, [competitions]);
+
+  const handleTempCompetitionChange = (index: number, field: keyof Competition | 'competition', value: any) => {
+    const updatedCompetitions = [...tempCompetitions];
+    if (field === 'competition') {
+      updatedCompetitions[index] = value;
+    } else {
+      updatedCompetitions[index] = {
+        ...updatedCompetitions[index],
+        [field]: value
+      };
+    }
+    setTempCompetitions(updatedCompetitions);
+  };
+
   const handleSave = async () => {
     if (selectedCompetition !== null) {
-      const competition = competitions[selectedCompetition];
+      const competition = tempCompetitions[selectedCompetition];
       console.log('Saving competition:', competition);
       if (!competition.name?.trim()) {
         showAlert('error', 'Nama kompetisi tidak boleh kosong');
@@ -79,24 +97,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
 
       try {
         setIsSaving(true);
-        const updatedCompetition = {
-          ...competition,
-          name: competition.name,
-          type: competition.type,
-          teamSize: competition.teamSize,
-          categories: competition.categories,
-          description: competition.description,
-          rules: competition.rules,
-          requirePassportPhoto: competition.requirePassportPhoto || false,
-          documentUrl: competition.documentUrl
-        };
-
-        for (const [key, value] of Object.entries(updatedCompetition)) {
-          if (key in competition) {
-            await handleCompetitionChange(selectedCompetition, key as keyof Competition, value);
-          }
-        }
-        
+        await handleCompetitionChange(selectedCompetition, 'competition', competition);
         showAlert('success', 'Kompetisi berhasil diperbarui');
         setShowDetailModal(false);
         setSelectedCompetition(null);
@@ -117,6 +118,28 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
       console.error('Error adding competition:', error);
       showAlert('error', 'Gagal menambahkan kompetisi');
     }
+  };
+
+  const handleTempAddRule = (competitionIndex: number) => {
+    const updatedCompetitions = [...tempCompetitions];
+    const currentRules = updatedCompetitions[competitionIndex].rules || [];
+    updatedCompetitions[competitionIndex].rules = [...currentRules, ''];
+    setTempCompetitions(updatedCompetitions);
+  };
+
+  const handleTempRuleChange = (competitionIndex: number, ruleIndex: number, value: string) => {
+    const updatedCompetitions = [...tempCompetitions];
+    if (!updatedCompetitions[competitionIndex].rules) {
+      updatedCompetitions[competitionIndex].rules = [];
+    }
+    updatedCompetitions[competitionIndex].rules[ruleIndex] = value;
+    setTempCompetitions(updatedCompetitions);
+  };
+
+  const handleTempRemoveRule = (competitionIndex: number, ruleIndex: number) => {
+    const updatedCompetitions = [...tempCompetitions];
+    updatedCompetitions[competitionIndex].rules = updatedCompetitions[competitionIndex].rules.filter((_, i) => i !== ruleIndex);
+    setTempCompetitions(updatedCompetitions);
   };
 
   return (
@@ -145,7 +168,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
       {/* Competitions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Competition Cards */}
-        {competitions.map((competition, index) => (
+        {tempCompetitions.map((competition, index) => (
           <div 
             key={index}
             className="group bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
@@ -198,10 +221,10 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={competition.isActive}
+                    checked={tempCompetitions[index].isActive}
                     onChange={(e) => {
                       e.stopPropagation();
-                      handleCompetitionChange(index, 'isActive', e.target.checked);
+                      handleTempCompetitionChange(index, 'isActive', e.target.checked);
                     }}
                     className="sr-only peer"
                   />
@@ -250,7 +273,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
         </button>
 
         {/* Empty State */}
-        {competitions.length === 0 && (
+        {tempCompetitions.length === 0 && (
           <div className="col-span-full">
             <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
               <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -282,8 +305,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
           }
         }}
         itemName={
-          competitionToDelete !== null && competitions[competitionToDelete]
-            ? competitions[competitionToDelete].name || `Kompetisi ${competitionToDelete + 1}`
+          competitionToDelete !== null && tempCompetitions[competitionToDelete]
+            ? tempCompetitions[competitionToDelete].name || `Kompetisi ${competitionToDelete + 1}`
             : 'kompetisi ini'
         }
       />
@@ -294,7 +317,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
         onClose={() => setShowDetailModal(false)}
         size="xl"
       >
-        {selectedCompetition !== null && competitions[selectedCompetition] && (
+        {selectedCompetition !== null && tempCompetitions[selectedCompetition] && (
           <div className="relative">
             {/* Header Modal */}
             <div className="px-6 py-4 border-b">
@@ -329,9 +352,9 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         htmlFor="competition-icon"
                         className="block w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 hover:border-indigo-500 cursor-pointer transition-colors"
                       >
-                        {competitions[selectedCompetition].icon ? (
+                        {tempCompetitions[selectedCompetition].icon ? (
                           <img
-                            src={competitions[selectedCompetition].icon}
+                            src={tempCompetitions[selectedCompetition].icon}
                             alt="Competition Icon"
                             className="w-full h-full object-cover rounded-lg"
                           />
@@ -350,8 +373,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       </label>
                       <input
                         type="text"
-                        value={competitions[selectedCompetition].name}
-                        onChange={(e) => handleCompetitionChange(selectedCompetition, 'name', e.target.value)}
+                        value={tempCompetitions[selectedCompetition].name}
+                        onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'name', e.target.value)}
                         className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="Masukkan nama kompetisi"
                       />
@@ -362,8 +385,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         Deskripsi
                       </label>
                       <textarea
-                        value={competitions[selectedCompetition].description}
-                        onChange={(e) => handleCompetitionChange(selectedCompetition, 'description', e.target.value)}
+                        value={tempCompetitions[selectedCompetition].description}
+                        onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'description', e.target.value)}
                         className="w-full p-2.5 border rounded-lg h-32 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         placeholder="Deskripsikan kompetisi ini..."
                       />
@@ -379,9 +402,9 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       <div className="grid grid-cols-2 gap-3">
                         <button
                           type="button"
-                          onClick={() => handleCompetitionChange(selectedCompetition, 'type', 'single')}
+                          onClick={() => handleTempCompetitionChange(selectedCompetition, 'type', 'single')}
                           className={`p-3 border rounded-lg flex items-center gap-2 ${
-                            competitions[selectedCompetition].type === 'single'
+                            tempCompetitions[selectedCompetition].type === 'single'
                               ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
@@ -391,9 +414,9 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleCompetitionChange(selectedCompetition, 'type', 'team')}
+                          onClick={() => handleTempCompetitionChange(selectedCompetition, 'type', 'team')}
                           className={`p-3 border rounded-lg flex items-center gap-2 ${
-                            competitions[selectedCompetition].type === 'team'
+                            tempCompetitions[selectedCompetition].type === 'team'
                               ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
@@ -404,7 +427,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       </div>
                     </div>
 
-                    {competitions[selectedCompetition].type === 'team' && (
+                    {tempCompetitions[selectedCompetition].type === 'team' && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Jumlah Anggota Tim <span className="text-red-500">*</span>
@@ -412,8 +435,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         <input
                           type="number"
                           min="2"
-                          value={competitions[selectedCompetition].teamSize || ''}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'teamSize', parseInt(e.target.value))}
+                          value={tempCompetitions[selectedCompetition].teamSize || ''}
+                          onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'teamSize', parseInt(e.target.value))}
                           className="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           placeholder="Min. 2 orang"
                         />
@@ -431,15 +454,15 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         <button
                           key={category}
                           onClick={() => {
-                            const currentCategories = competitions[selectedCompetition].categories || [];
+                            const currentCategories = tempCompetitions[selectedCompetition].categories || [];
                             const newCategories = currentCategories.includes(category)
                               ? currentCategories.filter(c => c !== category)
                               : [...currentCategories, category];
-                            handleCompetitionChange(selectedCompetition, 'categories', newCategories);
+                            handleTempCompetitionChange(selectedCompetition, 'categories', newCategories);
                           }}
                           className={classNames(
                             'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                            competitions[selectedCompetition].categories?.includes(category)
+                            tempCompetitions[selectedCompetition].categories?.includes(category)
                               ? 'bg-indigo-500 text-white'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                           )}
@@ -459,10 +482,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         Aturan Kompetisi
                       </label>
                       <button
-                        onClick={() => {
-                          const currentRules = competitions[selectedCompetition].rules || [];
-                          handleCompetitionChange(selectedCompetition, 'rules', [...currentRules, '']);
-                        }}
+                        onClick={() => handleTempAddRule(selectedCompetition)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                       >
                         <Plus className="w-4 h-4" />
@@ -472,7 +492,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                     
                     {/* Rules Container */}
                     <div className="bg-gray-50 rounded-lg border border-gray-200">
-                      {(!competitions[selectedCompetition].rules || competitions[selectedCompetition].rules.length === 0) ? (
+                      {(!tempCompetitions[selectedCompetition].rules || tempCompetitions[selectedCompetition].rules.length === 0) ? (
                         <div className="p-4 text-center">
                           <FileText className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-500">
@@ -481,7 +501,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         </div>
                       ) : (
                         <div className="divide-y divide-gray-200">
-                          {competitions[selectedCompetition].rules?.map((rule, ruleIndex) => (
+                          {tempCompetitions[selectedCompetition].rules?.map((rule, ruleIndex) => (
                             <div 
                               key={ruleIndex} 
                               className="p-3 flex items-start gap-3 group hover:bg-gray-100 transition-colors"
@@ -493,13 +513,13 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                                 <input
                                   type="text"
                                   value={rule}
-                                  onChange={(e) => handleRuleChange(selectedCompetition, ruleIndex, e.target.value)}
+                                  onChange={(e) => handleTempRuleChange(selectedCompetition, ruleIndex, e.target.value)}
                                   className="w-full bg-transparent border-0 p-0 focus:ring-0 text-gray-700 placeholder-gray-400"
                                   placeholder="Masukkan aturan kompetisi..."
                                 />
                               </div>
                               <button
-                                onClick={() => handleRemoveRule(selectedCompetition, ruleIndex)}
+                                onClick={() => handleTempRemoveRule(selectedCompetition, ruleIndex)}
                                 className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 rounded transition-all"
                                 title="Hapus aturan"
                               >
@@ -511,7 +531,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       )}
                       
                       {/* Quick Tips */}
-                      {competitions[selectedCompetition].rules?.length > 0 && (
+                      {tempCompetitions[selectedCompetition].rules?.length > 0 && (
                         <div className="px-4 py-2 bg-indigo-50 rounded-b-lg border-t border-indigo-100">
                           <p className="text-xs text-indigo-600 flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
@@ -531,8 +551,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
                           type="url"
-                          value={competitions[selectedCompetition].documentUrl || ''}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'documentUrl', e.target.value)}
+                          value={tempCompetitions[selectedCompetition].documentUrl || ''}
+                          onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'documentUrl', e.target.value)}
                           className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           placeholder="https://drive.google.com/file/..."
                         />
@@ -540,18 +560,40 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Link Grup WhatsApp
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Link Grup WhatsApp per Kategori
                       </label>
-                      <div className="relative">
-                        <FaWhatsapp className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <div className="space-y-3">
+                        {tempCompetitions[selectedCompetition].categories?.map((category) => (
+                          <div key={category} className="relative">
+                            <div className="flex items-center gap-2 mb-1">
+                              <FaWhatsapp className="text-green-600" size={16} />
+                              <span className="text-sm font-medium text-gray-700">{category}</span>
+                            </div>
                         <input
                           type="url"
-                          value={competitions[selectedCompetition].whatsappUrl || ''}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'whatsappUrl', e.target.value)}
+                              value={tempCompetitions[selectedCompetition].whatsappGroups?.find(g => g.category === category)?.url || ''}
+                              onChange={(e) => {
+                                const currentGroups = tempCompetitions[selectedCompetition].whatsappGroups || [];
+                                const updatedGroups = currentGroups.filter(g => g.category !== category);
+                                if (e.target.value) {
+                                  updatedGroups.push({
+                                    category,
+                                    url: e.target.value
+                                  });
+                                }
+                                handleTempCompetitionChange(selectedCompetition, 'whatsappGroups', updatedGroups);
+                              }}
                           className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           placeholder="https://chat.whatsapp.com/..."
                         />
+                          </div>
+                        ))}
+                        {!tempCompetitions[selectedCompetition].categories?.length && (
+                          <p className="text-sm text-gray-500 italic">
+                            Pilih kategori terlebih dahulu untuk menambahkan link grup WhatsApp
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -563,8 +605,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                         <input
                           type="date"
-                          value={competitions[selectedCompetition].eventDate?.split('T')[0] || ''}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'eventDate', e.target.value)}
+                          value={tempCompetitions[selectedCompetition].eventDate?.split('T')[0] || ''}
+                          onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'eventDate', e.target.value)}
                           className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                         />
                       </div>
@@ -574,8 +616,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                       <label className="relative inline-flex items-center cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={competitions[selectedCompetition].requirePassportPhoto || false}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'requirePassportPhoto', e.target.checked)}
+                          checked={tempCompetitions[selectedCompetition].requirePassportPhoto || false}
+                          onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'requirePassportPhoto', e.target.checked)}
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
@@ -595,8 +637,8 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                         </span>
                         <input
                           type="number"
-                          value={competitions[selectedCompetition].registrationFee || ''}
-                          onChange={(e) => handleCompetitionChange(selectedCompetition, 'registrationFee', parseInt(e.target.value))}
+                          value={tempCompetitions[selectedCompetition].registrationFee || ''}
+                          onChange={(e) => handleTempCompetitionChange(selectedCompetition, 'registrationFee', parseInt(e.target.value))}
                           className="w-full pl-12 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                           placeholder="0"
                           min="0"
@@ -605,7 +647,7 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                     </div>
 
                     {/* Bank Account Settings */}
-                    {competitions[selectedCompetition].registrationFee > 0 && (
+                    {tempCompetitions[selectedCompetition].registrationFee > 0 && (
                       <div className="p-4 bg-gray-50 rounded-lg space-y-4">
                         <div className="flex items-center gap-3 mb-3">
                           <img 
@@ -626,13 +668,13 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                             </label>
                             <input
                               type="text"
-                              value={competitions[selectedCompetition].bankAccount?.number || ''}
+                              value={tempCompetitions[selectedCompetition].bankAccount?.number || ''}
                               onChange={(e) => {
                                 const bankAccount = {
-                                  ...competitions[selectedCompetition].bankAccount,
+                                  ...tempCompetitions[selectedCompetition].bankAccount,
                                   number: e.target.value
                                 };
-                                handleCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
+                                handleTempCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
                               }}
                               className="w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                               placeholder="Masukkan nomor rekening BSI"
@@ -645,13 +687,13 @@ const CompetitionsManager: React.FC<CompetitionsManagerProps> = ({
                             </label>
                             <input
                               type="text"
-                              value={competitions[selectedCompetition].bankAccount?.holder || ''}
+                              value={tempCompetitions[selectedCompetition].bankAccount?.holder || ''}
                               onChange={(e) => {
                                 const bankAccount = {
-                                  ...competitions[selectedCompetition].bankAccount,
+                                  ...tempCompetitions[selectedCompetition].bankAccount,
                                   holder: e.target.value
                                 };
-                                handleCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
+                                handleTempCompetitionChange(selectedCompetition, 'bankAccount', bankAccount);
                               }}
                               className="w-full px-3 py-2 text-base border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                               placeholder="Nama pemilik rekening"

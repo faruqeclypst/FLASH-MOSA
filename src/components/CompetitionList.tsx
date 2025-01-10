@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, useAnimation, AnimatePresence } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Competition, SchoolCategory } from '../types';
@@ -14,7 +14,8 @@ import {
   FaExternalLinkAlt,
   FaImage,
   FaPenAlt,
-  FaWhatsapp
+  FaWhatsapp,
+  FaChevronDown
 } from 'react-icons/fa';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -58,6 +59,7 @@ const CompetitionAccordion: React.FC<{
   
   // Add state for modal
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showWhatsAppDropdown, setShowWhatsAppDropdown] = useState<boolean>(false);
 
   // Modify handleRegister
   const handleRegister = (e: React.MouseEvent) => {
@@ -91,6 +93,26 @@ const CompetitionAccordion: React.FC<{
     });
     window.dispatchEvent(event);
   };
+
+  // Tambahkan useEffect dan useRef untuk click outside handler
+  const [dropdownStates, setDropdownStates] = useState<{ [key: string]: boolean }>({});
+  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
+  // Add click outside handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      Object.entries(dropdownRefs.current).forEach(([key, ref]) => {
+        if (ref && !ref.contains(event.target as Node)) {
+          setDropdownStates(prev => ({ ...prev, [key]: false }));
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
@@ -232,31 +254,73 @@ const CompetitionAccordion: React.FC<{
                 </div>
 
                 {/* Document and Logo Buttons */}
-                <div className="flex flex-wrap justify-center w-full gap-3">
+                <div className="flex flex-wrap w-full gap-3">
+                  <div className="flex-1 min-w-[140px]">
                   {competition.documentUrl && (
                     <a
                       href={competition.documentUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 hover:text-red-800 transition-all duration-300"
+                        className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 hover:text-red-800 transition-all duration-300"
                     >
                       <FaFilePdf className="mr-2" />
                       Juknis Lomba
                     </a>
                   )}
+                  </div>
                   
                   {/* WhatsApp Button */}
-                  {competition.whatsappUrl && (
-                    <a
-                      href={competition.whatsappUrl}
+                  <div className="flex-1 min-w-[140px]">
+                    {competition.whatsappGroups && competition.whatsappGroups.length > 0 && (
+                      <div 
+                        className="relative w-full"
+                        ref={el => dropdownRefs.current[competition.name] = el}
+                      >
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDropdownStates(prev => ({
+                              ...prev,
+                              [competition.name]: !prev[competition.name]
+                            }));
+                          }}
+                          className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-all duration-300"
+                        >
+                          <FaWhatsapp className="mr-2" />
+                          {competition.whatsappGroups.length === 1 ? (
+                            'Grup WhatsApp'
+                          ) : (
+                            <>
+                              Grup WA
+                              <FaChevronDown className={`ml-2 transition-transform duration-200 ${
+                                dropdownStates[competition.name] ? 'rotate-180' : ''
+                              }`} size={12} />
+                            </>
+                          )}
+                        </button>
+
+                        {/* Dropdown Menu */}
+                        {dropdownStates[competition.name] && competition.whatsappGroups.length > 1 && (
+                          <div className="absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1">
+                            {competition.whatsappGroups.map((group) => (
+                              <a
+                                key={group.category}
+                                href={group.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-colors duration-300"
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <FaWhatsapp className="mr-2" />
-                      Grup WhatsApp
+                                <FaWhatsapp className="text-green-600" />
+                                <span>Grup {group.category}</span>
                     </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                   )}
+                  </div>
                 </div>
 
                 {/* Register Button */}
@@ -264,7 +328,7 @@ const CompetitionAccordion: React.FC<{
                   <div className="mt-4">
                     <motion.button
                       onClick={handleRegister}
-                      className="w-full inline-flex items-center justify-center px-4 py-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors duration-300"
+                      className="w-full inline-flex items-center justify-center px-4 py-3.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-all duration-300 shadow-lg shadow-green-200 font-medium"
                       animate={{
                         x: [0, -5, 5, -5, 5, 0],
                         transition: {
@@ -274,8 +338,8 @@ const CompetitionAccordion: React.FC<{
                         }
                       }}
                     >
-                      <FaPenAlt className="mr-2" />
-                      <span className="font-normal">Daftar Sekarang!</span>
+                      <FaPenAlt className="mr-2 text-lg" />
+                      <span className="font-normal text-base">Daftar Sekarang!</span>
                     </motion.button>
                   </div>
                 )}
