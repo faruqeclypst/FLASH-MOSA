@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import CategorySelectionModal from './CategorySelectionModal';
 import BSILogo from '../assets/img/BSI.png';
+import { CheckCircle } from 'lucide-react';
 
 // Komponen untuk tampilan accordion
 const CompetitionAccordion: React.FC<{ 
@@ -120,7 +121,9 @@ const CompetitionAccordion: React.FC<{
         <div 
           onClick={onClick}
           className={`cursor-pointer transition-all duration-300 ${
-            isOpen ? 'bg-blue-50' : 'hover:bg-gray-50'
+            isOpen 
+              ? 'bg-gradient-to-r from-emerald-50 to-purple-50' 
+              : 'hover:bg-gradient-to-r hover:from-emerald-50 hover:to-purple-50'
           }`}
         >
           <div className="flex items-center p-4 sm:p-6">
@@ -276,50 +279,61 @@ const CompetitionAccordion: React.FC<{
                         className="relative w-full"
                         ref={el => dropdownRefs.current[competition.name] = el}
                       >
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setDropdownStates(prev => ({
-                              ...prev,
-                              [competition.name]: !prev[competition.name]
-                            }));
-                          }}
-                          className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-all duration-300"
-                        >
-                          <FaWhatsapp className="mr-2" />
-                          {competition.whatsappGroups.length === 1 ? (
-                            'Grup WhatsApp'
-                          ) : (
-                            <>
+                        {competition.whatsappGroups.length === 1 ? (
+                          // Single WhatsApp group - direct link
+                          <a
+                            href={competition.whatsappGroups[0].url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-all duration-300"
+                          >
+                            <FaWhatsapp className="mr-2" />
+                            Grup WA
+                          </a>
+                        ) : (
+                          // Multiple WhatsApp groups - dropdown
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setDropdownStates(prev => ({
+                                  ...prev,
+                                  [competition.name]: !prev[competition.name]
+                                }));
+                              }}
+                              className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 hover:text-green-800 transition-all duration-300"
+                            >
+                              <FaWhatsapp className="mr-2" />
                               Grup WA
                               <FaChevronDown className={`ml-2 transition-transform duration-200 ${
                                 dropdownStates[competition.name] ? 'rotate-180' : ''
                               }`} size={12} />
-                            </>
-                          )}
-                        </button>
+                            </button>
 
-                        {/* Dropdown Menu */}
-                        {dropdownStates[competition.name] && competition.whatsappGroups.length > 1 && (
-                          <div className="absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1">
-                            {competition.whatsappGroups.map((group) => (
-                              <a
-                                key={group.category}
-                                href={group.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                                <FaWhatsapp className="text-green-600" />
-                                <span>Grup {group.category}</span>
-                    </a>
-                            ))}
-                          </div>
+                            {/* Dropdown Menu */}
+                            {dropdownStates[competition.name] && (
+                              <div className="absolute z-10 mt-2 w-full bg-white rounded-lg shadow-lg border border-gray-100 py-1">
+                                {competition.whatsappGroups.map((group) => (
+                                  <a
+                                    key={group.category}
+                                    href={group.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                  >
+                                    <FaWhatsapp className="text-green-600" />
+                                    <span>Grup {group.category}</span>
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
-                  )}
+                    )}
                   </div>
                 </div>
 
@@ -350,7 +364,7 @@ const CompetitionAccordion: React.FC<{
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     {competition.rules?.map((rule, idx) => (
                       <div key={idx} className="flex items-start space-x-3">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center">
                           <span className="text-sm font-medium text-green-800">{idx + 1}</span>
                         </div>
                         <p className="text-sm text-gray-600">{rule}</p>
@@ -413,10 +427,51 @@ const CompetitionList: React.FC = () => {
     triggerOnce: true,
     threshold: 0.1,
   });
+  const loadMoreRef = useRef(null);
   const controls = useAnimation();
   const [openCompetition, setOpenCompetition] = useState<number | null>(null);
   const [displayCount, setDisplayCount] = useState(4);
-  const isMobile = window.innerWidth < 768; // Check if mobile
+  const isMobile = window.innerWidth < 768;
+  // Tambahkan state untuk sorted competitions
+  const [sortedCompetitions, setSortedCompetitions] = useState<Competition[]>([]);
+
+  // Pindahkan sorting ke dalam useEffect
+  useEffect(() => {
+    if (flashEvent?.competitions) {
+      const sorted = [...flashEvent.competitions].sort((a, b) => 
+        a.name.localeCompare(b.name)
+      );
+      setSortedCompetitions(sorted);
+    }
+  }, [flashEvent?.competitions]);
+
+  // Tambahkan useEffect untuk Intersection Observer load more
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '20px',
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const [entry] = entries;
+      if (entry.isIntersecting && isMobile && sortedCompetitions?.length > displayCount) {
+        setTimeout(() => {
+          setDisplayCount(prev => Math.min(prev + 2, sortedCompetitions.length));
+        }, 300);
+      }
+    }, options);
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (loadMoreRef.current) {
+        observer.unobserve(loadMoreRef.current);
+      }
+    };
+  }, [displayCount, isMobile, sortedCompetitions.length]);
 
   useEffect(() => {
     if (inView) {
@@ -426,10 +481,13 @@ const CompetitionList: React.FC = () => {
 
   if (!flashEvent?.competitions) return null;
 
-  // Sort competitions alphabetically
-  const sortedCompetitions = [...flashEvent.competitions].sort((a, b) => 
-    a.name.localeCompare(b.name)
-  );
+  // Gunakan sortedCompetitions dari state
+  const displayedCompetitions = sortedCompetitions.slice(0, isMobile ? displayCount : sortedCompetitions.length);
+  const hasMore = isMobile && sortedCompetitions.length > displayCount;
+
+  // Update pembagian kolom
+  const leftCompetitions = displayedCompetitions.filter((_, i) => i % 2 === 0);
+  const rightCompetitions = displayedCompetitions.filter((_, i) => i % 2 === 1);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -446,31 +504,6 @@ const CompetitionList: React.FC = () => {
       y: 0,
       transition: { duration: 0.5 }
     }
-  };
-
-  // Update the displayedCompetitions to use sortedCompetitions
-  const displayedCompetitions = isMobile ? 
-    sortedCompetitions.slice(0, displayCount) :
-    sortedCompetitions;
-
-  const hasMore = isMobile && flashEvent.competitions.length > displayCount;
-
-  // Update the column splits to use sortedCompetitions
-  const leftCompetitions = isMobile ?
-    displayedCompetitions.filter((_, i) => i % 2 === 0) :
-    sortedCompetitions.filter((_, i) => i % 2 === 0);
-
-  const rightCompetitions = isMobile ? 
-    displayedCompetitions.filter((_, i) => i % 2 === 1) :
-    sortedCompetitions.filter((_, i) => i % 2 === 1);
-
-  const handleLoadMore = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const currentScrollPosition = window.scrollY;
-    setDisplayCount(prev => prev + 4);
-    setTimeout(() => {
-      window.scrollTo(0, currentScrollPosition);
-    }, 0);
   };
 
   return (
@@ -492,55 +525,78 @@ const CompetitionList: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Two Column Layout */}
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Left Column */}
-          <div className="space-y-4">
-            {leftCompetitions.map((competition, index) => (
-              <motion.div 
-                key={`left-${competition.name}-${index}`} 
-                variants={itemVariants}
-                initial="hidden"
-                animate="visible"
-              >
-                <CompetitionAccordion
-                  competition={competition}
-                  isOpen={openCompetition === index * 2}
-                  onClick={(e) => {
-                    // Prevent default behavior
-                    e.preventDefault();
-                    // Store current scroll position
-                    const currentPosition = window.scrollY;
-                    // Toggle accordion
-                    setOpenCompetition(openCompetition === index * 2 ? null : index * 2);
-                    // Restore scroll position after state update
-                    setTimeout(() => {
-                      window.scrollTo(0, currentPosition);
-                    }, 0);
-                  }}
-                  registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
-                  flashEvent={flashEvent}
-                />
-              </motion.div>
-            ))}
+        {/* Layout yang diperbarui */}
+        <div className="max-w-7xl mx-auto">
+          {/* Desktop: Two Column Layout */}
+          <div className="hidden md:grid md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              {leftCompetitions.map((competition, index) => (
+                <motion.div 
+                  key={`left-${competition.name}-${index}`} 
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <CompetitionAccordion
+                    competition={competition}
+                    isOpen={openCompetition === index * 2}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const currentPosition = window.scrollY;
+                      setOpenCompetition(openCompetition === index * 2 ? null : index * 2);
+                      setTimeout(() => {
+                        window.scrollTo(0, currentPosition);
+                      }, 0);
+                    }}
+                    registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
+                    flashEvent={flashEvent}
+                  />
+                </motion.div>
+              ))}
+            </div>
+            <div className="space-y-4">
+              {rightCompetitions.map((competition, index) => (
+                <motion.div 
+                  key={`right-${competition.name}-${index}`} 
+                  variants={itemVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <CompetitionAccordion
+                    competition={competition}
+                    isOpen={openCompetition === index * 2 + 1}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const currentPosition = window.scrollY;
+                      setOpenCompetition(openCompetition === index * 2 + 1 ? null : index * 2 + 1);
+                      setTimeout(() => {
+                        window.scrollTo(0, currentPosition);
+                      }, 0);
+                    }}
+                    registrationPeriod={flashEvent?.registrationPeriod || { startDate: '', endDate: '' }}
+                    flashEvent={flashEvent}
+                  />
+                </motion.div>
+              ))}
+            </div>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-4">
-            {rightCompetitions.map((competition, index) => (
+          {/* Mobile: Single Column Layout */}
+          <div className="md:hidden space-y-4">
+            {displayedCompetitions.map((competition, index) => (
               <motion.div 
-                key={`right-${competition.name}-${index}`} 
+                key={`mobile-${competition.name}-${index}`} 
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
               >
                 <CompetitionAccordion
                   competition={competition}
-                  isOpen={openCompetition === index * 2 + 1}
+                  isOpen={openCompetition === index}
                   onClick={(e) => {
                     e.preventDefault();
                     const currentPosition = window.scrollY;
-                    setOpenCompetition(openCompetition === index * 2 + 1 ? null : index * 2 + 1);
+                    setOpenCompetition(openCompetition === index ? null : index);
                     setTimeout(() => {
                       window.scrollTo(0, currentPosition);
                     }, 0);
@@ -553,21 +609,21 @@ const CompetitionList: React.FC = () => {
           </div>
         </div>
 
-        {/* Load More Button - Mobile Only */}
-        {hasMore && (
+        {/* Load More Indicator - Mobile Only */}
+        {isMobile && hasMore && (
           <motion.div 
-            className="text-center mt-8 md:hidden px-4"
+            ref={loadMoreRef}
+            className="text-center mt-8 md:hidden"
             variants={itemVariants}
           >
-            <button
-              onClick={handleLoadMore}
-              className="w-full max-w-sm mx-auto flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors duration-300 shadow-sm"
-            >
-              <span className="text-sm font-medium">
-                Lihat {flashEvent.competitions.length - displayCount} Kompetisi Lainnya
-              </span>
-              <FaChevronRight className="text-gray-400 text-xs" />
-            </button>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Scroll untuk melihat lebih banyak
+            </p>
           </motion.div>
         )}
 
@@ -577,7 +633,10 @@ const CompetitionList: React.FC = () => {
             className="text-center mt-6 text-sm text-gray-500 md:hidden"
             variants={itemVariants}
           >
-            Semua kompetisi telah ditampilkan
+            <div className="flex items-center justify-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <span>Semua kompetisi telah ditampilkan</span>
+            </div>
           </motion.div>
         )}
 

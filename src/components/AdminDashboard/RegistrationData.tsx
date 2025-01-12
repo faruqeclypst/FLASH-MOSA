@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useFirebase } from '../../hooks/useFirebase';
-import { Registration } from '../../types';
+import { Registration, FlashEvent } from '../../types';
 import Table from '../ui/Table';
 import Modal from '../ui/Modal';
 import { format } from 'date-fns';
@@ -21,7 +21,8 @@ import {
   DocumentTextIcon,
   ChevronDownIcon,
   PhotoIcon,
-  ChatBubbleLeftIcon
+  ChatBubbleLeftIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import DeleteModal from './DeleteModal';
 import { showAlert } from '../ui/Alert';
@@ -42,6 +43,7 @@ interface ExcelRowData {
   birthDate: string;
   city: string;
   category: string;
+  school: string;
   status: string;
   registrationDate: string;
   ktsSuratAktif: string;
@@ -85,6 +87,7 @@ Info lebih lanjut silahkan hubungi panitia FLASH Celestiance! :)`;
 
 const RegistrationData: React.FC = () => {
   const { data: registrations, updateData, deleteData } = useFirebase<Record<string, Registration>>('registrations');
+  const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
   const [selectedRegistration, setSelectedRegistration] = useState<(Registration & { id: string }) | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -213,9 +216,11 @@ const RegistrationData: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Kode Pendaftaran</p>
-            <p className="font-mono font-medium text-gray-900">{registration.registrationCode}</p>
+          <div className="bg-emerald-50 px-4 py-2 rounded-lg border-2 border-emerald-100">
+            <p className="text-xs text-emerald-600 font-medium">Kode Pendaftaran</p>
+            <p className="font-mono text-lg font-bold text-emerald-800">
+              {registration.registrationCode}
+            </p>
           </div>
         </div>
 
@@ -312,6 +317,16 @@ const RegistrationData: React.FC = () => {
                 <p className="font-medium text-gray-900">{registration.city}</p>
               </div>
             </div>
+            {/* Tambahkan informasi sekolah jika kategori bukan UMUM */}
+            {registration.schoolCategory !== 'UMUM' && (
+              <div className="bg-white p-3 rounded-lg">
+                <p className="text-sm text-gray-500">Sekolah</p>
+                <div className="flex items-center gap-2">
+                  <AcademicCapIcon className="w-4 h-4 text-purple-500" />
+                  <p className="font-medium text-gray-900">{registration.school || '-'}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -467,6 +482,7 @@ const RegistrationData: React.FC = () => {
           { header: 'Jenis Kelamin', key: 'gender', width: 15 },
           { header: 'Tanggal Lahir', key: 'birthDate', width: 15 },
           { header: 'Kota', key: 'city', width: 20 },
+          { header: 'Sekolah', key: 'school', width: 30 },
           { header: 'Kompetisi', key: 'competition', width: 25 },
           { header: 'Kategori', key: 'category', width: 15 },
           { header: 'Status', key: 'status', width: 15 },
@@ -495,6 +511,7 @@ const RegistrationData: React.FC = () => {
                     item.gender === 'Perempuan' ? 'Perempuan' : '-',
             birthDate: item.birthDate ? format(new Date(item.birthDate), 'dd/MM/yyyy') : '-',
             city: item.city,
+            school: item.school || '-',
             competition: item.competition,
             category: item.schoolCategory,
             status: item.status === 'approved' ? 'Diterima' : 
@@ -1050,11 +1067,31 @@ const RegistrationData: React.FC = () => {
         <div className="relative">
           {/* Header Modal */}
           <div className="px-6 py-4 border-b">
-            <div className="flex justify-between items-center mt-2">
-              <h3 className="text-xl font-bold text-gray-900">Detail Pendaftaran</h3>
-              <div className="text-right">
-                <p className="text-xs text-gray-500">Kode Pendaftaran</p>
-                <p className="font-mono font-medium text-gray-900">{selectedRegistration?.registrationCode}</p>
+            <div className="flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">Detail Pendaftaran</h3>
+                  {selectedRegistration && (
+                    <p className="text-sm text-gray-500 mt-1">
+                      Biaya Pendaftaran: {' '}
+                      <span className="font-semibold text-emerald-800">
+                        {flashEvent?.competitions.find(c => c.name === selectedRegistration.competition)?.registrationFee 
+                          ? `Rp ${flashEvent?.competitions.find(c => c.name === selectedRegistration.competition)?.registrationFee?.toLocaleString('id-ID')}`
+                          : 'Gratis'
+                        }
+                      </span>
+                      <span className="text-xs text-gray-400 ml-1">
+                        {selectedRegistration.teamName ? '(per tim)' : '(per orang)'}
+                      </span>
+                    </p>
+                  )}
+                </div>
+                <div className="bg-emerald-50 px-4 py-2 rounded-lg border-2 border-emerald-100">
+                  <p className="text-xs text-emerald-600 font-medium">Kode Pendaftaran</p>
+                  <p className="font-mono text-lg font-bold text-emerald-800">
+                    {selectedRegistration?.registrationCode}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1234,6 +1271,16 @@ const RegistrationData: React.FC = () => {
                           <p className="font-medium text-gray-900">{selectedRegistration.city}</p>
                         </div>
                       </div>
+                      {/* Tambahkan informasi sekolah jika kategori bukan UMUM */}
+                      {selectedRegistration.schoolCategory !== 'UMUM' && (
+                        <div className="bg-white p-3 rounded-lg">
+                          <p className="text-sm text-gray-500">Sekolah</p>
+                          <div className="flex items-center gap-2">
+                            <AcademicCapIcon className="w-4 h-4 text-purple-500" />
+                            <p className="font-medium text-gray-900">{selectedRegistration.school || '-'}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

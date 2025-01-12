@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "registrations": {
+      ".read": "auth != null",
+      ".write": true,
+      "$registrationId": {
+        ".validate": "newData.hasChildren(['competition', 'registrationCode', 'registrationDate'])",
+        "competition": {
+          ".validate": "newData.isString()"
+        },
+        "registrationCode": {
+          ".validate": "newData.isString()"
+        },
+        "registrationDate": {
+          ".validate": "newData.isString()"
+        },
+        "status": {
+          ".validate": "newData.val() === 'pending' || newData.val() === 'approved' || newData.val() === 'rejected'"
+        }
+      }
+    },
+    "flashEvent": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['fullName'])",
+        "fullName": {
+          ".validate": "newData.isString() && newData.val().length > 0"
+        },
+        "updatedAt": {
+          ".validate": "newData.isString()"
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+} 

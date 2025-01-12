@@ -47,19 +47,19 @@ const Footer: React.FC = () => {
             <ul className="space-y-2 font-inter">
               <li className="flex items-center">
                 <Mail size={16} className="mr-2" />
-                <a href="mailto:flashsman-modalbangsa@gmail.com" className="text-white hover:text-emerald-400 transition-colors duration-300">
-                  flashsman-modalbangsa@gmail.com
+                <a href="https://www.instagram.com/flashmosa/" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                  @flashmosa
                 </a>
               </li>
               <li className="flex items-center">
                 <Phone size={16} className="mr-2" />
-                <a href="tel:+6282298347570" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                <a href="https://wa.me/6282298347570" className="text-white hover:text-emerald-400 transition-colors duration-300">
                   Khalisa (Info Lomba)
                 </a>
               </li>
               <li className="flex items-center">
                 <Phone size={16} className="mr-2" />
-                <a href="tel:+6285337057355" className="text-white hover:text-emerald-400 transition-colors duration-300">
+                <a href="https://wa.me/6282298347570" className="text-white hover:text-emerald-400 transition-colors duration-300">
                   Nawal (Info Lomba)
                 </a>
               </li>

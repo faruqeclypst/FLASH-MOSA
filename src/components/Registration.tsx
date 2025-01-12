@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent, Registration, Competition, SchoolCategory } from '../types';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload, Plus } from 'lucide-react';
+import { User, Mail, School, Award, Phone, Calendar, MapPin, FileText, Upload, Plus, Trophy } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RegistrationAlert from './RegistrationAlert';
@@ -118,10 +118,15 @@ const RegistrationForm: React.FC = () => {
   }, [flashEvent?.competitions]);
 
   const generateRegistrationCode = async () => {
-    const latestCode = await getLatestRegistrationCode();
-    const currentNumber = parseInt(latestCode.split('#')[1], 10);
-    const nextNumber = (currentNumber + 1) % 10000; // Wrap around to 0000 after 9999
-    return `FLASH#${nextNumber.toString().padStart(4, '0')}`;
+    try {
+      const lastCode = await getLatestRegistrationCode();
+      const currentNumber = parseInt(lastCode.split('#')[1]);
+      const nextNumber = currentNumber + 1;
+      return `FLASH#${nextNumber.toString().padStart(4, '0')}`;
+    } catch (error) {
+      console.error('Error generating registration code:', error);
+      return 'FLASH#0001';
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -149,23 +154,17 @@ const RegistrationForm: React.FC = () => {
   };
 
   const validateFile = (file: File) => {
-    const maxSize = 500 * 1024; // 500KB dalam bytes
+    const maxSize = 1024 * 1024; // 1MB in bytes
     if (file.size > maxSize) {
-      toast.error('File terlalu besar! Maksimal 500KB');
+      toast.error('File terlalu besar! Maksimal 1MB');
       return false;
     }
     
-    // Check file type based on input name
-    if (file.name.endsWith('.pdf')) {
-      if (file.type !== 'application/pdf') {
-        toast.error('File harus berformat PDF');
-        return false;
-      }
-    } else {
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        toast.error('File harus berformat JPG atau PNG');
-        return false;
-      }
+    // Check file type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Format file harus PDF, JPG, atau PNG');
+      return false;
     }
     return true;
   };
@@ -353,17 +352,19 @@ const RegistrationForm: React.FC = () => {
                 required
                 className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none"
               >
-                <option value="">Select a category</option>
+                <option value="">Pilih Kategori</option>
                 {schoolCategories.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
                 ))}
               </select>
-              <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <School className="text-gray-400 w-5 h-5" />
+              </div>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                 <svg
-                  className="fill-current h-4 w-4"
+                  className="fill-current h-4 w-4 text-gray-400"
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                 >
@@ -422,9 +423,9 @@ const RegistrationForm: React.FC = () => {
                     }
                   }}
                   required
-                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none bg-white"
+                  className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 appearance-none"
                 >
-                  <option value="">Select a competition</option>
+                  <option value="">Pilih Lomba</option>
                   {flashEvent?.competitions
                     .filter((competition) => {
                       const today = new Date();
@@ -442,10 +443,12 @@ const RegistrationForm: React.FC = () => {
                       </option>
                     ))}
                 </select>
-                <Award className="absolute left-3 top-2 md:top-3 text-gray-400 pointer-events-none" size={20} />
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <Trophy className="text-gray-400 w-5 h-5" />
+                </div>
+                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
                   <svg
-                    className="fill-current h-4 w-4"
+                    className="fill-current h-4 w-4 text-gray-400"
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
                   >
@@ -496,14 +499,14 @@ const RegistrationForm: React.FC = () => {
 
                     {selectedCompetition.bankAccount && (
                       <div className="mt-2 pt-3 border-t border-gray-200">
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           <div>
                             <p className="text-sm text-gray-500">Nomor Rekening</p>
                             <p className="text-base font-medium text-gray-900">
                               {selectedCompetition.bankAccount.number}
                             </p>
                           </div>
-                          <div>
+                          <div className="mt-2 md:mt-0">
                             <p className="text-sm text-gray-500">Atas Nama</p>
                             <p className="text-base font-medium text-gray-900">
                               {selectedCompetition.bankAccount.holder}
@@ -529,6 +532,7 @@ const RegistrationForm: React.FC = () => {
                     <li>Pembayaran hanya diterima melalui Bank BSI</li>
                     <li>Pastikan melakukan pendaftaran dengan nomor WhatsApp dan email yang aktif</li>
                     <li>Jika ada kendala, silahkan hubungi kami melalui nomor WhatsApp Panitia</li>
+                    <li> File upload sesuai dengan berikut (JPG/PNG/PDF, max 1MB)</li>
                   </ul>
                 </motion.div>
               )}
@@ -557,7 +561,9 @@ const RegistrationForm: React.FC = () => {
                             required
                             className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
-                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                            <User className="text-gray-400" size={20} />
+                          </div>
                         </div>
                       </motion.div>
                       <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -574,7 +580,9 @@ const RegistrationForm: React.FC = () => {
                             required
                             className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                             />
-                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                            <User className="text-gray-400" size={20} />
+                          </div>
                         </div>
                       </motion.div>
                     </>
@@ -594,7 +602,9 @@ const RegistrationForm: React.FC = () => {
                             required
                             className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
-                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                            <User className="text-gray-400" size={20} />
+                          </div>
                         </div>
                       </motion.div>
                       <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
@@ -614,7 +624,9 @@ const RegistrationForm: React.FC = () => {
                             <option value="Laki-laki">Laki-laki</option>
                             <option value="Perempuan">Perempuan</option>
                           </select>
-                          <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                            <User className="text-gray-400" size={20} />
+                          </div>
                           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg
                               className="fill-current h-4 w-4"
@@ -640,7 +652,9 @@ const RegistrationForm: React.FC = () => {
                             required
                             className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                           />
-                          <Calendar className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                          <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                            <Calendar className="text-gray-400" size={20} />
+                          </div>
                         </div>
                       </motion.div>
                     </>
@@ -664,7 +678,9 @@ const RegistrationForm: React.FC = () => {
                         required
                         className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                       />
-                      <Phone className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                        <Phone className="text-gray-400" size={20} />
+                      </div>
                     </div>
                   </motion.div>
     
@@ -682,7 +698,9 @@ const RegistrationForm: React.FC = () => {
                         required
                         className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                       />
-                      <Mail className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                        <Mail className="text-gray-400" size={20} />
+                      </div>
                     </div>
                   </motion.div>
     
@@ -701,7 +719,9 @@ const RegistrationForm: React.FC = () => {
                           required
                           className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                         />
-                        <School className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                          <School className="text-gray-400" size={20} />
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -731,7 +751,9 @@ const RegistrationForm: React.FC = () => {
                           </option>
                         ))}
                       </select>
-                      <MapPin className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                        <MapPin className="text-gray-400" size={20} />
+                      </div>
                       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg
                           className="fill-current h-4 w-4"
@@ -747,7 +769,7 @@ const RegistrationForm: React.FC = () => {
                   {selectedCategory !== 'UMUM' && (
                     <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                       <label htmlFor="ktsSuratAktif" className="block text-gray-700 text-base font-bold mb-2">
-                        KTS / Surat Aktif (PDF)
+                        KTS / Surat Aktif
                       </label>
                       <div className="relative">
                         <input
@@ -755,18 +777,24 @@ const RegistrationForm: React.FC = () => {
                           id="ktsSuratAktif"
                           name="ktsSuratAktif"
                           onChange={(e) => handleFileChange(e)}
-                          accept=".pdf"
+                          accept=".pdf,.jpg,.jpeg,.png"
                           required
-                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
+                                   file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 
+                                   file:text-xs file:font-medium
+                                   file:bg-emerald-50 file:text-emerald-700 
+                                   hover:file:bg-emerald-100"
                         />
-                        <FileText className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                          <FileText className="text-gray-400 w-5 h-5" />
+                        </div>
                       </div>
                     </motion.div>
                   )}
     
                   <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
                     <label htmlFor="buktiPembayaran" className="block text-gray-700 text-base font-bold mb-2">
-                      Bukti Pembayaran (PDF)
+                      Bukti Pembayaran
                     </label>
                     <div className="relative">
                       <input
@@ -774,31 +802,41 @@ const RegistrationForm: React.FC = () => {
                         id="buktiPembayaran"
                         name="buktiPembayaran"
                         onChange={(e) => handleFileChange(e)}
-                        accept=".pdf"
+                        accept=".pdf,.jpg,.jpeg,.png"
                         required
-                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
+                        className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
+                                 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 
+                                 file:text-xs file:font-medium
+                                 file:bg-emerald-50 file:text-emerald-700 
+                                 hover:file:bg-emerald-100"
                       />
-                      <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                      <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                        <Upload className="text-gray-400 w-5 h-5" />
+                      </div>
                     </div>
                   </motion.div>
     
                   {selectedCompetition?.requirePassportPhoto && !isTeam && (
-                    <motion.div className="col-span-1 md:col-span-3 space-y-4" variants={itemVariants}>
+                    <motion.div className="mb-4 md:mb-6" variants={itemVariants}>
+                      <label htmlFor="pasPhoto" className="block text-gray-700 text-base font-bold mb-2">
+                        Pas Foto
+                      </label>
                       <div className="relative">
-                        <label htmlFor="pasPhoto" className="block text-gray-700 text-base font-bold mb-2">
-                          Pas Foto (JPG/PNG, max 500KB)
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            id="pasPhoto"
-                            name="pasPhoto"
-                            onChange={(e) => handleFileChange(e)}
-                            accept="image/jpeg,image/png"
-                            required
-                            className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
-                          />
-                          <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                        <input
+                          type="file"
+                          id="pasPhoto"
+                          name="pasPhoto"
+                          onChange={(e) => handleFileChange(e)}
+                          accept="image/jpeg,image/png"
+                          required
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
+                                   file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 
+                                   file:text-xs file:font-medium
+                                   file:bg-emerald-50 file:text-emerald-700 
+                                   hover:file:bg-emerald-100"
+                        />
+                        <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                          <Upload className="text-gray-400 w-5 h-5" />
                         </div>
                       </div>
                     </motion.div>
@@ -825,7 +863,9 @@ const RegistrationForm: React.FC = () => {
                                     className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                     placeholder={`Nama Anggota ${index + 1}`}
                                   />
-                                  <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                                  <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                                    <User className="text-gray-400" size={20} />
+                                  </div>
                                 </div>
                                 {index > 0 && (
                                   <motion.button
@@ -853,9 +893,11 @@ const RegistrationForm: React.FC = () => {
                                   className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                   placeholder="Upload Pas Foto"
                                 />
-                                <Upload className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                                <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                                  <Upload className="text-gray-400" size={20} />
+                                </div>
                                 <span className="text-sm text-gray-500 mt-1 block">
-                                  Pas Foto {member || `Anggota ${index + 1}`} (JPG/PNG, max 500KB)
+                                  Pas Foto {member || `Anggota ${index + 1}`} (JPG/PNG, max 1MB)
                                 </span>
                               </div>
                             </div>
@@ -870,7 +912,9 @@ const RegistrationForm: React.FC = () => {
                                 className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
                                 placeholder={`Nama Anggota ${index + 1}`}
                               />
-                              <User className="absolute left-3 top-2 md:top-3 text-gray-400" size={20} />
+                              <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                                <User className="text-gray-400" size={20} />
+                              </div>
                             </div>
                             {index > 0 && (
                               <motion.button
@@ -907,7 +951,7 @@ const RegistrationForm: React.FC = () => {
                 )}
     
                 {/* Submit button */}
-                <motion.div className="col-span-1 md:col-span-3 mt-6" variants={itemVariants}>
+                <motion.div className="col-span-1 md:col-span-3" variants={itemVariants}>
                   <motion.button
                     type="submit"
                     disabled={isSubmitting}

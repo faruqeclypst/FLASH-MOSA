@@ -21,7 +21,7 @@ const Gallery: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-emerald-500"></div>
       </div>
     );
   }
@@ -124,7 +124,7 @@ const Gallery: React.FC = () => {
           {images.map((image, index) => (
             <motion.div
               key={index}
-              className={`cursor-pointer rounded-lg overflow-hidden ${index === currentIndex ? 'ring-4 ring-blue-600' : ''}`}
+              className={`cursor-pointer rounded-lg overflow-hidden ${index === currentIndex ? 'ring-4 ring-emerald-600' : ''}`}
               variants={itemVariants}
               whileHover={{ scale: 1.05 }}
               onClick={() => setCurrentIndex(index)}

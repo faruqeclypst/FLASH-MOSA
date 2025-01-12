@@ -15,140 +15,140 @@ const reviews: Review[] = [
   {
     id: 1,
     name: "Budi Santoso",
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    avatar: "https://i.pravatar.cc/150?img=1",
     rating: 5,
     content: "FLASH adalah pengalaman yang luar biasa! Kompetisinya menantang dan workshopnya sangat informatif."
   },
   {
     id: 2,
     name: "Siti Nurhayati",
-    avatar: "https://randomuser.me/api/portraits/women/1.jpg",
+    avatar: "https://i.pravatar.cc/150?img=2",
     rating: 4,
     content: "Saya belajar banyak di FLASH. Kesempatan networking sangat berharga untuk karir saya."
   },
   {
     id: 3,
     name: "Agus Setiawan",
-    avatar: "https://randomuser.me/api/portraits/men/2.jpg",
+    avatar: "https://i.pravatar.cc/150?img=3",
     rating: 5,
     content: "Organisasi FLASH sangat bagus. Setiap aspek acara direncanakan dan dilaksanakan dengan sempurna."
   },
   {
     id: 4,
     name: "Rina Wulandari",
-    avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    avatar: "https://i.pravatar.cc/150?img=4",
     rating: 5,
     content: "FLASH melampaui semua harapan saya. Kualitas pembicara dan berbagai topik yang dibahas sangat mengesankan."
   },
   {
     id: 5,
     name: "Adi Nugroho",
-    avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+    avatar: "https://i.pravatar.cc/150?img=5",
     rating: 4,
     content: "Workshop praktis di FLASH sangat membantu. Saya mendapatkan keterampilan praktis yang bisa langsung saya terapkan dalam pekerjaan saya."
   },
   {
     id: 6,
     name: "Dewi Lestari",
-    avatar: "https://randomuser.me/api/portraits/women/3.jpg",
+    avatar: "https://i.pravatar.cc/150?img=6",
     rating: 5,
     content: "FLASH adalah acara yang luar biasa! Saya sangat terkesan dengan keragaman topik dan kualitas presentasi."
   },
   {
     id: 7,
     name: "Doni Kusuma",
-    avatar: "https://randomuser.me/api/portraits/men/4.jpg",
+    avatar: "https://i.pravatar.cc/150?img=7",
     rating: 4,
     content: "Sesi networking di FLASH membuka banyak peluang baru untuk saya. Sangat berharga untuk karir saya."
   },
   {
     id: 8,
     name: "Lina Wijaya",
-    avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+    avatar: "https://i.pravatar.cc/150?img=8",
     rating: 5,
     content: "Kompetisi di FLASH sangat menantang dan menyenangkan. Saya belajar banyak dari peserta lain."
   },
   {
     id: 9,
     name: "Tono Prasetyo",
-    avatar: "https://randomuser.me/api/portraits/men/5.jpg",
+    avatar: "https://i.pravatar.cc/150?img=9",
     rating: 4,
     content: "Workshop praktis di FLASH sangat membantu. Saya mendapatkan keterampilan baru yang dapat langsung saya terapkan."
   },
   {
     id: 10,
     name: "Eka Putri",
-    avatar: "https://randomuser.me/api/portraits/women/5.jpg",
+    avatar: "https://i.pravatar.cc/150?img=10",
     rating: 5,
     content: "Pembicara tamu di FLASH sangat menginspirasi. Saya pulang dengan banyak ide baru untuk proyek saya."
   },
   {
     id: 11,
     name: "Rudi Hermawan",
-    avatar: "https://randomuser.me/api/portraits/men/6.jpg",
+    avatar: "https://i.pravatar.cc/150?img=11",
     rating: 5,
     content: "FLASH memberikan wawasan yang luar biasa tentang tren terbaru dalam industri. Sangat bermanfaat untuk pengembangan profesional saya."
   },
   {
     id: 12,
     name: "Olivia Sari",
-    avatar: "https://randomuser.me/api/portraits/women/6.jpg",
+    avatar: "https://i.pravatar.cc/150?img=12",
     rating: 4,
     content: "Saya sangat menikmati sesi tanya jawab dengan para ahli di FLASH. Mereka sangat terbuka dan informatif."
   },
   {
     id: 13,
     name: "Dani Gunawan",
-    avatar: "https://randomuser.me/api/portraits/men/7.jpg",
+    avatar: "https://i.pravatar.cc/150?img=13",
     rating: 5,
     content: "Fasilitas dan organisasi FLASH sangat mengesankan. Setiap detail diperhatikan dengan baik."
   },
   {
     id: 14,
     name: "Sari Indah",
-    avatar: "https://randomuser.me/api/portraits/women/7.jpg",
+    avatar: "https://i.pravatar.cc/150?img=14",
     rating: 4,
     content: "FLASH memberikan platform yang luar biasa untuk bertukar ide dengan rekan-rekan dari seluruh dunia."
   },
   {
     id: 15,
     name: "Candra Wijaya",
-    avatar: "https://randomuser.me/api/portraits/men/8.jpg",
+    avatar: "https://i.pravatar.cc/150?img=15",
     rating: 5,
     content: "Saya sangat merekomendasikan FLASH kepada siapa pun yang ingin memperluas pengetahuan dan jaringan mereka dalam industri ini."
   },
   {
     id: 16,
     name: "Firman Saputra",
-    avatar: "https://randomuser.me/api/portraits/men/9.jpg",
+    avatar: "https://i.pravatar.cc/150?img=16",
     rating: 5,
     content: "FLASH SMAN Modal Bangsa adalah acara yang sangat inspiratif! Pembicara tamunya luar biasa dan topik-topiknya sangat relevan."
   },
   {
     id: 17,
     name: "Yuni Kartika",
-    avatar: "https://randomuser.me/api/portraits/women/8.jpg",
+    avatar: "https://i.pravatar.cc/150?img=17",
     rating: 4,
     content: "Saya sangat menikmati kompetisi di FLASH SMAN Modal Bangsa. Sangat menantang dan memacu semangat."
   },
   {
     id: 18,
     name: "Andi Firmansyah",
-    avatar: "https://randomuser.me/api/portraits/men/10.jpg",
+    avatar: "https://i.pravatar.cc/150?img=18",
     rating: 5,
     content: "FLASH SMAN Modal Bangsa memberikan saya banyak pengetahuan baru. Workshop-nya sangat informatif dan bermanfaat."
   },
   {
     id: 19,
     name: "Rina Permata",
-    avatar: "https://randomuser.me/api/portraits/women/9.jpg",
+    avatar: "https://i.pravatar.cc/150?img=19",
     rating: 4,
     content: "Kesempatan networking di FLASH SMAN Modal Bangsa sangat berharga. Saya bertemu banyak profesional yang inspiratif."
   },
   {
     id: 20,
     name: "Fajar Hidayat",
-    avatar: "https://randomuser.me/api/portraits/men/11.jpg",
+    avatar: "https://i.pravatar.cc/150?img=20",
     rating: 5,
     content: "FLASH SMAN Modal Bangsa sangat mengesankan! Semua aspek acara direncanakan dan dilaksanakan dengan sempurna."
   }
@@ -174,7 +174,7 @@ const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
             />
           ))}
         </div>
-        <p className="text-gray-600 leading-relaxed">{review.content}</p>
+        <p className="text-gray-600 leading-relaxed font-inter">{review.content}</p>
       </div>
     </div>
   </motion.div>
@@ -274,12 +274,11 @@ const Reviews: React.FC = () => {
           >
             Apa kata <span className="text-green-800">Mereka</span>
           </motion.h2>
-          
           <motion.p 
-            className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-inter"
             variants={itemVariants}
           >
-            Mereka yang telah mengikuti event FLASH...
+            Discover the inspiring stories and experiences shared by our FLASH community...
           </motion.p>
         </motion.div>
 

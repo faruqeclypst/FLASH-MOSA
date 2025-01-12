@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Rule untuk file KTS/Surat Aktif
+    match /kts_surat_aktif/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size <= 1 * 1024 * 1024  // 1MB
+                   && (request.resource.contentType.matches('image/.*') 
+                       || request.resource.contentType == 'application/pdf');
+    }
+
+    // Rule untuk file Bukti Pembayaran
+    match /bukti_pembayaran/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size <= 1 * 1024 * 1024  // 1MB
+                   && (request.resource.contentType.matches('image/.*') 
+                       || request.resource.contentType == 'application/pdf');
+    }
+
+    // Rule untuk file Pas Foto
+    match /pas_foto/{fileName} {
+      allow read: if true;
+      allow write: if request.resource.size <= 1 * 1024 * 1024  // 1MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Rule untuk Gallery
+    match /flashEvent/gallery/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null  // Hanya admin yang bisa upload
+                   && request.resource.size <= 5 * 1024 * 1024  // 5MB max
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Rule untuk Icon Kompetisi
+    match /competitions/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.resource.size <= 2 * 1024 * 1024  // 2MB max
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // Rules untuk Event Info Media
+    match /images/{type}/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null && (
+        // Untuk gambar (titleImage, heroImage, aboutImage)
+        (type in ['titleImage', 'heroImage', 'aboutImage'] && 
+         request.resource.size <= 2 * 1024 * 1024 &&  // 2MB max
+         request.resource.contentType.matches('image/.*'))
+        ||
+        // Untuk video (heroVideo, heroVideoMobile)
+        (type in ['heroVideo', 'heroVideoMobile'] && 
+         request.resource.size <= 100 * 1024 * 1024 &&  // 100MB max
+         request.resource.contentType.matches('video/.*'))
+      );
+    }
+  }
+} 

@@ -14,9 +14,14 @@ import Reviews from '../components/Reviews';
 import WhatsAppButton from '../components/WhatsAppButton';
 // import MascotButton from '../components/MascotButton';
 // import ContactForm from '../components/ContactForm';
+import BackgroundMusic from '../components/BackgroundMusic';
+
+// Define constant for music path
+const MUSIC_PATH = '/music/music.mp3';
 
 const Home: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [userInteracted, setUserInteracted] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,6 +39,7 @@ const Home: React.FC = () => {
 
   const handleLoadingComplete = () => {
     setIsLoading(false);
+    setUserInteracted(true);
     document.body.style.overflow = 'unset';
   };
   
@@ -54,9 +60,10 @@ const Home: React.FC = () => {
           </>
         )}
       </main>
-      {!isLoading && (
+      {userInteracted && (
         <>
           <WhatsAppButton />
+          <BackgroundMusic audioSource={MUSIC_PATH} />
           <Footer />
         </>
       )}

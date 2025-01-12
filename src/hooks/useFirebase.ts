@@ -64,20 +64,32 @@ export const useFirebase = <T>(path: string) => {
     }
   };
 
-  const getLatestRegistrationCode = async (): Promise<string> => {
-    const registrationsRef = ref(db, 'registrations');
-    const q = query(registrationsRef, orderByChild('registrationCode'), limitToLast(1));
-    
+  const getLatestRegistrationCode = async () => {
     try {
-      const snapshot = await get(q);
+      const registrationsRef = ref(db, 'registrations');
+      const registrationsQuery = query(
+        registrationsRef,
+        orderByChild('registrationDate'),
+        limitToLast(1)
+      );
+      
+      const snapshot = await get(registrationsQuery);
+      
       if (snapshot.exists()) {
-        const latestRegistration = Object.values(snapshot.val())[0] as { registrationCode: string };
-        return latestRegistration.registrationCode;
+        const registrations = Object.values(snapshot.val()) as { registrationCode: string }[];
+        if (registrations.length > 0) {
+          const lastCode = registrations[0].registrationCode;
+          if (lastCode && lastCode.startsWith('FLASH#')) {
+            const currentNumber = parseInt(lastCode.split('#')[1]);
+            return lastCode;
+          }
+        }
       }
-      return 'FLASH#0000';
+      
+      return 'FLASH#0001';
     } catch (error) {
       console.error('Error fetching latest registration code:', error);
-      return 'FLASH#0000';
+      return 'FLASH#0001';
     }
   };
 

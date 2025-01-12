@@ -62,25 +62,6 @@ const CTASection: React.FC = () => {
           variants={containerVariants}
         >
           <motion.div 
-            className="bg-gradient-to-br from-white to-yellow-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-yellow-100/50 transition-all duration-300 relative overflow-hidden group"
-            variants={cardVariants}
-            whileHover="hover"
-          >
-            {/* Decorative elements */}
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-yellow-100/20 rounded-full blur-3xl group-hover:bg-yellow-100/30 transition-colors duration-300" />
-            
-            <div className="relative">
-              <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-yellow-100/50 group-hover:scale-110 transition-transform duration-300">
-                <Star className="w-10 h-10 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Kompetisi Menarik</h3>
-              <p className="text-gray-600 leading-relaxed text-center">
-                Ikuti berbagai lomba menarik dalam bidang bahasa dan seni untuk mengembangkan potensimu.
-              </p>
-            </div>
-          </motion.div>
-          <motion.div 
             className="bg-gradient-to-br from-white to-emerald-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-emerald-100/50 transition-all duration-300 relative overflow-hidden group"
             variants={cardVariants}
             whileHover="hover"
@@ -91,7 +72,26 @@ const CTASection: React.FC = () => {
             
             <div className="relative">
               <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-emerald-100/50 group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-10 h-10 text-emerald-500 group-hover:rotate-12 transition-transform duration-300" />
+                <Star className="w-10 h-10 text-emerald-500 group-hover:rotate-12 transition-transform duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Kompetisi Menarik</h3>
+              <p className="text-gray-600 leading-relaxed text-center">
+                Ikuti berbagai lomba menarik dalam bidang bahasa dan seni untuk mengembangkan potensimu.
+              </p>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="bg-gradient-to-br from-white to-yellow-50/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-yellow-100/50 transition-all duration-300 relative overflow-hidden group"
+            variants={cardVariants}
+            whileHover="hover"
+          >
+            {/* Decorative elements */}
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-yellow-100/20 rounded-full blur-3xl group-hover:bg-yellow-100/30 transition-colors duration-300" />
+            
+            <div className="relative">
+              <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-yellow-100/50 group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-10 h-10 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Golden Ticket</h3>
               <p className="text-gray-600 leading-relaxed text-center">

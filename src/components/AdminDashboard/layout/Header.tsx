@@ -112,7 +112,7 @@ const Header: React.FC = () => {
           </span>
         </div>
 
-        <h1 className="md:hidden text-lg font-semibold text-gray-800">
+        <h1 className="md:hidden text-lg font-semibold text-gray-800 pt-4">
           Admin Dashboard
         </h1>
         

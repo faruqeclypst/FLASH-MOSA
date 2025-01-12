@@ -424,7 +424,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                 name: 'saveBasicInfo', 
                 value: true 
               })}
-              className="px-6 py-2 bg-green-800 text-white rounded-lg hover:bg-blue-700 
+              className="px-6 py-2 bg-green-800 text-white rounded-lg hover:bg-emerald-700 
                        transition-colors duration-200 flex items-center gap-2"
             >
               <svg 
