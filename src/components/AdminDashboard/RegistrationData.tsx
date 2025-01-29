@@ -99,24 +99,35 @@ const RegistrationData: React.FC = () => {
   const [isClosing, setIsClosing] = useState(false);
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [competitionFilter, setCompetitionFilter] = useState<string>('all');
   
   const itemsPerPage = 10;
 
   const filteredRegistrations = useMemo(() => {
-    return Object.entries(registrations || {}).filter(([_, registration]) => {
-      const matchesSearch = 
-        registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.competition.toLowerCase().includes(searchTerm.toLowerCase());
+    return Object.entries(registrations || {})
+      .sort(([_, a], [__, b]) => {
+        const numA = parseInt(a.registrationCode.split('#')[1]);
+        const numB = parseInt(b.registrationCode.split('#')[1]);
+        return numB - numA;
+      })
+      .filter(([_, registration]) => {
+        const matchesSearch = 
+          registration.registrationCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          registration.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          registration.teamName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          registration.competition.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = 
-        statusFilter === 'all' ? true :
-        statusFilter === registration.status;
+        const matchesStatus = 
+          statusFilter === 'all' ? true :
+          statusFilter === registration.status;
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [registrations, searchTerm, statusFilter]);
+        const matchesCompetition = 
+          competitionFilter === 'all' ? true :
+          registration.competition === competitionFilter;
+
+        return matchesSearch && matchesStatus && matchesCompetition;
+      });
+  }, [registrations, searchTerm, statusFilter, competitionFilter]);
 
   const paginatedRegistrations = filteredRegistrations.slice(
     (currentPage - 1) * itemsPerPage,
@@ -456,6 +467,27 @@ const RegistrationData: React.FC = () => {
     }));
   };
 
+  // Tambahkan fungsi untuk membuat nama worksheet yang unik
+  const createUniqueWorksheetName = (name: string, workbook: ExcelJS.Workbook): string => {
+    let worksheetName = name;
+    let counter = 1;
+    
+    // Excel membatasi panjang nama worksheet maksimal 31 karakter
+    if (worksheetName.length > 31) {
+      worksheetName = worksheetName.substring(0, 31);
+    }
+    
+    // Cek apakah nama worksheet sudah ada
+    while (workbook.getWorksheet(worksheetName)) {
+      counter++;
+      const suffix = ` (${counter})`;
+      // Potong nama jika terlalu panjang setelah ditambah suffix
+      worksheetName = name.substring(0, 31 - suffix.length) + suffix;
+    }
+    
+    return worksheetName;
+  };
+
   const exportToExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
@@ -647,7 +679,8 @@ const RegistrationData: React.FC = () => {
 
       // Create individual competition sheets
       Object.entries(registrationsByCompetition).forEach(([competition, registrations]) => {
-        const competitionSheet = workbook.addWorksheet(competition);
+        const worksheetName = createUniqueWorksheetName(competition, workbook);
+        const competitionSheet = workbook.addWorksheet(worksheetName);
         defineColumns(competitionSheet);
         competitionSheet.addRows(prepareData(registrations));
         applyWorksheetStyling(competitionSheet);
@@ -866,6 +899,22 @@ const RegistrationData: React.FC = () => {
           </div>
           <div className="flex gap-4">
             <select
+              value={competitionFilter}
+              onChange={(e) => setCompetitionFilter(e.target.value)}
+              className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+            >
+              <option value="all">Semua Lomba</option>
+              {flashEvent?.competitions
+                .filter(c => c.isActive)
+                .map(competition => (
+                  <option key={competition.name} value={competition.name}>
+                    {competition.name}
+                  </option>
+                ))
+              }
+            </select>
+
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
               className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
@@ -875,6 +924,7 @@ const RegistrationData: React.FC = () => {
               <option value="approved">Diterima</option>
               <option value="rejected">Ditolak</option>
             </select>
+            
             <button
               onClick={exportToExcel}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"

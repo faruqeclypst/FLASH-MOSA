@@ -57,7 +57,7 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
           <div>
             <p className="text-xs text-indigo-600 font-medium">Total Foto</p>
             <p className="text-lg font-semibold text-indigo-700 leading-none">
-              {gallery.length}
+              {gallery?.length || 0}
             </p>
           </div>
         </div>
@@ -65,8 +65,30 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
 
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Add Button Card - Pindahkan ke atas */}
+        <label
+          htmlFor="gallery-upload"
+          className="group bg-white rounded-xl border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[280px] flex flex-col items-center justify-center gap-4 hover:bg-indigo-50/50 cursor-pointer"
+        >
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="gallery-upload"
+            multiple
+          />
+          <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+            <Upload className="w-8 h-8 text-indigo-600" />
+          </div>
+          <div className="text-center">
+            <p className="text-gray-900 font-medium">Tambah Foto</p>
+            <p className="text-sm text-gray-500 mt-1">Klik untuk mengunggah foto</p>
+          </div>
+        </label>
+
         {/* Gallery Cards */}
-        {gallery.map((image, index) => (
+        {gallery?.map((image, index) => (
           <div 
             key={index}
             className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
@@ -94,31 +116,9 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
           </div>
         ))}
 
-        {/* Add Button Card */}
-        <label
-          htmlFor="gallery-upload"
-          className="group bg-white rounded-xl border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[280px] flex flex-col items-center justify-center gap-4 hover:bg-indigo-50/50 cursor-pointer"
-        >
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-            id="gallery-upload"
-            multiple
-          />
-          <div className="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-            <Upload className="w-8 h-8 text-indigo-600" />
-          </div>
-          <div className="text-center">
-            <p className="text-gray-900 font-medium">Tambah Foto</p>
-            <p className="text-sm text-gray-500 mt-1">Klik untuk mengunggah foto</p>
-          </div>
-        </label>
-
-        {/* Empty State */}
-        {gallery.length === 0 && (
-          <div className="col-span-full">
+        {/* Empty State - Perbaiki kondisinya */}
+        {(!gallery || gallery.length === 0) && (
+          <div className="col-span-2 lg:col-span-2">
             <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
               <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ImageIcon className="w-8 h-8 text-indigo-400" />

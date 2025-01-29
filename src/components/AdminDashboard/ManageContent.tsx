@@ -7,8 +7,7 @@ import EventInfoManager from './EventInfoManager';
 import CompetitionsManager from './CompetitionsManager';
 import GalleryManager from './GalleryManager';
 import ConfirmUpdateModal from './ConfirmUpdateModal';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../services/firebase';
+import { ref, uploadBytes, getDownloadURL, getStorage } from 'firebase/storage';
 import classNames from 'classnames';
 import { showAlert } from '../ui/Alert';
 import { compressImage } from '../../utils/imageCompression';
@@ -41,9 +40,10 @@ const ManageContent: React.FC = () => {
 
   const handleIconUpload = async (index: number, file: File) => {
     try {
+      const storage = getStorage();
       const storageRef = ref(storage, `competitions/${file.name}`);
-      await uploadBytes(storageRef, file);
-      const downloadURL = await getDownloadURL(storageRef);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
       
       const updatedCompetitions = [...formData.competitions];
       updatedCompetitions[index] = { ...updatedCompetitions[index], icon: downloadURL };
@@ -80,43 +80,40 @@ const ManageContent: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string, index?: number) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      try {
-        let fileToUpload = file;
-        
-        // Kompresi hanya untuk file gambar
-        if (file.type.startsWith('image/')) {
-          fileToUpload = await compressImage(file, 0.8); // 80% quality
-        }
-        
-        const storageRef = ref(storage, `flashEvent/${field}/${Date.now()}_${file.name}`);
-        await uploadBytes(storageRef, fileToUpload);
-        const downloadURL = await getDownloadURL(storageRef);
-        
-        let updatedData = { ...formData };
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const files = e.target.files;
+      if (!files) return;
 
-        if (field === 'activities' && index !== undefined) {
-          const updatedActivities = [...formData.activities];
-          updatedActivities[index] = { ...updatedActivities[index], image: downloadURL };
-          updatedData = { ...updatedData, activities: updatedActivities };
-        } else if (field === 'gallery') {
-          updatedData = { ...updatedData, gallery: [...updatedData.gallery, downloadURL] };
-        } else {
-          updatedData = { ...updatedData, [field]: downloadURL };
-        }
+      const storage = getStorage();
+      const uploadPromises = [];
 
-        // Update local state
-        setFormData(updatedData);
-        // Save to Firebase
-        await updateData(updatedData);
-        showAlert('success', 'File berhasil diunggah');
-      } catch (error) {
-        console.error("Error uploading file: ", error);
-        showAlert('error', 'Gagal mengunggah file');
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const storageRef = ref(storage, `flashEvent/gallery/${Date.now()}_${file.name}`);
+        uploadPromises.push(
+          uploadBytes(storageRef, file).then((snapshot) => getDownloadURL(snapshot.ref))
+        );
       }
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      
+      // Pastikan gallery adalah array
+      const currentGallery = Array.isArray(formData.gallery) ? formData.gallery : [];
+      
+      // Update data dengan gallery yang baru
+      const newData = {
+        ...formData,
+        gallery: [...currentGallery, ...uploadedUrls]
+      };
+
+      await updateData(newData);
+      setFormData(newData);
+      showAlert('success', 'Foto berhasil diunggah');
+
+    } catch (error) {
+      console.error('Error uploading file: ', error);
+      showAlert('error', 'Gagal mengunggah foto');
     }
   };
 
@@ -284,7 +281,7 @@ const ManageContent: React.FC = () => {
           <div>
             <GalleryManager 
               gallery={formData.gallery}
-              handleImageUpload={(e) => handleFileUpload(e, 'gallery')}
+              handleImageUpload={handleFileUpload}
               handleRemoveGalleryImage={handleRemoveGalleryImage}
             />
           </div>

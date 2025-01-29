@@ -122,6 +122,13 @@ const RegistrationForm: React.FC = () => {
       const lastCode = await getLatestRegistrationCode();
       const currentNumber = parseInt(lastCode.split('#')[1]);
       const nextNumber = currentNumber + 1;
+      
+      // Tambahkan pengecekan untuk memastikan nextNumber valid
+      if (isNaN(nextNumber) || nextNumber <= currentNumber) {
+        console.error('Invalid next number:', nextNumber, 'current:', currentNumber);
+        return 'FLASH#0001';
+      }
+      
       return `FLASH#${nextNumber.toString().padStart(4, '0')}`;
     } catch (error) {
       console.error('Error generating registration code:', error);

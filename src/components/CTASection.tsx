@@ -72,7 +72,7 @@ const CTASection: React.FC = () => {
             
             <div className="relative">
               <div className="bg-gradient-to-br from-emerald-100 to-emerald-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-emerald-100/50 group-hover:scale-110 transition-transform duration-300">
-                <Star className="w-10 h-10 text-emerald-500 group-hover:rotate-12 transition-transform duration-300" />
+              <Calendar className="w-10 h-10 text-emerald-500 group-hover:rotate-12 transition-transform duration-300" />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Kompetisi Menarik</h3>
               <p className="text-gray-600 leading-relaxed text-center">
@@ -91,7 +91,7 @@ const CTASection: React.FC = () => {
             
             <div className="relative">
               <div className="bg-gradient-to-br from-yellow-100 to-yellow-200 w-20 h-20 rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-lg shadow-yellow-100/50 group-hover:scale-110 transition-transform duration-300">
-                <Calendar className="w-10 h-10 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
+                <Star className="w-10 h-10 text-yellow-500 group-hover:rotate-12 transition-transform duration-300" />
               </div>
               <h3 className="text-2xl font-bold mb-4 text-gray-800 font-antistar text-center">Golden Ticket</h3>
               <p className="text-gray-600 leading-relaxed text-center">
