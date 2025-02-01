@@ -8,6 +8,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import RegistrationAlert from './RegistrationAlert';
 import BSILogo from '../assets/img/BSI.png';
+import { compressImage } from '../utils/imageCompression';
 
 const isValidSchoolCategory = (category: string): category is SchoolCategory => {
   return ['SD/MI', 'SMP/MTs', 'SMA/SMK/MA', 'UMUM'].includes(category);
@@ -160,41 +161,97 @@ const RegistrationForm: React.FC = () => {
     }
   };
 
-  const validateFile = (file: File) => {
-    const maxSize = 1024 * 1024; // 1MB in bytes
-    if (file.size > maxSize) {
-      toast.error('File terlalu besar! Maksimal 1MB');
-      return false;
+  const validateFile = async (file: File): Promise<File | null> => {
+    const maxSize = 500 * 1024; // 500KB in bytes
+    
+    // For PDF files, just check size
+    if (file.type === 'application/pdf') {
+      if (file.size > maxSize) {
+        toast.error('File PDF terlalu besar! Maksimal 500KB');
+        return null;
+      }
+      toast.success('File PDF berhasil diunggah');
+      return file;
     }
     
-    // Check file type
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Format file harus PDF, JPG, atau PNG');
-      return false;
+    // For images, try compression first
+    if (file.type.startsWith('image/')) {
+      try {
+        const originalSize = file.size / 1024; // Convert to KB
+        
+        // Start with high quality, reduce if needed
+        let quality = 0.8;
+        let compressedFile = await compressImage(file, quality);
+        
+        // Keep reducing quality until file size is under limit or quality is too low
+        while (compressedFile.size > maxSize && quality > 0.1) {
+          quality -= 0.1;
+          compressedFile = await compressImage(file, quality);
+        }
+        
+        if (compressedFile.size > maxSize) {
+          toast.error('Tidak dapat mengompres gambar ke ukuran yang diinginkan. Gunakan gambar yang lebih kecil.');
+          return null;
+        }
+
+        const compressedSize = compressedFile.size / 1024; // Convert to KB
+        const compressionRatio = Math.round((1 - (compressedSize / originalSize)) * 100);
+        
+        if (compressionRatio > 0) {
+          toast.success(
+            `Gambar berhasil dikompresi ${compressionRatio}% (${originalSize.toFixed(1)}KB → ${compressedSize.toFixed(1)}KB)`
+          );
+        } else {
+          toast.success('Gambar berhasil diunggah');
+        }
+        
+        return compressedFile;
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        toast.error('Gagal mengompres gambar. Silakan coba gambar lain.');
+        return null;
+      }
     }
-    return true;
+    
+    // Not a valid file type
+    toast.error('Format file harus PDF, JPG, atau PNG');
+    return null;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, memberIndex?: number) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, memberIndex?: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (validateFile(file)) {
-        if (e.target.name === 'ktsSuratAktif') {
-          setKtsSuratAktifFile(file);
-        } else if (e.target.name === 'buktiPembayaran') {
-          setBuktiPembayaranFile(file);
-        } else if (e.target.name === 'pasPhoto') {
-          if (typeof memberIndex === 'number') {
-            const newPasPhotoFiles = [...pasPhotoFiles];
-            newPasPhotoFiles[memberIndex] = file;
-            setPasPhotoFiles(newPasPhotoFiles);
-          } else {
-            setPasPhotoFiles([file]);
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Sedang memproses file...');
+      
+      try {
+        const validatedFile = await validateFile(file);
+        
+        if (validatedFile) {
+          if (e.target.name === 'ktsSuratAktif') {
+            setKtsSuratAktifFile(validatedFile);
+          } else if (e.target.name === 'buktiPembayaran') {
+            setBuktiPembayaranFile(validatedFile);
+          } else if (e.target.name === 'pasPhoto') {
+            if (typeof memberIndex === 'number') {
+              const newPasPhotoFiles = [...pasPhotoFiles];
+              newPasPhotoFiles[memberIndex] = validatedFile;
+              setPasPhotoFiles(newPasPhotoFiles);
+            } else {
+              setPasPhotoFiles([validatedFile]);
+            }
           }
+        } else {
+          e.target.value = '';
         }
-      } else {
+      } catch (error) {
+        console.error('Error processing file:', error);
+        toast.error('Terjadi kesalahan saat memproses file');
         e.target.value = '';
+      } finally {
+        // Dismiss loading toast
+        toast.dismiss(loadingToast);
       }
     }
   };
@@ -539,7 +596,7 @@ const RegistrationForm: React.FC = () => {
                     <li>Pembayaran hanya diterima melalui Bank BSI</li>
                     <li>Pastikan melakukan pendaftaran dengan nomor WhatsApp dan email yang aktif</li>
                     <li>Jika ada kendala, silahkan hubungi kami melalui nomor WhatsApp Panitia</li>
-                    <li> File upload sesuai dengan berikut (JPG/PNG/PDF, max 1MB)</li>
+                    <li>File upload sesuai dengan berikut (JPG/PNG/PDF, max 500KB)</li>
                   </ul>
                 </motion.div>
               )}
@@ -836,124 +893,162 @@ const RegistrationForm: React.FC = () => {
                           onChange={(e) => handleFileChange(e)}
                           accept="image/jpeg,image/png"
                           required
-                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
-                                   file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 
+                          className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300
+                                   file:mr-3 file:py-1 file:px-3 
+                                   file:rounded-full file:border-0 
                                    file:text-xs file:font-medium
                                    file:bg-emerald-50 file:text-emerald-700 
                                    hover:file:bg-emerald-100"
                         />
                         <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
-                          <Upload className="text-gray-400 w-5 h-5" />
+                          <Upload className="text-gray-400 group-hover:text-emerald-500 transition-colors" size={20} />
+                        </div>
+                        <div className="mt-1.5 flex items-center gap-2 text-sm text-gray-500">
+                          <FileText size={14} />
+                          <span>Pas Foto (JPG/PNG, max 500KB)</span>
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </div>
     
-                {/* Team Members section (if applicable) */}
+                {/* Team Members Section */}
                 {isTeam && (
-                  <motion.div className="col-span-1 md:col-span-3 mt-4 md:mt-6" variants={itemVariants}>
-                    <label className="block text-gray-700 text-base font-bold mb-2">
-                      Anggota Tim (Maksimum {teamSize} anggota)
-                    </label>
-                    {teamMembers.map((member, index) => (
-                      <div key={index} className="mb-4">
-                        {selectedCompetition?.requirePassportPhoto ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <div className="relative flex-grow">
-                                  <input
-                                    type="text"
-                                    value={member}
-                                    onChange={(e) => handleTeamMemberChange(index, e.target.value)}
-                                    className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
-                                    placeholder={`Nama Anggota ${index + 1}`}
-                                  />
-                                  <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
-                                    <User className="text-gray-400" size={20} />
-                                  </div>
-                                </div>
-                                {index > 0 && (
-                                  <motion.button
-                                    type="button"
-                                    onClick={() => removeTeamMember(index)}
-                                    className="flex-shrink-0 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                  >
-                                    Hapus
-                                  </motion.button>
-                                )}
-                              </div>
-                            </div>
+                  <motion.div 
+                    className="col-span-1 md:col-span-3 space-y-4" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-gray-700 text-base font-bold">
+                        Anggota Tim {selectedCompetition?.name}
+                      </h3>
+                      <span className="text-sm text-gray-500">
+                        {teamMembers.length}/{teamSize} Anggota
+                      </span>
+                    </div>
 
-                            <div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                      {teamMembers.map((member, index) => (
+                        <div key={index} className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-emerald-600">
+                              {index === 0 ? 'Ketua Tim' : `Anggota ${index + 1}`}
+                            </span>
+                            {index > 0 && (
+                              <motion.button
+                                type="button"
+                                onClick={() => removeTeamMember(index)}
+                                className="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1"
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus
+                              </motion.button>
+                            )}
+                          </div>
+
+                          {selectedCompetition?.requirePassportPhoto ? (
+                            <div className="space-y-4">
                               <div className="relative">
                                 <input
-                                  type="file"
-                                  id={`pasPhoto-${index}`}
-                                  name="pasPhoto"
-                                  onChange={(e) => handleFileChange(e, index)}
-                                  accept="image/jpeg,image/png"
-                                  required
+                                  type="text"
+                                  value={member}
+                                  onChange={(e) => handleTeamMemberChange(index, e.target.value)}
                                   className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
-                                  placeholder="Upload Pas Foto"
+                                  placeholder={`Nama ${index === 0 ? 'Ketua Tim' : `Anggota ${index + 1}`}`}
+                                  required
                                 />
                                 <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
-                                  <Upload className="text-gray-400" size={20} />
+                                  <User className="text-gray-400" size={20} />
                                 </div>
-                                <span className="text-sm text-gray-500 mt-1 block">
-                                  Pas Foto {member || `Anggota ${index + 1}`} (JPG/PNG, max 1MB)
-                                </span>
+                              </div>
+
+                              <div className="relative">
+                                <div className="relative group">
+                                  <input
+                                    type="file"
+                                    id={`pasPhoto-${index}`}
+                                    name="pasPhoto"
+                                    onChange={(e) => handleFileChange(e, index)}
+                                    accept="image/jpeg,image/png"
+                                    required
+                                    className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300
+                                     file:mr-3 file:py-1 file:px-3 
+                                     file:rounded-full file:border-0 
+                                     file:text-xs file:font-medium
+                                     file:bg-emerald-50 file:text-emerald-700 
+                                     hover:file:bg-emerald-100"
+                                    placeholder="Upload Pas Foto"
+                                  />
+                                  <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
+                                    <Upload className="text-gray-400 group-hover:text-emerald-500 transition-colors" size={20} />
+                                  </div>
+                                </div>
+                                <div className="mt-1.5 flex items-center gap-2 text-sm text-gray-500">
+                                  <FileText size={14} />
+                                  <span>
+                                    Pas Foto {index === 0 ? 'Ketua Tim' : `Anggota ${index + 1}`} (JPG/PNG, max 500KB)
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="relative flex-grow">
+                          ) : (
+                            <div className="relative">
                               <input
                                 type="text"
                                 value={member}
                                 onChange={(e) => handleTeamMemberChange(index, e.target.value)}
                                 className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300"
-                                placeholder={`Nama Anggota ${index + 1}`}
+                                placeholder={`Nama ${index === 0 ? 'Ketua Tim' : `Anggota ${index + 1}`}`}
+                                required
                               />
                               <div className="absolute left-3 inset-y-0 flex items-center pointer-events-none">
                                 <User className="text-gray-400" size={20} />
                               </div>
                             </div>
-                            {index > 0 && (
-                              <motion.button
-                                type="button"
-                                onClick={() => removeTeamMember(index)}
-                                className="flex-shrink-0 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                Hapus
-                              </motion.button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    {/* Tombol Tambah Anggota */}
-                    {teamMembers.length < teamSize && (
-                      <motion.button
-                        type="button"
-                        onClick={addTeamMember}
-                        className="bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition duration-300 mt-4"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Plus size={20} />
-                          <span>Tambah Anggota</span>
+                          )}
                         </div>
-                      </motion.button>
-                    )}
+                      ))}
+
+                      {/* Add Member Button - Moved inside the grid */}
+                      {teamMembers.length < teamSize && (
+                        <motion.button
+                          type="button"
+                          onClick={addTeamMember}
+                          className="group h-full min-h-[200px] bg-gray-50 hover:bg-emerald-50 border-2 border-dashed border-gray-300 hover:border-emerald-300 
+                                   rounded-lg transition-all duration-300 flex flex-col items-center justify-center gap-3 p-4"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-emerald-100 
+                                        flex items-center justify-center transition-colors duration-300">
+                            <Plus className="w-6 h-6 text-gray-500 group-hover:text-emerald-600" />
+                          </div>
+                          <div className="text-center">
+                            <p className="font-medium text-gray-700 group-hover:text-emerald-700">
+                              Tambah Anggota Tim
+                            </p>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {teamSize - teamMembers.length} slot tersisa
+                            </p>
+                          </div>
+                        </motion.button>
+                      )}
+                    </div>
+
+                    {/* Optional: Add helper text */}
+                    <div className="text-center text-sm text-gray-500 mt-2">
+                      {teamMembers.length === teamSize ? (
+                        <p className="text-emerald-600">Tim sudah lengkap! ✨</p>
+                      ) : (
+                        <p>
+                          Tambahkan {teamSize - teamMembers.length} anggota lagi untuk melengkapi tim
+                        </p>
+                      )}
+                    </div>
                   </motion.div>
                 )}
     

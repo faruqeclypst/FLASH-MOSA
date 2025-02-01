@@ -136,7 +136,7 @@ const RegistrationData: React.FC = () => {
 
   const totalPages = Math.ceil(filteredRegistrations.length / itemsPerPage);
 
-  const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected') => {
+  const handleStatusChange = useCallback(async (id: string, newStatus: 'approved' | 'rejected', reason?: string) => {
     try {
       if (!id || typeof id !== 'string') {
         throw new Error('ID tidak valid');
@@ -149,7 +149,11 @@ const RegistrationData: React.FC = () => {
       const updatedRegistration = {
         ...registrations[id],
         status: newStatus,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        ...(newStatus === 'rejected' && reason 
+          ? { rejectionReason: reason } 
+          : { rejectionReason: undefined }
+        )
       };
 
       await updateData({ [id]: updatedRegistration });
@@ -384,6 +388,13 @@ const RegistrationData: React.FC = () => {
             </div>
           </div>
         )}
+
+        {selectedRegistration?.status === 'rejected' && selectedRegistration?.rejectionReason && (
+          <div className="bg-red-50 p-4 rounded-lg mt-4">
+            <h4 className="font-medium text-red-900 mb-2">Alasan Penolakan</h4>
+            <p className="text-red-700">{selectedRegistration.rejectionReason}</p>
+          </div>
+        )}
       </div>
     );
   };
@@ -518,6 +529,7 @@ const RegistrationData: React.FC = () => {
           { header: 'Kompetisi', key: 'competition', width: 25 },
           { header: 'Kategori', key: 'category', width: 15 },
           { header: 'Status', key: 'status', width: 15 },
+          { header: 'Alasan Penolakan', key: 'rejectionReason', width: 30 },
           { header: 'Tanggal Daftar', key: 'registrationDate', width: 20 },
           { header: 'KTS/Surat Aktif', key: 'ktsSuratAktif', width: 50 },
           { header: 'Bukti Pembayaran', key: 'buktiPembayaran', width: 50 },
@@ -550,7 +562,8 @@ const RegistrationData: React.FC = () => {
                     item.status === 'rejected' ? 'Ditolak' : 'Pending',
             registrationDate: format(new Date(item.registrationDate), 'dd/MM/yyyy HH:mm'),
             ktsSuratAktif: item.ktsSuratAktif || '-',
-            buktiPembayaran: item.buktiPembayaran || '-'
+            buktiPembayaran: item.buktiPembayaran || '-',
+            rejectionReason: item.rejectionReason || '-'
           };
 
           // Add passport photo URLs
@@ -767,13 +780,25 @@ const RegistrationData: React.FC = () => {
   }) => {
     const [reason, setReason] = useState('');
 
-    const handleSubmit = () => {
-      if (reason.trim() && registration) {
+    useEffect(() => {
+      if (isOpen && registration?.rejectionReason) {
+        setReason(registration.rejectionReason);
+      } else {
+        setReason('');
+      }
+    }, [isOpen, registration]);
+
+    const handleSubmit = async () => {
+      if (reason.trim() && registration && registration.id) {
+        await handleStatusChange(registration.id, 'rejected', reason.trim());
+        
         window.open(
           `https://wa.me/${registration.whatsapp.replace(/\D/g, '')}?text=${formatRejectionMessage(registration, reason)}`,
           '_blank'
         );
         onClose();
+      } else {
+        showAlert('error', 'Data registrasi tidak valid');
       }
     };
 

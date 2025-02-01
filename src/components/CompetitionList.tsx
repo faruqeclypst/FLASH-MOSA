@@ -421,8 +421,13 @@ const CompetitionAccordion: React.FC<{
   );
 };
 
+// Add cache constants
+const COMPETITIONS_CACHE_KEY = 'competitions_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const CompetitionList: React.FC = () => {
-  const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
+  const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -432,18 +437,49 @@ const CompetitionList: React.FC = () => {
   const [openCompetition, setOpenCompetition] = useState<number | null>(null);
   const [displayCount, setDisplayCount] = useState(4);
   const isMobile = window.innerWidth < 768;
-  // Tambahkan state untuk sorted competitions
   const [sortedCompetitions, setSortedCompetitions] = useState<Competition[]>([]);
 
-  // Pindahkan sorting ke dalam useEffect
+  // Add caching logic
   useEffect(() => {
-    if (flashEvent?.competitions) {
-      const sorted = [...flashEvent.competitions].sort((a, b) => 
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(COMPETITIONS_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedData(data);
+          return true;
+        }
+        localStorage.removeItem(COMPETITIONS_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new Firebase data and no valid cache, update cache
+    if (firebaseData && !hasCachedData) {
+      const cacheData = {
+        data: firebaseData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(COMPETITIONS_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedData(firebaseData);
+    }
+  }, [firebaseData]);
+
+  // Update sorting to use cached data
+  useEffect(() => {
+    const data = cachedData || firebaseData;
+    if (data?.competitions) {
+      const sorted = [...data.competitions].sort((a, b) => 
         a.name.localeCompare(b.name)
       );
       setSortedCompetitions(sorted);
     }
-  }, [flashEvent?.competitions]);
+  }, [cachedData, firebaseData]);
 
   // Tambahkan useEffect untuk Intersection Observer load more
   useEffect(() => {
@@ -479,6 +515,8 @@ const CompetitionList: React.FC = () => {
     }
   }, [controls, inView]);
 
+  // Use cached data if available, otherwise fallback to firebase data
+  const flashEvent = cachedData || firebaseData;
   if (!flashEvent?.competitions) return null;
 
   // Gunakan sortedCompetitions dari state

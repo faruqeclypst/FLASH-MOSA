@@ -199,7 +199,7 @@ const Dashboard: React.FC = () => {
         const sortedRegistrations = [...registrations].sort((a, b) => 
           new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime()
         );
-        setRecentActivities(sortedRegistrations.slice(0, 5));
+        setRecentActivities(sortedRegistrations.slice(0, 8));
       }
     });
   }, []);

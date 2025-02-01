@@ -54,6 +54,7 @@ export interface Registration {
   registrationDate: string;
   competition: string;
   status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
   whatsapp: string;
   email: string;
   city: AcehCity;

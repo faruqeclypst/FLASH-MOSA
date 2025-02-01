@@ -4,14 +4,50 @@ import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';
 import { useInView } from 'react-intersection-observer';
 
+// Cache key for localStorage
+const CACHE_KEY = 'flashEvent_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 const AboutFlash: React.FC = () => {
-  const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  // State for cached data
+  const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
+  const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
   const controls = useAnimation();
   const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedData(data);
+          return true;
+        }
+        localStorage.removeItem(CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new Firebase data and no valid cache, update cache
+    if (firebaseData && !hasCachedData) {
+      const cacheData = {
+        data: firebaseData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      setCachedData(firebaseData);
+    }
+  }, [firebaseData]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -27,6 +63,9 @@ const AboutFlash: React.FC = () => {
       controls.start('visible');
     }
   }, [controls, inView, isMobile]);
+
+  // Use cached data if available, otherwise fallback to firebase data
+  const flashEvent = cachedData || firebaseData;
 
   if (!flashEvent) return null;
 

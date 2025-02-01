@@ -13,6 +13,10 @@ interface TimeLeft {
   seconds: number;
 }
 
+// Add cache constants
+const COUNTDOWN_CACHE_KEY = 'countdown_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds - shorter duration since time changes frequently
+
 const unitLabels: { [key: string]: string } = {
   days: 'HARI',
   hours: 'JAM',
@@ -42,18 +46,52 @@ const Countdown: React.FC<CountdownProps> = ({ eventDate }) => {
   });
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    const calculateTimeLeft = () => {
       const now = new Date().getTime();
       const eventTime = new Date(eventDate).getTime();
       const difference = eventTime - now;
 
       if (difference > 0) {
-        setTimeLeft({
+        return {
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
           hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
           minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
           seconds: Math.floor((difference % (1000 * 60)) / 1000),
-        });
+        };
+      }
+      return null;
+    };
+
+    const loadCachedTime = () => {
+      const cached = localStorage.getItem(COUNTDOWN_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setTimeLeft(data);
+          return true;
+        }
+        localStorage.removeItem(COUNTDOWN_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Initial load - try cache first
+    loadCachedTime();
+
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft();
+      
+      if (newTimeLeft) {
+        setTimeLeft(newTimeLeft);
+        
+        // Cache the new time
+        const cacheData = {
+          data: newTimeLeft,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(COUNTDOWN_CACHE_KEY, JSON.stringify(cacheData));
       } else {
         clearInterval(timer);
       }

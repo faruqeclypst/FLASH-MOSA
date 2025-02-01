@@ -1,4 +1,4 @@
-export const compressImage = async (file: File, quality: number = 0.8): Promise<File> => {
+export const compressImage = async (file: File, quality: number = 0.9): Promise<File> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -7,29 +7,45 @@ export const compressImage = async (file: File, quality: number = 0.8): Promise<
       img.src = event.target?.result as string;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1920;
-        const MAX_HEIGHT = 1080;
+        const MAX_WIDTH = 1280;
+        const MAX_HEIGHT = 720;
         let width = img.width;
         let height = img.height;
 
-        // Maintain aspect ratio while resizing
+        // Calculate target dimensions while maintaining aspect ratio
         if (width > height) {
           if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
+            height = Math.round(height * (MAX_WIDTH / width));
             width = MAX_WIDTH;
           }
         } else {
           if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
+            width = Math.round(width * (MAX_HEIGHT / height));
             height = MAX_HEIGHT;
           }
         }
+
+        // For very small images, don't upscale
+        width = Math.min(width, img.width);
+        height = Math.min(height, img.height);
 
         canvas.width = width;
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
+        if (!ctx) {
+          reject(new Error('Could not get canvas context'));
+          return;
+        }
+
+        // Use better image smoothing
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Draw image with white background for JPEGs
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
 
         canvas.toBlob(
           (blob) => {
@@ -47,6 +63,7 @@ export const compressImage = async (file: File, quality: number = 0.8): Promise<
           quality
         );
       };
+      img.onerror = () => reject(new Error('Image loading failed'));
     };
     reader.onerror = (error) => reject(error);
   });

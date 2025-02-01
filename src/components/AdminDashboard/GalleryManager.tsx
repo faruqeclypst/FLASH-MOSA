@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -8,6 +8,10 @@ import {
 } from 'lucide-react';
 import DeleteModal from './DeleteModal';
 import classNames from 'classnames';
+
+// Add cache constants with shorter duration for admin interface
+const GALLERY_MANAGER_CACHE_KEY = 'gallery_manager_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 interface GalleryManagerProps {
   gallery: string[];
@@ -22,6 +26,50 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
 }) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
+  const [cachedGallery, setCachedGallery] = useState<string[]>([]);
+
+  // Add caching logic
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(GALLERY_MANAGER_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedGallery(data);
+          return true;
+        }
+        localStorage.removeItem(GALLERY_MANAGER_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new gallery data and no valid cache, update cache
+    if (gallery && !hasCachedData) {
+      const cacheData = {
+        data: gallery,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(GALLERY_MANAGER_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedGallery(gallery);
+    }
+  }, [gallery]);
+
+  // Update cache when gallery changes (after upload or delete)
+  useEffect(() => {
+    if (gallery) {
+      const cacheData = {
+        data: gallery,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(GALLERY_MANAGER_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedGallery(gallery);
+    }
+  }, [gallery]);
 
   const openDeleteModal = (index: number) => {
     setImageToDelete(index);
@@ -36,9 +84,13 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
   const confirmDelete = async (): Promise<void> => {
     if (imageToDelete !== null) {
       await handleRemoveGalleryImage(imageToDelete);
+      // Cache will be updated automatically when gallery prop changes
     }
     closeDeleteModal();
   };
+
+  // Use cached gallery with fallback to prop
+  const displayGallery = cachedGallery.length > 0 ? cachedGallery : gallery;
 
   return (
     <div className="p-6 space-y-8">
@@ -57,7 +109,7 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
           <div>
             <p className="text-xs text-indigo-600 font-medium">Total Foto</p>
             <p className="text-lg font-semibold text-indigo-700 leading-none">
-              {gallery?.length || 0}
+              {displayGallery?.length || 0}
             </p>
           </div>
         </div>
@@ -65,7 +117,7 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
 
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Add Button Card - Pindahkan ke atas */}
+        {/* Upload Button */}
         <label
           htmlFor="gallery-upload"
           className="group bg-white rounded-xl border border-dashed border-gray-200 hover:border-indigo-500 transition-all duration-300 h-[280px] flex flex-col items-center justify-center gap-4 hover:bg-indigo-50/50 cursor-pointer"
@@ -88,7 +140,7 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
         </label>
 
         {/* Gallery Cards */}
-        {gallery?.map((image, index) => (
+        {displayGallery?.map((image, index) => (
           <div 
             key={index}
             className="group bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
@@ -116,8 +168,8 @@ const GalleryManager: React.FC<GalleryManagerProps> = ({
           </div>
         ))}
 
-        {/* Empty State - Perbaiki kondisinya */}
-        {(!gallery || gallery.length === 0) && (
+        {/* Empty State */}
+        {(!displayGallery || displayGallery.length === 0) && (
           <div className="col-span-2 lg:col-span-2">
             <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
               <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">

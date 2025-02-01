@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FlashEvent } from '../../types';
 import { 
   Upload, 
@@ -15,6 +15,10 @@ import {
 import classNames from 'classnames';
 import { uploadFile } from '../../services/firebase';
 
+// Add cache constants
+const EVENT_INFO_CACHE_KEY = 'event_info_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 interface EventInfoManagerProps {
   formData: FlashEvent;
   handleChange: (
@@ -25,25 +29,80 @@ interface EventInfoManagerProps {
 }
 
 const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleChange, handleFileUpload }) => {
-  const [eventDate, eventTime] = formData.eventDate ? formData.eventDate.split('T') : ['', ''];
-  const timeValue = eventTime ? eventTime.slice(0, 5) : '';
+  const [cachedFormData, setCachedFormData] = useState(formData);
+  const [eventDate, setEventDate] = useState('');
+  const [timeValue, setTimeValue] = useState('');
 
+  // Add caching logic
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(EVENT_INFO_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedFormData(data);
+          // Set date and time from cached data
+          if (data.eventDate) {
+            const date = new Date(data.eventDate);
+            setEventDate(date.toISOString().split('T')[0]);
+            setTimeValue(date.toTimeString().slice(0, 5));
+          }
+          return true;
+        }
+        localStorage.removeItem(EVENT_INFO_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new form data and no valid cache, update cache
+    if (formData && !hasCachedData) {
+      const cacheData = {
+        data: formData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(EVENT_INFO_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedFormData(formData);
+    }
+  }, [formData]);
+
+  // Update cache when form data changes
+  useEffect(() => {
+    if (formData) {
+      const cacheData = {
+        data: formData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(EVENT_INFO_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedFormData(formData);
+    }
+  }, [formData]);
+
+  // Handle date and time changes with cache update
   const handleDateTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === 'eventDate') {
-      const newDateTime = `${value}T${timeValue || '00:00'}`;
-      handleChange({ 
-        name: 'eventDate', 
-        value: newDateTime,
-        type: 'datetime' 
-      });
+      setEventDate(value);
     } else if (name === 'eventTime') {
-      const newDateTime = `${eventDate || new Date().toISOString().split('T')[0]}T${value}`;
-      handleChange({ 
-        name: 'eventDate', 
-        value: newDateTime,
-        type: 'datetime' 
-      });
+      setTimeValue(value);
+    }
+
+    // Combine date and time for the full eventDate
+    const newDate = name === 'eventDate' ? value : eventDate;
+    const newTime = name === 'eventTime' ? value : timeValue;
+    
+    if (newDate && newTime) {
+      const newDateTime = `${newDate}T${newTime}`;
+      handleChange({
+        target: {
+          name: 'eventDate',
+          value: newDateTime
+        }
+      } as React.ChangeEvent<HTMLInputElement>);
     }
   };
 
@@ -51,7 +110,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
     handleChange({
       name: 'registrationPeriod',
       value: {
-        ...formData.registrationPeriod,
+        ...cachedFormData.registrationPeriod,
         [field]: value
       },
       type: 'registrationPeriod'
@@ -89,11 +148,16 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
   };
 
   const handleTitleTypeChange = (type: 'text' | 'image') => {
-    handleChange({ 
-      name: 'titleType', 
-      value: type 
-    });
+    handleChange({
+      target: {
+        name: 'titleType',
+        value: type
+      }
+    } as React.ChangeEvent<HTMLInputElement>);
   };
+
+  // Use cached form data with fallback to prop
+  const displayData = cachedFormData || formData;
 
   return (
     <div className="p-6 space-y-8">
@@ -147,8 +211,8 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                   onClick={() => handleTitleTypeChange('text')}
                   className={classNames(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    formData.titleType === 'text' 
-                      ? 'bg-indigo-500 text-white'
+                    displayData.titleType === 'text' 
+                      ? 'bg-emerald-800 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
@@ -159,8 +223,8 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                   onClick={() => handleTitleTypeChange('image')}
                   className={classNames(
                     "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-                    formData.titleType === 'image' 
-                      ? 'bg-indigo-500 text-white'
+                    displayData.titleType === 'image' 
+                      ? 'bg-emerald-800 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   )}
                 >
@@ -169,11 +233,11 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
               </div>
 
               {/* Text Title Input */}
-              {formData.titleType === 'text' && (
+              {displayData.titleType === 'text' && (
                 <input
                   type="text"
                   name="title"
-                  value={formData.title}
+                  value={displayData.title}
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   placeholder="Masukkan judul acara"
@@ -181,7 +245,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
               )}
 
               {/* Image Title Upload */}
-              {formData.titleType === 'image' && (
+              {displayData.titleType === 'image' && (
                 <div className="relative">
                   <input
                     type="file"
@@ -190,11 +254,11 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                     className="hidden"
                     id="titleImage"
                   />
-                  {formData.titleImage ? (
+                  {displayData.titleImage ? (
                     <div className="relative group rounded-xl overflow-hidden">
                       <div className="w-full h-[100px] bg-gray-100">
                         <img 
-                          src={formData.titleImage} 
+                          src={displayData.titleImage} 
                           alt="Title"
                           className="w-full h-full object-contain p-4"
                         />
@@ -276,7 +340,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
               </label>
               <textarea
                 name="aboutFlash"
-                value={formData.aboutFlash}
+                value={displayData.aboutFlash}
                 onChange={handleChange}
                 rows={5}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
@@ -297,7 +361,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                     <input
                       type="date"
                       name="registrationPeriod.startDate"
-                      value={formData.registrationPeriod?.startDate || ''}
+                      value={displayData.registrationPeriod?.startDate || ''}
                       onChange={(e) => handleRegistrationPeriodChange('startDate', e.target.value)}
                       className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
@@ -312,7 +376,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                     <input
                       type="date"
                       name="registrationPeriod.endDate"
-                      value={formData.registrationPeriod?.endDate || ''}
+                      value={displayData.registrationPeriod?.endDate || ''}
                       onChange={(e) => handleRegistrationPeriodChange('endDate', e.target.value)}
                       className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
@@ -346,11 +410,11 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                       className="hidden"
                       id={upload.id}
                     />
-                    {formData[upload.id as keyof FlashEvent] ? (
+                    {displayData[upload.id as keyof FlashEvent] ? (
                       <div className="relative group rounded-xl overflow-hidden">
                         {upload.id === 'heroVideo' || upload.id === 'heroVideoMobile' ? (
                           <video 
-                            src={formData[upload.id]} 
+                            src={displayData[upload.id]} 
                             className="w-full h-[200px] object-cover"
                             controls
                           />
@@ -360,7 +424,7 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                             upload.id === 'aboutImage' ? "bg-gray-100" : ""
                           )}>
                             <img 
-                              src={formData[upload.id as keyof FlashEvent] as string} 
+                              src={displayData[upload.id as keyof FlashEvent] as string} 
                               alt={upload.label}
                               className={classNames(
                                 "w-full h-full",

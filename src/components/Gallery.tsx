@@ -5,11 +5,48 @@ import { FlashEvent } from '../types';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { useMediaQuery } from 'react-responsive';
 
+const GALLERY_CACHE_KEY = 'gallery_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
 const Gallery: React.FC = () => {
-  const { data: flashEvent, loading } = useFirebase<FlashEvent>('flashEvent');
+  const { data: firebaseData, loading } = useFirebase<FlashEvent>('flashEvent');
+  const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [viewerOpen, setViewerOpen] = useState(false);
   const isMobile = useMediaQuery({ query: '(max-width: 767px)' });
+
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(GALLERY_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedData(data);
+          return true;
+        }
+        localStorage.removeItem(GALLERY_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new Firebase data and no valid cache, update cache
+    if (firebaseData && !hasCachedData) {
+      const cacheData = {
+        data: firebaseData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(GALLERY_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedData(firebaseData);
+    }
+  }, [firebaseData]);
+
+  // Use cached data if available
+  const flashEvent = cachedData || firebaseData;
 
   useEffect(() => {
     document.body.style.overflow = viewerOpen ? 'hidden' : 'unset';

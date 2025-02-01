@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useFirebase } from '../hooks/useFirebase';
 import { FlashEvent } from '../types';
@@ -82,8 +82,45 @@ const itemVariants = {
   },
 };
 
+const SOCIAL_PROOF_CACHE_KEY = 'social_proof_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
 const SocialProof: React.FC = () => {
-  const { data: flashEvent } = useFirebase<FlashEvent>('flashEvent');
+  const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
+  const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
+  
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(SOCIAL_PROOF_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedData(data);
+          return true;
+        }
+        localStorage.removeItem(SOCIAL_PROOF_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new Firebase data and no valid cache, update cache
+    if (firebaseData && !hasCachedData) {
+      const cacheData = {
+        data: firebaseData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(SOCIAL_PROOF_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedData(firebaseData);
+    }
+  }, [firebaseData]);
+
+  // Use cached data if available
+  const flashEvent = cachedData || firebaseData;
   
   if (!flashEvent) return null;
 

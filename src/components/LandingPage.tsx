@@ -7,16 +7,52 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PulseLoader } from 'react-spinners';
 import { FaPlay } from 'react-icons/fa';
 
+// Add cache constants
+const LANDING_CACHE_KEY = 'landing_page_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
 interface LandingPageProps {
   onLoadingComplete: () => void;
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
-  const { data: flashEvent, loading, error } = useFirebase<FlashEvent>('flashEvent');
+  const { data: firebaseData, loading, error } = useFirebase<FlashEvent>('flashEvent');
+  const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Add caching logic
+  useEffect(() => {
+    const loadCachedData = () => {
+      const cached = localStorage.getItem(LANDING_CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        const isExpired = Date.now() - timestamp > CACHE_DURATION;
+        
+        if (!isExpired) {
+          setCachedData(data);
+          return true;
+        }
+        localStorage.removeItem(LANDING_CACHE_KEY);
+      }
+      return false;
+    };
+
+    // Try to load from cache first
+    const hasCachedData = loadCachedData();
+
+    // If we have new Firebase data and no valid cache, update cache
+    if (firebaseData && !hasCachedData) {
+      const cacheData = {
+        data: firebaseData,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(LANDING_CACHE_KEY, JSON.stringify(cacheData));
+      setCachedData(firebaseData);
+    }
+  }, [firebaseData]);
 
   useEffect(() => {
     if (!loading && !error && userInteracted) {
@@ -27,6 +63,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
       return () => clearTimeout(loadTimer);
     }
   }, [loading, error, onLoadingComplete, userInteracted]);
+
+  // Use cached data if available
+  const flashEvent = cachedData || firebaseData;
 
   useEffect(() => {
     if (videoRef.current && userInteracted) {
@@ -430,11 +469,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
               {isLoaded && (
                 <TypeAnimation
                   sequence={[
+                    'Open Registration From 10 January 2025 - 6 February 2025',
+                    2000,
                     'An event from SMAN Modal Bangsa',
                     2000,
                     'Future Language and Art for Smart Student of Highschool',
-                    2000,
-                    'Open Registration From 9 January 2025',
                     2000,
                   ]}
                   wrapper="span"
