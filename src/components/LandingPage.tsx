@@ -469,7 +469,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
               {isLoaded && (
                 <TypeAnimation
                   sequence={[
-                    'Open Registration From 10 January 2025 - 6 February 2025',
+                    'Open Registration From 10 January 2025 - 10 February 2025',
                     2000,
                     'An event from SMAN Modal Bangsa',
                     2000,

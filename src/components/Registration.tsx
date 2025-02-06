@@ -162,12 +162,12 @@ const RegistrationForm: React.FC = () => {
   };
 
   const validateFile = async (file: File): Promise<File | null> => {
-    const maxSize = 500 * 1024; // 500KB in bytes
+    const maxSize = 200 * 1024; // 500KB in bytes
     
     // For PDF files, just check size
     if (file.type === 'application/pdf') {
       if (file.size > maxSize) {
-        toast.error('File PDF terlalu besar! Maksimal 500KB');
+        toast.error('Khusus file PDF terlalu besar! Maksimal 300KB');
         return null;
       }
       toast.success('File PDF berhasil diunggah');
@@ -214,7 +214,8 @@ const RegistrationForm: React.FC = () => {
     }
     
     // Not a valid file type
-    toast.error('Format file harus PDF, JPG, atau PNG');
+    toast.error('Untuk sementara Format file harus JPG, atau PNG');
+    // toast.error('Format file harus PDF, JPG, atau PNG');
     return null;
   };
 
@@ -597,6 +598,7 @@ const RegistrationForm: React.FC = () => {
                     <li>Pastikan melakukan pendaftaran dengan nomor WhatsApp dan email yang aktif</li>
                     <li>Jika ada kendala, silahkan hubungi kami melalui nomor WhatsApp Panitia</li>
                     <li>File upload sesuai dengan berikut (JPG/PNG/PDF, max 500KB)</li>
+                    {/* <li>File upload sesuai dengan berikut (JPG/PNG/PDF, max 500KB)</li> */}
                   </ul>
                 </motion.div>
               )}
@@ -841,7 +843,8 @@ const RegistrationForm: React.FC = () => {
                           id="ktsSuratAktif"
                           name="ktsSuratAktif"
                           onChange={(e) => handleFileChange(e)}
-                          accept=".pdf,.jpg,.jpeg,.png"
+                          accept=".jpg,.jpeg,.png"
+                          // accept=".pdf,.jpg,.jpeg,.png"
                           required
                           className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
                                    file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 
@@ -866,7 +869,8 @@ const RegistrationForm: React.FC = () => {
                         id="buktiPembayaran"
                         name="buktiPembayaran"
                         onChange={(e) => handleFileChange(e)}
-                        accept=".pdf,.jpg,.jpeg,.png"
+                        accept=".jpg,.jpeg,.png"
+                        // accept=".pdf,.jpg,.jpeg,.png"
                         required
                         className="w-full pl-10 px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition duration-300 
                                  file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 

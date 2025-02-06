@@ -6,15 +6,15 @@ import AboutFlash from '../components/AboutFlash';
 // import FlashActivities from '../components/FlashActivities';
 import CompetitionList from '../components/CompetitionList';
 import Registration from '../components/Registration';
-import Gallery from '../components/Gallery';
+// import Gallery from '../components/Gallery';
 import MapLocation from '../components/MapLocation';
-import CTASection from '../components/CTASection';
+// import CTASection from '../components/CTASection';
 // import SocialProof from '../components/SocialProof';
 // import Reviews from '../components/Reviews';
 import WhatsAppButton from '../components/WhatsAppButton';
 // import MascotButton from '../components/MascotButton';
 // import ContactForm from '../components/ContactForm';
-import BackgroundMusic from '../components/BackgroundMusic';
+// import BackgroundMusic from '../components/BackgroundMusic';
 
 // Define constant for music path
 const MUSIC_PATH = '/music/music.mp3';
@@ -52,18 +52,18 @@ const Home: React.FC = () => {
           <>
             <AboutFlash />
             <CompetitionList />
-            <Gallery />
+            {/* <Gallery /> */}
             {/* <Reviews />  */}
             <Registration />
             <MapLocation />
-            <CTASection />
+            {/* <CTASection /> */}
           </>
         )}
       </main>
       {userInteracted && (
         <>
           <WhatsAppButton />
-          <BackgroundMusic audioSource={MUSIC_PATH} />
+          {/* <BackgroundMusic audioSource={MUSIC_PATH} /> */}
           <Footer />
         </>
       )}

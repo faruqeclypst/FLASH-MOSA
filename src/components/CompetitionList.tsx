@@ -423,7 +423,7 @@ const CompetitionAccordion: React.FC<{
 
 // Add cache constants
 const COMPETITIONS_CACHE_KEY = 'competitions_cache';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_DURATION = 2 * 60 * 60 * 1000; // ubah angka 2 jadi 24 kalau mau 24 hours in milliseconds
 
 const CompetitionList: React.FC = () => {
   const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
