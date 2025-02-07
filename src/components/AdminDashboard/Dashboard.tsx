@@ -13,6 +13,8 @@ import {
   ArrowTrendingUpIcon,
   DocumentTextIcon
 } from '@heroicons/react/24/outline';
+import { FaWhatsapp } from 'react-icons/fa';
+import { DataSnapshot } from 'firebase/database';
 
 // Komponen StatCard
 interface StatCardProps {
@@ -160,6 +162,204 @@ const RecentActivities: React.FC<RecentActivitiesProps> = ({ activities }) => (
   </Card>
 );
 
+// Update the CompetitionStats interface
+interface CompetitionStats {
+  name: string;
+  isActive: boolean;
+  categories: {
+    [key: string]: number;
+  };
+  total: number;
+  approved: number;
+  rejected: number;
+  pending: number;
+  income: number;
+  registrationFee: number;
+}
+
+// Update the CompetitionBreakdown component
+const CompetitionBreakdown: React.FC<{ 
+  competitions: CompetitionStats[];
+  totalRegistrations: number;
+  totalIncome: number;
+  approvedRegistrations: number;
+}> = ({ competitions, totalRegistrations, totalIncome, approvedRegistrations }) => {
+  const formatWhatsAppMessage = (competitions: CompetitionStats[]) => {
+    let message = `*List Pendaftaran Lomba FLASH*\n`;
+    message += `Total Seluruh Pendaftar: ${totalRegistrations}\n`;
+    message += `Total Pemasukan (Disetujui): Rp ${totalIncome.toLocaleString('id-ID')}\n\n`;
+
+    competitions.forEach(comp => {
+      message += `*${comp.name}*\n`;
+      Object.entries(comp.categories)
+        .filter(([_, count]) => count > 0)
+        .forEach(([category, count]) => {
+          message += `${category}: ${count}\n`;
+        });
+      message += `Disetujui: ${comp.approved}\n`;
+      message += `Ditolak: ${comp.rejected}\n`;
+      message += `Pending: ${comp.pending}\n`;
+      message += `Total: ${comp.total}\n`;
+      message += `Pemasukan (Disetujui): Rp ${comp.income.toLocaleString('id-ID')}\n\n`;
+    });
+
+    return encodeURIComponent(message);
+  };
+
+  const renderCategories = (categories: { [key: string]: number }) => {
+    const activeCategories = Object.entries(categories)
+      .filter(([_, count]) => count > 0);
+
+    // If only 1 category, duplicate it to maintain layout
+    if (activeCategories.length === 1) {
+      return (
+        <div className="grid grid-cols-2 gap-2">
+          {[...Array(2)].map((_, idx) => (
+            <div 
+              key={idx}
+              className={`flex items-center justify-between py-1.5 px-3 rounded ${
+                idx === 0 ? 'bg-gray-50' : 'bg-transparent'
+              }`}
+            >
+              {idx === 0 && (
+                <>
+                  <span className="text-sm text-gray-600">{activeCategories[0][0]}</span>
+                  <span className="text-sm font-medium text-gray-900">{activeCategories[0][1]}</span>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // For 2 or more categories, use grid layout
+    const gridCols = activeCategories.length > 2 ? 'grid-cols-3' : 'grid-cols-2';
+    
+    return (
+      <div className={`grid ${gridCols} gap-2`}>
+        {activeCategories.map(([category, count], idx) => (
+          <div 
+            key={idx}
+            className="flex items-center justify-between py-1.5 px-3 bg-gray-50 rounded"
+          >
+            <span className="text-sm text-gray-600">{category}</span>
+            <span className="text-sm font-medium text-gray-900">{count}</span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <Card className="col-span-1 lg:col-span-3 p-3 md:p-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+        <h3 className="text-sm md:text-base font-semibold text-gray-900">
+          Statistik Per Lomba
+        </h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+            <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg w-full sm:w-auto">
+              <span className="text-xs text-gray-500">Total Pendaftar:</span>
+              <span className="text-sm font-semibold text-gray-900">{totalRegistrations}</span>
+            </div>
+            <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 rounded-lg w-full sm:w-auto">
+              <span className="text-xs text-emerald-600">Total Pemasukan ({approvedRegistrations} disetujui):</span>
+              <span className="text-sm font-semibold text-emerald-700">
+                Rp {totalIncome.toLocaleString('id-ID')}
+              </span>
+            </div>
+          </div>
+          <a
+            href={`https://wa.me/?text=${formatWhatsAppMessage(competitions)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 px-3 py-1.5 bg-green-500 text-white rounded-lg hover:bg-green-500 transition-colors text-sm w-full sm:w-auto"
+          >
+            <FaWhatsapp className="w-4 h-4" />
+            Share
+          </a>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {competitions.map((comp, idx) => (
+          <div 
+            key={idx}
+            className="bg-white rounded-lg border border-gray-100 overflow-hidden flex flex-col h-[340px] hover:shadow-md transition-shadow"
+          >
+            {/* Competition Header */}
+            <div className={`px-4 py-5 flex items-center justify-between min-h-[72px] ${
+              comp.isActive 
+                ? 'bg-emerald-50/70 border-b border-emerald-100' 
+                : 'bg-rose-50/70 border-b border-rose-100'
+            }`}>
+              <div className="flex-1 pr-3 flex items-center min-h-[40px]">
+                <h4 className="font-bold text-sm text-gray-800 leading-snug break-words line-clamp-2 my-auto">
+                  {comp.name}
+                </h4>
+              </div>
+              <div className="flex-shrink-0 flex items-center h-full">
+                <span className={`text-xs px-2.5 py-1 rounded-full ${
+                  comp.isActive 
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-rose-100 text-rose-700'
+                }`}>
+                  {comp.isActive ? 'Aktif' : 'Ditutup'}
+                </span>
+              </div>
+            </div>
+
+            {/* Content Container */}
+            <div className="flex-1 p-3 flex flex-col bg-gray-50/30">
+              {/* Categories Section */}
+              <div className="mb-3">
+                {renderCategories(comp.categories)}
+              </div>
+              
+              {/* Status Section */}
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                <div className="bg-emerald-50/80 p-2 rounded text-center">
+                  <span className="text-xs text-emerald-600 block mb-1">Disetujui</span>
+                  <span className="text-sm font-medium text-emerald-700">{comp.approved}</span>
+                </div>
+                <div className="bg-rose-50/80 p-2 rounded text-center">
+                  <span className="text-xs text-rose-600 block mb-1">Ditolak</span>
+                  <span className="text-sm font-medium text-rose-700">{comp.rejected}</span>
+                </div>
+                <div className="bg-amber-50/80 p-2 rounded text-center">
+                  <span className="text-xs text-amber-600 block mb-1">Pending</span>
+                  <span className="text-sm font-medium text-amber-700">{comp.pending}</span>
+                </div>
+              </div>
+
+              {/* Footer Section */}
+              <div className="mt-auto space-y-2">
+                <div className="flex items-center justify-between bg-gray-100/80 p-2 rounded">
+                  <span className="text-sm font-medium text-gray-700">Total Pendaftar</span>
+                  <span className="text-sm font-bold text-gray-900">{comp.total}</span>
+                </div>
+                <div className="flex items-center justify-between bg-sky-50/80 p-2 rounded">
+                  <span className="text-sm font-medium text-sky-700">Biaya Pendaftaran</span>
+                  <span className="text-sm font-bold text-sky-700">
+                    Rp {comp.registrationFee.toLocaleString('id-ID')}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-emerald-50/80 p-2 rounded">
+                  <span className="text-sm font-medium text-emerald-700">Pemasukan</span>
+                  <span className="text-sm font-bold text-emerald-700">
+                    Rp {comp.income.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
 // Komponen Dashboard Utama
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
@@ -173,17 +373,58 @@ const Dashboard: React.FC = () => {
     umumRegistrations: 0,
   });
   const [recentActivities, setRecentActivities] = useState<Registration[]>([]);
+  const [competitionStats, setCompetitionStats] = useState<CompetitionStats[]>([]);
 
   useEffect(() => {
     const db = getDatabase();
     const registrationsRef = ref(db, 'registrations');
+    const flashEventRef = ref(db, 'flashEvent');
     
-    onValue(registrationsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const registrations = Object.values(data) as Registration[];
+    Promise.all([
+      new Promise<DataSnapshot>(resolve => onValue(registrationsRef, resolve, { onlyOnce: true })),
+      new Promise<DataSnapshot>(resolve => onValue(flashEventRef, resolve, { onlyOnce: true }))
+    ]).then(([registrationsSnapshot, flashEventSnapshot]) => {
+      const registrationsData = registrationsSnapshot.val();
+      const flashEventData = flashEventSnapshot.val();
+      
+      if (registrationsData && flashEventData) {
+        const registrations = Object.values(registrationsData) as Registration[];
         
-        // Update stats
+        // Calculate competition stats
+        const compStats = flashEventData.competitions.map((comp: any) => {
+          const compRegistrations = registrations.filter(r => r.competition === comp.name);
+          // Only count approved registrations for income
+          const approvedRegistrations = compRegistrations.filter(r => r.status === 'approved');
+          
+          const categories = {
+            'SD/MI': compRegistrations.filter(r => r.schoolCategory === 'SD/MI').length,
+            'SMP/MTs': compRegistrations.filter(r => r.schoolCategory === 'SMP/MTs').length,
+            'SMA/SMK/MA': compRegistrations.filter(r => r.schoolCategory === 'SMA/SMK/MA').length,
+            'UMUM': compRegistrations.filter(r => r.schoolCategory === 'UMUM').length,
+          };
+
+          // Calculate income only from approved registrations
+          const income = approvedRegistrations.length * (comp.registrationFee || 0);
+
+          return {
+            name: comp.name,
+            isActive: comp.isActive,
+            categories,
+            total: compRegistrations.length,
+            approved: approvedRegistrations.length,
+            rejected: compRegistrations.filter(r => r.status === 'rejected').length,
+            pending: compRegistrations.filter(r => r.status === 'pending').length,
+            registrationFee: comp.registrationFee || 0,
+            income
+          };
+        });
+
+        // Calculate total income from all approved registrations
+        const totalIncome = compStats.reduce((sum: number, comp: CompetitionStats) => sum + comp.income, 0);
+
+        setCompetitionStats(compStats);
+        
+        // Update existing stats
         setStats({
           totalRegistrations: registrations.length,
           pendingRegistrations: registrations.filter(r => r.status === 'pending').length,
@@ -243,6 +484,14 @@ const Dashboard: React.FC = () => {
         <CategoryStats stats={stats} />
         <RecentActivities activities={recentActivities} />
       </div>
+
+      {/* Add Competition Breakdown */}
+      <CompetitionBreakdown 
+        competitions={competitionStats}
+        totalRegistrations={stats.totalRegistrations}
+        totalIncome={competitionStats.reduce((sum: number, comp: CompetitionStats) => sum + comp.income, 0)}
+        approvedRegistrations={stats.approvedRegistrations}
+      />
     </div>
   );
 };

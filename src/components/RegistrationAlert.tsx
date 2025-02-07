@@ -326,26 +326,26 @@ const RegistrationAlert: React.FC<RegistrationAlertProps> = ({ isOpen, onClose, 
               <>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Nama Tim</p>
-                  <p className="font-medium text-gray-900">{registrationData.teamName}</p>
+                  <p className="font-medium text-gray-900 break-words">{registrationData.teamName}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500">Pendaftar</p>
-                  <p className="font-medium text-gray-900">{registrationData.registrantName}</p>
+                  <p className="font-medium text-gray-900 break-words">{registrationData.registrantName}</p>
                 </div>
               </>
             ) : (
               <div className="space-y-1 col-span-2">
                 <p className="text-sm text-gray-500">Nama</p>
-                <p className="font-medium text-gray-900">{registrationData.name}</p>
+                <p className="font-medium text-gray-900 break-words">{registrationData.name}</p>
               </div>
             )}
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2">
               <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium text-gray-900">{registrationData.email}</p>
+              <p className="font-medium text-gray-900 break-words">{registrationData.email}</p>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 col-span-2">
               <p className="text-sm text-gray-500">WhatsApp</p>
-              <p className="font-medium text-gray-900">{registrationData.whatsapp}</p>
+              <p className="font-medium text-gray-900 break-words">{registrationData.whatsapp}</p>
             </div>
           </div>
 

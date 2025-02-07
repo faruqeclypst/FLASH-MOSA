@@ -352,34 +352,83 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-gray-900">Periode Pendaftaran</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tanggal Mulai Pendaftaran
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                      type="date"
-                      name="registrationPeriod.startDate"
-                      value={displayData.registrationPeriod?.startDate || ''}
-                      onChange={(e) => handleRegistrationPeriodChange('startDate', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
+                {/* Start Date & Time */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tanggal Mulai Pendaftaran
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="date"
+                        name="registrationPeriod.startDate"
+                        value={displayData.registrationPeriod?.startDate?.split('T')[0] || ''}
+                        onChange={(e) => {
+                          const currentTime = displayData.registrationPeriod?.startDate?.split('T')[1] || '00:00';
+                          handleRegistrationPeriodChange('startDate', `${e.target.value}T${currentTime}`);
+                        }}
+                        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Waktu Mulai Pendaftaran
+                    </label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="time"
+                        name="registrationPeriod.startTime"
+                        value={displayData.registrationPeriod?.startDate?.split('T')[1] || '00:00'}
+                        onChange={(e) => {
+                          const currentDate = displayData.registrationPeriod?.startDate?.split('T')[0] || new Date().toISOString().split('T')[0];
+                          handleRegistrationPeriodChange('startDate', `${currentDate}T${e.target.value}`);
+                        }}
+                        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tanggal Akhir Pendaftaran
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                      type="date"
-                      name="registrationPeriod.endDate"
-                      value={displayData.registrationPeriod?.endDate || ''}
-                      onChange={(e) => handleRegistrationPeriodChange('endDate', e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    />
+
+                {/* End Date & Time */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tanggal Akhir Pendaftaran
+                    </label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="date"
+                        name="registrationPeriod.endDate"
+                        value={displayData.registrationPeriod?.endDate?.split('T')[0] || ''}
+                        onChange={(e) => {
+                          const currentTime = displayData.registrationPeriod?.endDate?.split('T')[1] || '23:59';
+                          handleRegistrationPeriodChange('endDate', `${e.target.value}T${currentTime}`);
+                        }}
+                        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Waktu Akhir Pendaftaran
+                    </label>
+                    <div className="relative">
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                      <input
+                        type="time"
+                        name="registrationPeriod.endTime"
+                        value={displayData.registrationPeriod?.endDate?.split('T')[1] || '23:59'}
+                        onChange={(e) => {
+                          const currentDate = displayData.registrationPeriod?.endDate?.split('T')[0] || new Date().toISOString().split('T')[0];
+                          handleRegistrationPeriodChange('endDate', `${currentDate}T${e.target.value}`);
+                        }}
+                        className="w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -468,8 +517,8 @@ const EventInfoManager: React.FC<EventInfoManagerProps> = ({ formData, handleCha
                             {upload.id === 'aboutImage' 
                               ? 'Format PNG dengan background transparan'
                               : upload.id === 'heroVideo' 
-                                ? 'MP4, WebM (maks. 100MB)' 
-                                : 'PNG, JPG atau JPEG (maks. 10MB)'}
+                                ? 'MP4, WebM (maks. 3MB)' 
+                                : 'PNG, JPG atau JPEG (maks. 1MB)'}
                           </p>
                         </div>
                       </label>

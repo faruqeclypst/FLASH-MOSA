@@ -22,6 +22,7 @@ import { id } from 'date-fns/locale';
 import CategorySelectionModal from './CategorySelectionModal';
 import BSILogo from '../assets/img/BSI.png';
 import { CheckCircle } from 'lucide-react';
+import InfoModal from './InfoModal';
 
 // Komponen untuk tampilan accordion
 const CompetitionAccordion: React.FC<{ 
@@ -426,20 +427,29 @@ const COMPETITIONS_CACHE_KEY = 'competitions_cache';
 const CACHE_DURATION = 2 * 60 * 60 * 1000; // ubah angka 2 jadi 24 kalau mau 24 hours in milliseconds
 
 const CompetitionList: React.FC = () => {
-  const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
+  // 1. First declare all state hooks
   const [cachedData, setCachedData] = useState<FlashEvent | null>(null);
+  const [openCompetition, setOpenCompetition] = useState<number | null>(null);
+  const [displayCount, setDisplayCount] = useState(4);
+  const [sortedCompetitions, setSortedCompetitions] = useState<Competition[]>([]);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+
+  // 2. Then declare all ref hooks
+  const loadMoreRef = useRef(null);
+
+  // 3. Then declare custom hooks
+  const { data: firebaseData } = useFirebase<FlashEvent>('flashEvent');
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
   });
-  const loadMoreRef = useRef(null);
   const controls = useAnimation();
-  const [openCompetition, setOpenCompetition] = useState<number | null>(null);
-  const [displayCount, setDisplayCount] = useState(4);
-  const isMobile = window.innerWidth < 768;
-  const [sortedCompetitions, setSortedCompetitions] = useState<Competition[]>([]);
 
-  // Add caching logic
+  // 4. Declare constants after hooks
+  const isMobile = window.innerWidth < 768;
+
+  // 5. Then useEffect hooks
+  // Cache effect
   useEffect(() => {
     const loadCachedData = () => {
       const cached = localStorage.getItem(COMPETITIONS_CACHE_KEY);
@@ -456,10 +466,8 @@ const CompetitionList: React.FC = () => {
       return false;
     };
 
-    // Try to load from cache first
     const hasCachedData = loadCachedData();
 
-    // If we have new Firebase data and no valid cache, update cache
     if (firebaseData && !hasCachedData) {
       const cacheData = {
         data: firebaseData,
@@ -470,7 +478,7 @@ const CompetitionList: React.FC = () => {
     }
   }, [firebaseData]);
 
-  // Update sorting to use cached data
+  // Sorting effect
   useEffect(() => {
     const data = cachedData || firebaseData;
     if (data?.competitions) {
@@ -481,7 +489,7 @@ const CompetitionList: React.FC = () => {
     }
   }, [cachedData, firebaseData]);
 
-  // Tambahkan useEffect untuk Intersection Observer load more
+  // Load more effect
   useEffect(() => {
     const options = {
       root: null,
@@ -509,21 +517,31 @@ const CompetitionList: React.FC = () => {
     };
   }, [displayCount, isMobile, sortedCompetitions.length]);
 
+  // Animation effect
   useEffect(() => {
     if (inView) {
       controls.start('visible');
     }
   }, [controls, inView]);
 
+  // Info modal effect
+  useEffect(() => {
+    const hasSeenModal = localStorage.getItem('hasSeenInfoModal');
+    if (!hasSeenModal) {
+      setShowInfoModal(true);
+      localStorage.setItem('hasSeenInfoModal', 'true');
+    }
+  }, []);
+
   // Use cached data if available, otherwise fallback to firebase data
   const flashEvent = cachedData || firebaseData;
   if (!flashEvent?.competitions) return null;
 
-  // Gunakan sortedCompetitions dari state
+  // Calculate displayed competitions
   const displayedCompetitions = sortedCompetitions.slice(0, isMobile ? displayCount : sortedCompetitions.length);
   const hasMore = isMobile && sortedCompetitions.length > displayCount;
 
-  // Update pembagian kolom
+  // Update column distribution
   const leftCompetitions = displayedCompetitions.filter((_, i) => i % 2 === 0);
   const rightCompetitions = displayedCompetitions.filter((_, i) => i % 2 === 1);
 
@@ -688,6 +706,11 @@ const CompetitionList: React.FC = () => {
           </motion.div>
         )}
       </motion.div>
+
+      <InfoModal 
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      />
     </section>
   );
 };

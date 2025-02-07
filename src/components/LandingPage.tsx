@@ -6,10 +6,11 @@ import { TypeAnimation } from 'react-type-animation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PulseLoader } from 'react-spinners';
 import { FaPlay } from 'react-icons/fa';
+import InfoModal from './InfoModal';
 
 // Add cache constants
 const LANDING_CACHE_KEY = 'landing_page_cache';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 1 * 60 * 60 * 1000; // 24 hours
 
 interface LandingPageProps {
   onLoadingComplete: () => void;
@@ -22,6 +23,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
   const [userInteracted, setUserInteracted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Add caching logic
   useEffect(() => {
@@ -97,6 +99,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
 
   const handleEnterWebsite = () => {
     setUserInteracted(true);
+  };
+
+  const handleRegistrationClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowInfoModal(true);
+    const competitionsSection = document.getElementById('competitions');
+    if (competitionsSection) {
+      competitionsSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
   if (error) return <div>Error: {error.message}</div>;
@@ -469,7 +483,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
               {isLoaded && (
                 <TypeAnimation
                   sequence={[
-                    'Open Registration From 10 January 2025 - 10 February 2025',
+                    'Open Registration From 10 January 2025 - 9 February 2025',
                     2000,
                     'An event from SMAN Modal Bangsa',
                     2000,
@@ -486,39 +500,66 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoadingComplete }) => {
             </motion.div>
 
             <div className="mt-6 mb-4">
-              <a 
+              <motion.a 
                 href="#competitions"
                 className="relative inline-flex items-center justify-center 
-                         px-4 py-2.5 md:px-6 md:py-3 font-bold text-sm md:text-base
-                         text-white bg-gradient-to-r from-emerald-900 to-emerald-800
-                         rounded-full overflow-hidden shadow-lg
-                         hover:from-emerald-800 hover:to-emerald-700
-                         transform hover:scale-105 
-                         transition-all duration-300 ease-out
-                         group
-                         focus:outline-none focus:ring-0"
-                onClick={(e) => {
-                  e.preventDefault();
-                  const competitionsSection = document.getElementById('competitions');
-                  if (competitionsSection) {
-                    competitionsSection.scrollIntoView({ 
-                      behavior: 'smooth',
-                      block: 'start'
-                    });
-                  }
-                }}
+                          px-6 py-3.5 md:px-8 md:py-4 font-bold text-base md:text-lg
+                          text-white bg-gradient-to-r from-emerald-800 to-emerald-700
+                          rounded-full overflow-hidden shadow-xl
+                          hover:from-emerald-700 hover:to-emerald-600
+                          transform hover:scale-105 
+                          transition-all duration-300 ease-out
+                          group focus:outline-none focus:ring-2 focus:ring-emerald-600
+                          border border-emerald-600/30"
+                onClick={handleRegistrationClick}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <span className="absolute w-0 h-0 transition-all duration-300 ease-out bg-white rounded-full 
-                               group-hover:w-full group-hover:h-full opacity-10" />
-                               
-                <span className="relative flex items-center gap-2 text-white font-antistar">
+                {/* Glow effect */}
+                <span className="absolute inset-0 bg-gradient-to-r from-emerald-600/0 via-emerald-600/30 to-emerald-600/0 
+                                animate-shimmer" />
+                
+                {/* Pulse ring */}
+                <span className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-emerald-500 
+                                rounded-full blur-lg opacity-30 group-hover:opacity-50 animate-pulse" />
+
+                {/* Button content */}
+                <span className="relative flex items-center gap-3 text-white font-antistar tracking-wide">
+                  <motion.span
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    🏆
+                  </motion.span>
                   Daftar Lomba
+                  <motion.span
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    →
+                  </motion.span>
                 </span>
-              </a>
+              </motion.a>
             </div>
           </div>
         </div>
       </motion.div>
+
+      <InfoModal 
+        isOpen={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+      />
     </div>
   );
 };
